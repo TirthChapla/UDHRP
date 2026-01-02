@@ -152,7 +152,6 @@ function Login({ onLogin }) {
                 value={formData.email}
                 onChange={handleChange}
                 error={errors.email}
-                icon={<Mail size={20} />}
                 required
               />
 
@@ -165,7 +164,6 @@ function Login({ onLogin }) {
                   value={formData.password}
                   onChange={handleChange}
                   error={errors.password}
-                  icon={<Lock size={20} />}
                   required
                 />
                 <button

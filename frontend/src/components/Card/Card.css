@@ -33,3 +33,18 @@
   background: linear-gradient(135deg, var(--color-primary-lightest) 0%, var(--color-bg-primary) 100%);
   border: none;
 }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .card {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+  }
+}

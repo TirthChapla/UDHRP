@@ -926,7 +926,7 @@
   .patient-main-content {
     margin-left: 0;
     max-width: 100%;
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
   }
 
   .patient-dashboard {
@@ -934,33 +934,59 @@
   }
 
   .dashboard-title {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
   }
 
   .section-title {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
   }
 
   .dashboard-stats {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .stat-card {
+    padding: var(--spacing-md);
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .stat-value {
+    font-size: var(--font-size-2xl);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
   }
 
   .health-metrics-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .dashboard-card {
+    padding: var(--spacing-md);
   }
 
   .appointment-item {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
   }
 
   .appointment-date {
-    width: 100%;
-    flex-direction: row;
-    height: auto;
-    padding: var(--spacing-sm);
-    justify-content: flex-start;
-    gap: var(--spacing-sm);
+    width: 56px;
+    height: 56px;
+  }
+
+  .appointment-day {
+    font-size: var(--font-size-xl);
   }
 
   .appointment-card-header {
@@ -972,8 +998,44 @@
     flex-direction: column;
   }
 
+  /* BookingModal responsive */
+  .modal-overlay {
+    padding: var(--spacing-sm);
+  }
+
+  .booking-modal {
+    max-width: 100%;
+  }
+
+  .modal-header h2 {
+    font-size: var(--font-size-xl);
+  }
+
+  .selected-doctor-info {
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .doctor-avatar-modal {
+    width: 60px;
+    height: 60px;
+  }
+
+  .selected-doctor-info h3 {
+    font-size: var(--font-size-lg);
+  }
+
+  .consultation-fee-info {
+    padding: var(--spacing-md);
+  }
+
   .modal-footer {
     flex-direction: column-reverse;
+    gap: var(--spacing-sm);
+  }
+
+  .modal-footer button {
+    width: 100%;
   }
 
   .prescriptions-grid {
@@ -1014,13 +1076,13 @@
   }
 
   .dashboard-title {
-    font-size: var(--font-size-xl);
-    padding: var(--spacing-sm) 0;
+    font-size: var(--font-size-lg);
+    padding: var(--spacing-xs) 0;
   }
 
   .section-title {
-    font-size: var(--font-size-lg);
-    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-sm);
   }
 
   .dashboard-header {
@@ -1033,11 +1095,57 @@
     padding: var(--spacing-sm);
   }
 
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
   .stat-value {
     font-size: var(--font-size-xl);
   }
 
   .stat-label {
+    font-size: var(--font-size-xs);
+  }
+
+  .stat-change {
+    font-size: var(--font-size-xs);
+  }
+
+  .dashboard-stats {
+    gap: var(--spacing-sm);
+  }
+
+  .dashboard-grid {
+    gap: var(--spacing-sm);
+  }
+
+  .dashboard-card {
+    padding: var(--spacing-sm);
+  }
+
+  .card-title {
+    font-size: var(--font-size-base);
+  }
+
+  .health-metrics-grid {
+    gap: var(--spacing-sm);
+  }
+
+  .metric-value {
+    font-size: var(--font-size-lg);
+  }
+
+  .appointment-date {
+    width: 48px;
+    height: 48px;
+  }
+
+  .appointment-day {
+    font-size: var(--font-size-lg);
+  }
+
+  .appointment-month {
     font-size: var(--font-size-xs);
   }
 
@@ -1048,6 +1156,50 @@
 
   .quick-action-btn {
     padding: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  /* BookingModal for small mobile */
+  .modal-overlay {
+    padding: 0;
+  }
+
+  .booking-modal {
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-header h2 {
+    font-size: var(--font-size-lg);
+  }
+
+  .selected-doctor-info {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .doctor-avatar-modal {
+    width: 48px;
+    height: 48px;
+  }
+
+  .selected-doctor-info h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .selected-doctor-info p {
+    font-size: var(--font-size-xs);
+  }
+
+  .consultation-fee-info {
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .consultation-fee-info strong {
+    font-size: var(--font-size-lg);
+  }
+}
     font-size: var(--font-size-sm);
   }
 

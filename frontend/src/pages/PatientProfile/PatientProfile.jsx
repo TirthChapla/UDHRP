@@ -147,7 +147,6 @@ function PatientProfile() {
                   onChange={handleInputChange}
                   placeholder="Enter your full name"
                   required
-                  icon={<User size={18} />}
                 />
 
                 <Input
@@ -157,7 +156,6 @@ function PatientProfile() {
                   value={formData.dob}
                   onChange={handleInputChange}
                   required
-                  icon={<Calendar size={18} />}
                 />
 
                 <div className="input-wrapper">
@@ -306,7 +304,6 @@ function PatientProfile() {
                     value={formData.birthPlace}
                     onChange={handleInputChange}
                     placeholder="City/Location of birth"
-                    icon={<MapPin size={18} />}
                     required
                   />
 
@@ -317,7 +314,6 @@ function PatientProfile() {
                     value={formData.hospitalName}
                     onChange={handleInputChange}
                     placeholder="Hospital where born"
-                    icon={<Building2 size={18} />}
                     required
                   />
                 </div>
@@ -330,7 +326,6 @@ function PatientProfile() {
                 value={formData.specificInstructions}
                 onChange={handleInputChange}
                 placeholder="Any special medical instructions to follow"
-                icon={<FileText size={18} />}
               />
             </>
           ) : (

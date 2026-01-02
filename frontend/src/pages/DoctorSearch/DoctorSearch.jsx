@@ -17,6 +17,8 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedSpecialization, setSelectedSpecialization] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [tempCity, setTempCity] = useState('');
+  const [tempSpecialization, setTempSpecialization] = useState('');
 
   // Set initial search query if provided
   useEffect(() => {
@@ -167,6 +169,20 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
     setSelectedCity('');
     setSelectedSpecialization('');
     setSearchQuery('');
+    setTempCity('');
+    setTempSpecialization('');
+  };
+
+  const handleApplyFilters = () => {
+    setSelectedCity(tempCity);
+    setSelectedSpecialization(tempSpecialization);
+    setShowFilters(false);
+  };
+
+  const handleOpenFilters = () => {
+    setTempCity(selectedCity);
+    setTempSpecialization(selectedSpecialization);
+    setShowFilters(true);
   };
 
   const hasActiveFilters = selectedCity || selectedSpecialization || searchQuery;
@@ -196,7 +212,7 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
           <Button 
             variant="outline" 
             icon={<Filter size={20} />}
-            onClick={() => setShowFilters(!showFilters)}
+            onClick={handleOpenFilters}
           >
             Filters
           </Button>          {hasActiveFilters && (
@@ -210,22 +226,47 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
           )}        </div>
 
         {showFilters && (
-          <div className="filters-section">
-            <Select
-              label="City"
-              options={cities}
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              name="city"
-            />
-            <Select
-              label="Specialization"
-              options={specializations}
-              value={selectedSpecialization}
-              onChange={(e) => setSelectedSpecialization(e.target.value)}
-              name="specialization"
-            />
-          </div>
+          <>
+            <div className="filters-overlay" onClick={() => setShowFilters(false)}></div>
+            <div className="filters-section">
+              <div className="filters-header">
+                <h3>Filter Doctors</h3>
+                <button className="filters-close" onClick={() => setShowFilters(false)}>
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="filters-content">
+                <Select
+                  label="City"
+                  options={cities}
+                  value={tempCity}
+                  onChange={(e) => setTempCity(e.target.value)}
+                  name="city"
+                />
+                <Select
+                  label="Specialization"
+                  options={specializations}
+                  value={tempSpecialization}
+                  onChange={(e) => setTempSpecialization(e.target.value)}
+                  name="specialization"
+                />
+              </div>
+              <div className="filters-actions">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setTempCity('');
+                    setTempSpecialization('');
+                  }}
+                >
+                  Clear
+                </Button>
+                <Button onClick={handleApplyFilters}>
+                  Apply Filters
+                </Button>
+              </div>
+            </div>
+          </>
         )}
 
         <div className="results-count">

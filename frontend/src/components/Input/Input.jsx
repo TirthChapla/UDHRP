@@ -11,7 +11,6 @@ function Input({
   helperText,
   required = false,
   disabled = false,
-  icon = null,
   ...props 
 }) {
   return (
@@ -23,10 +22,9 @@ function Input({
         </label>
       )}
       <div className="input-container">
-        {icon && <span className="input-icon">{icon}</span>}
         <input
           type={type}
-          className={`input-field ${error ? 'input-error' : ''} ${icon ? 'input-with-icon' : ''}`}
+          className={`input-field ${error ? 'input-error' : ''}`}
           placeholder={placeholder}
           value={value}
           onChange={onChange}

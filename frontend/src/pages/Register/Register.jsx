@@ -271,7 +271,6 @@ function Register({ onRegister }) {
                     value={formData.fullName}
                     onChange={handleChange}
                     error={errors.fullName}
-                    icon={<User size={20} />}
                     required
                   />
 
@@ -283,7 +282,6 @@ function Register({ onRegister }) {
                     value={formData.email}
                     onChange={handleChange}
                     error={errors.email}
-                    icon={<Mail size={20} />}
                     required
                   />
 
@@ -295,7 +293,6 @@ function Register({ onRegister }) {
                     value={formData.phone}
                     onChange={handleChange}
                     error={errors.phone}
-                    icon={<Phone size={20} />}
                     required
                   />
 
@@ -308,7 +305,6 @@ function Register({ onRegister }) {
                       value={formData.password}
                       onChange={handleChange}
                       error={errors.password}
-                      icon={<Lock size={20} />}
                       helperText="At least 8 characters"
                       required
                     />
@@ -330,7 +326,6 @@ function Register({ onRegister }) {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       error={errors.confirmPassword}
-                      icon={<Lock size={20} />}
                       required
                     />
                     <button
@@ -493,7 +488,6 @@ function Register({ onRegister }) {
                     value={formData.address}
                     onChange={handleChange}
                     error={errors.address}
-                    icon={<MapPin size={20} />}
                     required
                   />
 
