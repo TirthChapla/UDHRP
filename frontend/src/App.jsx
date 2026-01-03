@@ -6,8 +6,13 @@ import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import PatientDashboard from './pages/PatientDashboard/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard/DoctorDashboard';
+import DoctorPrescription from './pages/DoctorPrescription/DoctorPrescription';
 import LaboratoryDashboard from './pages/LaboratoryDashboard/LaboratoryDashboard';
 import InsuranceDashboard from './pages/InsuranceDashboard/InsuranceDashboard';
+import ReceptionistDashboard from './pages/ReceptionistDashboard/ReceptionistDashboard';
+import ReceptionistLogin from './pages/ReceptionistLogin/ReceptionistLogin';
+import ReceptionistRegister from './pages/ReceptionistRegister/ReceptionistRegister';
+import ReceptionistProfile from './pages/ReceptionistProfile/ReceptionistProfile';
 import './styles/globals.css';
 
 function AppContent() {
@@ -91,6 +96,15 @@ function AppContent() {
           />
           
           <Route 
+            path="/doctor/prescription" 
+            element={
+              <ProtectedRoute allowedRoles={['doctor']}>
+                <DoctorPrescription />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
             path="/laboratory/dashboard" 
             element={
               <ProtectedRoute allowedRoles={['laboratory']}>
@@ -104,6 +118,28 @@ function AppContent() {
             element={
               <ProtectedRoute allowedRoles={['insurance']}>
                 <InsuranceDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Receptionist Routes */}
+          <Route path="/receptionist/login" element={<ReceptionistLogin />} />
+          <Route path="/receptionist/register" element={<ReceptionistRegister />} />
+          
+          <Route 
+            path="/receptionist/dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['receptionist']}>
+                <ReceptionistDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/receptionist/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['receptionist']}>
+                <ReceptionistProfile />
               </ProtectedRoute>
             } 
           />

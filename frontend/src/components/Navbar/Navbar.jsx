@@ -42,10 +42,66 @@ function Navbar({ user, onLogout, onSearch, onNavItemClick }) {
         return '/laboratory/dashboard';
       case 'insurance':
         return '/insurance/dashboard';
+      case 'receptionist':
+        return '/receptionist/dashboard';
       default:
         return '/';
     }
   };
+
+  // Receptionist-specific navbar
+  if (user && user.role === 'receptionist') {
+    return (
+      <nav className="navbar navbar-receptionist">
+        <div className="navbar-container">
+          <Link to="/" className="navbar-logo">
+            <Heart className="navbar-logo-icon" />
+            <span className="navbar-logo-text">UDHRP</span>
+          </Link>
+
+          <div className={`navbar-receptionist-menu ${mobileMenuOpen ? 'navbar-menu-open' : ''}`}>
+            <button onClick={() => { setMobileMenuOpen(false); navigate('/receptionist/dashboard'); }} className="navbar-receptionist-link">
+              <Home size={20} />
+              <span>Dashboard</span>
+            </button>
+            <button onClick={() => { setMobileMenuOpen(false); navigate('/receptionist/profile'); }} className="navbar-receptionist-link">
+              <User size={20} />
+              <span>My Profile</span>
+            </button>
+          </div>
+
+          <div className="navbar-actions">
+            <div className="navbar-user-menu">
+              <button 
+                className="navbar-user-button"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+              >
+                <div className="navbar-user-avatar">
+                  {user.name?.charAt(0) || 'R'}
+                </div>
+              </button>
+
+              {userMenuOpen && (
+                <div className="navbar-dropdown">
+                  <button onClick={handleLogout} className="navbar-dropdown-item navbar-dropdown-logout">
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button 
+              className="navbar-mobile-toggle"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   // Doctor-specific navbar
   if (user && user.role === 'doctor') {
@@ -65,6 +121,10 @@ function Navbar({ user, onLogout, onSearch, onNavItemClick }) {
             <button onClick={() => handlePatientNavClick('dashboard')} className="navbar-doctor-link">
               <Home size={20} />
               <span>Dashboard</span>
+            </button>
+            <button onClick={() => { setMobileMenuOpen(false); navigate('/doctor/prescription'); }} className="navbar-doctor-link">
+              <FileText size={20} />
+              <span>Prescription</span>
             </button>
             <button onClick={() => handlePatientNavClick('schedule')} className="navbar-doctor-link">
               <Calendar size={20} />

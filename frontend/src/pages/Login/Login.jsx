@@ -82,7 +82,8 @@ function Login({ onLogin }) {
         patient: '/patient/dashboard',
         doctor: '/doctor/dashboard',
         laboratory: '/laboratory/dashboard',
-        insurance: '/insurance/dashboard'
+        insurance: '/insurance/dashboard',
+        receptionist: '/receptionist/dashboard'
       };
       
       navigate(dashboardRoutes[formData.role] || '/patient/dashboard');
@@ -138,6 +139,7 @@ function Login({ onLogin }) {
                 options={[
                   { value: 'patient', label: 'Patient' },
                   { value: 'doctor', label: 'Doctor' },
+                  { value: 'receptionist', label: 'Receptionist' },
                   { value: 'laboratory', label: 'Laboratory' },
                   { value: 'insurance', label: 'Insurance Company' }
                 ]}

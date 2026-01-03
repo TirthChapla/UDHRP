@@ -53,6 +53,7 @@ function Register({ onRegister }) {
   const roleOptions = [
     { value: 'patient', label: 'Patient' },
     { value: 'doctor', label: 'Doctor' },
+    { value: 'receptionist', label: 'Receptionist' },
     { value: 'laboratory', label: 'Laboratory' },
     { value: 'insurance', label: 'Insurance Company' }
   ];
@@ -74,6 +75,13 @@ function Register({ onRegister }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // If user selects receptionist, redirect to receptionist register page
+    if (name === 'role' && value === 'receptionist') {
+      navigate('/receptionist/register');
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value

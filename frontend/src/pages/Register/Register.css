@@ -1,32 +1,34 @@
 .register-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 72px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-tertiary) 100%);
-  padding: var(--spacing-xl);
+  padding: 16px;
 }
 
 .register-container {
   display: grid;
-  grid-template-columns: 400px 1fr;
-  max-width: 1200px;
+  grid-template-columns: 40% 60%;
+  max-width: 900px;
   width: 100%;
   background-color: var(--color-bg-primary);
-  border-radius: var(--radius-2xl);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--shadow-2xl);
-  min-height: 700px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  min-height: auto;
 }
 
 .register-sidebar {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
-  padding: var(--spacing-3xl);
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
   color: white;
   position: relative;
   overflow: hidden;
+  justify-content: space-between;
+  min-height: 0;
 }
 
 .register-sidebar::before {
@@ -50,54 +52,56 @@
 .register-logo {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  font-size: var(--font-size-2xl);
+  gap: 8px;
+  font-size: 18px;
   font-weight: var(--font-weight-bold);
   color: white;
-  margin-bottom: var(--spacing-3xl);
+  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .register-hero {
-  margin-bottom: var(--spacing-3xl);
+  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .register-hero h1 {
-  font-size: var(--font-size-3xl);
+  font-size: 24px;
   font-weight: var(--font-weight-bold);
   color: white;
-  margin-bottom: var(--spacing-md);
-  line-height: var(--line-height-tight);
+  margin-bottom: 8px;
+  line-height: 1.3;
 }
 
 .register-hero p {
-  font-size: var(--font-size-base);
-  color: rgba(255, 255, 255, 0.9);
-  line-height: var(--line-height-relaxed);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.5;
 }
 
 .register-progress {
   display: flex;
   align-items: center;
-  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .progress-step {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 6px;
 }
 
 .progress-step-circle {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-full);
   background-color: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-lg);
+  font-size: 14px;
   transition: all var(--transition-base);
 }
 
@@ -108,7 +112,7 @@
 }
 
 .progress-step-label {
-  font-size: var(--font-size-sm);
+  font-size: 11px;
   text-align: center;
   color: rgba(255, 255, 255, 0.9);
 }
@@ -117,8 +121,8 @@
   flex: 1;
   height: 2px;
   background-color: rgba(255, 255, 255, 0.2);
-  margin: 0 var(--spacing-md);
-  margin-bottom: 48px;
+  margin: 0 8px;
+  margin-bottom: 36px;
   position: relative;
   overflow: hidden;
 }
@@ -138,7 +142,7 @@
 }
 
 .register-form-wrapper {
-  padding: var(--spacing-3xl);
+  padding: 28px 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,38 +151,38 @@
 
 .register-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 380px;
 }
 
 .register-header {
   text-align: center;
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: 16px;
 }
 
 .register-role-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-lg);
+  gap: 6px;
+  padding: 6px 12px;
   background: linear-gradient(135deg, var(--color-primary-lightest), rgba(139, 92, 246, 0.1));
   border: 1px solid var(--color-primary-light);
   border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 12px;
   text-transform: capitalize;
 }
 
 .register-header h2 {
-  font-size: var(--font-size-3xl);
+  font-size: 20px;
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: 3px;
 }
 
 .register-header p {
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   color: var(--color-text-tertiary);
   margin: 0;
 }
@@ -191,7 +195,7 @@
 .form-step {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 10px;
   animation: fadeIn var(--transition-base);
 }
 
@@ -209,21 +213,56 @@
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
+  gap: 10px;
+}
+
+/* Override Input heights for compact layout */
+.register-form .input-field,
+.register-form select {
+  padding: 8px 12px;
+  font-size: 13px;
+  height: 36px;
+}
+
+.register-form .input-label {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.register-form .input-wrapper {
+  gap: 4px;
+}
+
+/* Override Button height for compact layout */
+.register-form .button,
+.register-form .button-large {
+  padding: 8px 16px;
+  font-size: 14px;
+  height: 38px;
 }
 
 .password-input-wrapper {
   position: relative;
 }
 
+.password-input-wrapper .input-container {
+  position: relative;
+}
+
 .password-toggle {
   position: absolute;
-  right: var(--spacing-md);
-  top: 38px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
+  border: none;
   color: var(--color-gray-400);
-  padding: var(--spacing-sm);
-  transition: color var(--transition-fast);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
   z-index: 1;
 }
 
@@ -234,28 +273,31 @@
 .form-actions {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: var(--spacing-md);
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .register-footer {
-  margin-top: var(--spacing-xl);
-  padding-top: var(--spacing-xl);
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--color-border-light);
   text-align: center;
 }
 
 .register-footer p {
-  font-size: var(--font-size-base);
+  font-size: 13px;
   color: var(--color-text-secondary);
   margin: 0;
 }
 
 .login-link {
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary);
+  color: #10b981;
+  transition: color 0.2s;
 }
 
 .login-link:hover {
+  color: #059669;
   text-decoration: underline;
 }
 
@@ -271,19 +313,19 @@
 
 @media (max-width: 640px) {
   .register-page {
-    padding: var(--spacing-md);
+    padding: 16px;
   }
 
   .register-form-wrapper {
-    padding: var(--spacing-xl);
+    padding: 24px 20px;
   }
 
   .register-card {
-    padding: var(--spacing-lg);
+    padding: 16px;
   }
 
   .register-header h2 {
-    font-size: var(--font-size-2xl);
+    font-size: 18px;
   }
 
   .form-row {

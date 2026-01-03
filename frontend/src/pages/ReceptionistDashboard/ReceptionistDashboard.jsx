@@ -17,7 +17,7 @@ import './ReceptionistDashboard.css';
 
 function ReceptionistDashboard() {
   const navigate = useNavigate();
-  const [searchEmail, setSearchEmail] = useState('');
+  const [searchPatientId, setSearchPatientId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [showAddAppointment, setShowAddAppointment] = useState(false);
   const [appointmentData, setAppointmentData] = useState({
@@ -64,14 +64,15 @@ function ReceptionistDashboard() {
 
   const handleSearchPatient = () => {
     // Mock search - replace with actual API call
-    if (searchEmail) {
-      // Simulate found patient
+    if (searchPatientId) {
+      // Simulate found patient (50% chance)
+      const found = Math.random() > 0.3;
       const mockPatient = {
-        found: true,
-        name: 'John Doe',
-        email: searchEmail,
-        hasAppointment: false,
-        patientId: 'PAT-123'
+        found: found,
+        name: found ? 'John Doe' : '',
+        email: found ? 'john.doe@example.com' : '',
+        hasAppointment: found ? false : false,
+        patientId: searchPatientId
       };
       setSearchResult(mockPatient);
     }
@@ -186,17 +187,16 @@ function ReceptionistDashboard() {
         <div className="search-form">
           <div className="search-input-group">
             <Input
-              type="email"
-              placeholder="Enter patient email address"
-              value={searchEmail}
-              onChange={(e) => setSearchEmail(e.target.value)}
+              type="text"
+              placeholder="Enter patient ID (e.g., P12345)"
+              value={searchPatientId}
+              onChange={(e) => setSearchPatientId(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearchPatient()}
             />
             <Button onClick={handleSearchPatient}>Search Patient</Button>
           </div>
 
           <Button 
-            variant="outline" 
             onClick={handleRegisterNewPatient}
             className="register-btn"
           >
@@ -236,7 +236,7 @@ function ReceptionistDashboard() {
                 <XCircle size={24} className="error-icon" />
                 <div>
                   <h3>Patient Not Found</h3>
-                  <p>No UDHRP account found with this email</p>
+                  <p>No UDHRP account found with this Patient ID</p>
                   <Button onClick={handleRegisterNewPatient} className="mt-2">
                     Help Patient Register
                   </Button>

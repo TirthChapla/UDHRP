@@ -7,7 +7,7 @@
 .dashboard-header {
   margin-bottom: var(--spacing-2xl);
   padding: var(--spacing-xl);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, var(--color-bg-primary) 100%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, var(--color-bg-primary) 100%);
   border-radius: var(--radius-xl);
   border: 1px solid var(--color-border-light);
 }
@@ -19,7 +19,7 @@
 }
 
 .header-icon {
-  color: #8b5cf6;
+  color: #10b981;
   background: var(--color-bg-primary);
   padding: var(--spacing-md);
   border-radius: var(--radius-lg);
@@ -69,7 +69,7 @@
 }
 
 .stat-primary {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
 }
 
@@ -144,10 +144,17 @@
   display: flex;
   gap: var(--spacing-md);
   min-width: 300px;
+  align-items: stretch;
 }
 
 .search-input-group input {
   flex: 1;
+}
+
+.search-input-group button,
+.register-btn {
+  height: 48px;
+  padding: var(--spacing-sm) var(--spacing-lg);
 }
 
 .register-btn {
