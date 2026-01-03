@@ -4,7 +4,7 @@ spring:
   
   # Database Configuration
   datasource:
-    url: jdbc:mysql://localhost:3306/doctor_ai_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/doctor_ai_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: Tirth2802
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -31,8 +31,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: your-email@gmail.com
-    password: your-app-password
+    username: codingkamr14@gmail.com
+    password: cqty fpka kjfi qglm
     properties:
       mail:
         smtp:
@@ -58,6 +58,8 @@ jwt:
 app:
   name: Doctor AI
   version: 1.0.0
+  base-url: http://localhost:8080/api  # Change this to your production URL
+  frontend-url: http://localhost:5173  # Change this to your frontend URL
   allowed-origins: http://localhost:5173,http://localhost:3000
 
 # Actuator Configuration

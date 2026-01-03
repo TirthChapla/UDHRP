@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -53,6 +54,14 @@ public class User extends BaseEntity {
     private Boolean isActive = true;
     
     private Boolean emailVerified = false;
+    
+    private String resetToken;
+    
+    private LocalDateTime resetTokenExpiry;
+    
+    private String verificationToken;
+    
+    private LocalDateTime verificationTokenExpiry;
     
     public enum UserRole {
         PATIENT, DOCTOR, RECEPTIONIST, LABORATORY, INSURANCE, ADMIN

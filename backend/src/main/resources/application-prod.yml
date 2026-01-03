@@ -4,6 +4,11 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: false
+
+# Production URLs (Update these with your actual production domains)
+app:
+  base-url: https://api.yourdomain.com/api  # Your production backend URL
+  frontend-url: https://yourdomain.com      # Your production frontend URL
     
 logging:
   level:
