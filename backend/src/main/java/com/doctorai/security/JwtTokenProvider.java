@@ -22,7 +22,8 @@ public class JwtTokenProvider {
     
     @Value("${jwt.expiration}")
     private long jwtExpirationMs;
-    
+
+
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -32,7 +33,8 @@ public class JwtTokenProvider {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, userDetails.getUsername());
     }
-    
+
+
     private String createToken(Map<String, Object> claims, String subject) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
@@ -58,7 +60,8 @@ public class JwtTokenProvider {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-    
+
+
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())

@@ -15,7 +15,8 @@ import java.util.Map;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-    
+
+
     @Override
     public void commence(HttpServletRequest request, 
                          HttpServletResponse response,

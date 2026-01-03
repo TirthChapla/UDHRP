@@ -31,13 +31,15 @@ public class AuthService {
     
     @Autowired
     private AuthenticationManager authenticationManager;
-    
+
+
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     
     @Autowired
     private ModelMapper modelMapper;
-    
+
+
     @Transactional
     public UserDTO register(RegisterRequest registerRequest) {
         // Check if email already exists
@@ -65,6 +67,7 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         return modelMapper.map(savedUser, UserDTO.class);
     }
+
     
     public JwtAuthResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -73,7 +76,8 @@ public class AuthService {
                         loginRequest.getPassword()
                 )
         );
-        
+
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -84,4 +88,5 @@ public class AuthService {
         
         return new JwtAuthResponse(token, user.getId(), user.getEmail(), user.getRole().name());
     }
+
 }
