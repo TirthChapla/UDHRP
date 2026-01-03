@@ -14,6 +14,7 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [patientActiveTab, setPatientActiveTab] = useState('overview');
+  const [doctorActiveTab, setDoctorActiveTab] = useState('dashboard');
   const navigate = useNavigate();
 
   const handleLogin = (userData) => {
@@ -39,6 +40,9 @@ function AppContent() {
     if (user && user.role === 'patient') {
       setPatientActiveTab(tab);
       navigate('/patient/dashboard', { state: { activeTab: tab } });
+    } else if (user && user.role === 'doctor') {
+      setDoctorActiveTab(tab);
+      navigate('/doctor/dashboard', { state: { activeTab: tab } });
     }
   };
 

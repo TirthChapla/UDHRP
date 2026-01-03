@@ -47,6 +47,64 @@ function Navbar({ user, onLogout, onSearch, onNavItemClick }) {
     }
   };
 
+  // Doctor-specific navbar
+  if (user && user.role === 'doctor') {
+    return (
+      <nav className="navbar navbar-doctor">
+        <div className="navbar-container">
+          <Link to="/" className="navbar-logo">
+            <Heart className="navbar-logo-icon" />
+            <span className="navbar-logo-text">UDHRP</span>
+          </Link>
+
+          <div className={`navbar-doctor-menu ${mobileMenuOpen ? 'navbar-menu-open' : ''}`}>
+            <button onClick={() => handlePatientNavClick('profile')} className="navbar-doctor-link">
+              <User size={20} />
+              <span>My Profile</span>
+            </button>
+            <button onClick={() => handlePatientNavClick('dashboard')} className="navbar-doctor-link">
+              <Home size={20} />
+              <span>Dashboard</span>
+            </button>
+            <button onClick={() => handlePatientNavClick('schedule')} className="navbar-doctor-link">
+              <Calendar size={20} />
+              <span>View Schedule</span>
+            </button>
+          </div>
+
+          <div className="navbar-actions">
+            <div className="navbar-user-menu">
+              <button 
+                className="navbar-user-button"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+              >
+                <div className="navbar-user-avatar">
+                  {user.name?.charAt(0) || 'U'}
+                </div>
+              </button>
+
+              {userMenuOpen && (
+                <div className="navbar-dropdown">
+                  <button onClick={handleLogout} className="navbar-dropdown-item navbar-dropdown-logout">
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button 
+              className="navbar-mobile-toggle"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
   // Patient-specific navbar
   if (user && user.role === 'patient') {
     return (

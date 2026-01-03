@@ -486,11 +486,6 @@
     font-size: var(--font-size-2xl);
   }
 
-  .header-actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
   .dashboard-stats {
     grid-template-columns: 1fr;
   }
@@ -507,3 +502,26 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 480px) {
+  .doctor-dashboard {
+    padding: var(--spacing-md);
+  }
+  
+  .dashboard-header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .dashboard-stats {
+    gap: var(--spacing-md);
+  }
+
+  .stat-card {
+    padding: var(--spacing-md);
+  }
+
+  .card-title {
+    font-size: var(--font-size-base);
+  }
+}
+
