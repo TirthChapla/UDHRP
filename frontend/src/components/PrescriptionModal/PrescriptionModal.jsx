@@ -274,6 +274,14 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
             </table>
           </div>
 
+          {/* Lab Reports */}
+          {prescription.labReports && (
+            <div className="labreports-section">
+              <div className="label-cell">Lab Reports:</div>
+              <div className="value-cell labreports-content">{prescription.labReports}</div>
+            </div>
+          )}
+
           {/* Diet to Follow */}
           <div className="diet-section">
             <div className="label-cell">Diet To Follow:</div>

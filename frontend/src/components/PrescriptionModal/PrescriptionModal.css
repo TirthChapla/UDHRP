@@ -402,6 +402,28 @@
   color: #000;
 }
 
+/* Lab Reports Section */
+.labreports-section {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+}
+
+.labreports-section .label-cell {
+  font-weight: bold;
+  color: #333;
+  min-width: 150px;
+}
+
+.labreports-content {
+  flex: 1;
+  color: #000;
+  line-height: 1.8;
+}
+
 /* Diet Section */
 .diet-section {
   display: flex;
@@ -686,6 +708,7 @@
   }
 
   .allergies-section,
+  .labreports-section,
   .diet-section,
   .history-section,
   .followup-section {
@@ -694,6 +717,7 @@
   }
 
   .allergies-section .label-cell,
+  .labreports-section .label-cell,
   .diet-section .label-cell,
   .history-section .label-cell,
   .followup-section .label-cell {
@@ -701,6 +725,7 @@
     min-width: auto;
   }
 
+  .labreports-content,
   .diet-content,
   .history-content {
     font-size: 10px;

@@ -20,7 +20,8 @@ function DoctorPrescription() {
     instructions: 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.',
     dietToFollow: 'Stay hydrated. Avoid cold beverages. Rest adequately. Use steam inhalation twice daily.',
     allergies: 'None',
-    followUp: 'If symptoms persist after 7 days'
+    followUp: 'If symptoms persist after 7 days',
+    labReports: ''
   });
 
   // Mock patient data
@@ -267,6 +268,13 @@ function DoctorPrescription() {
             </div>
           </div>
 
+          {data.labReports && (
+            <div className="view-detail-row full-width">
+              <label>Lab Reports:</label>
+              <span>{data.labReports}</span>
+            </div>
+          )}
+
           <div className="view-detail-row">
             <label>Follow Up:</label>
             <span>{data.followUp}</span>
@@ -386,6 +394,17 @@ function DoctorPrescription() {
           </div>
         </div>
 
+        {/* Lab Reports */}
+        <div className="form-group">
+          <label>Lab Reports</label>
+          <textarea
+            value={prescriptionData.labReports}
+            onChange={(e) => handlePrescriptionChange('labReports', e.target.value)}
+            rows={2}
+            placeholder="Enter required lab tests or reports..."
+          />
+        </div>
+
         {/* Diet To Follow */}
         <div className="form-group">
           <label>Diet To Follow</label>
@@ -478,18 +497,6 @@ function DoctorPrescription() {
   return (
     <div className="doctor-prescription-page">
       <div className="prescription-header">
-        <div className="header-left">
-          <Button
-            variant="ghost"
-            onClick={() => setSelectedPatient(null)}
-          >
-            ← Back to Search
-          </Button>
-          <h1>Create Prescription</h1>
-        </div>
-      </div>
-
-      <div className="prescription-layout">
         {/* Sidebar Toggle Button */}
         <button 
           className="sidebar-toggle-btn"
@@ -498,7 +505,13 @@ function DoctorPrescription() {
         >
           <Menu size={20} />
         </button>
+        
+        <div className="header-left">
+          <h1>Create Prescription - {selectedPatient.name}</h1>
+        </div>
+      </div>
 
+      <div className="prescription-layout">
         {/* Left Sidebar */}
         <aside className={`patient-sidebar ${!sidebarOpen ? 'sidebar-closed' : ''}`}>
           {/* Navigation Buttons */}
