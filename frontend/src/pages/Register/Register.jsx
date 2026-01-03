@@ -5,10 +5,12 @@ import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import Select from '../../components/Select/Select';
 import Card from '../../components/Card/Card';
+import { useAuth } from '../../contexts/AuthContext';
 import './Register.css';
 
-function Register({ onRegister }) {
+function Register() {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get('role') || 'patient';
   
@@ -16,36 +18,17 @@ function Register({ onRegister }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [apiError, setApiError] = useState('');
   
   const [formData, setFormData] = useState({
-    role: roleParam,
+    role: roleParam.toUpperCase(),
     // Personal Info
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    phone: '',
+    phoneNumber: '',
     password: '',
-    confirmPassword: '',
-    // Address
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-    // Role Specific
-    aadhaar: '',
-    dateOfBirth: '',
-    gender: '',
-    // Doctor Specific
-    licenseNumber: '',
-    specialization: '',
-    experience: '',
-    qualification: '',
-    // Laboratory Specific
-    labName: '',
-    labLicense: '',
-    services: [],
-    // Insurance Specific
-    companyName: '',
-    companyRegNumber: '',
+    confirmPassword: ''
   });
   
   const [errors, setErrors] = useState({});

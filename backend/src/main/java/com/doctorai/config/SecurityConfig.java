@@ -60,7 +60,8 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/auth/register", "/auth/login", "/auth/forgot-password", 
-                                "/auth/reset-password", "/auth/verify-email", "/auth/resend-verification").permitAll()
+                                "/auth/reset-password", "/auth/verify-otp", "/auth/reset-password-otp",
+                                "/auth/verify-email", "/auth/resend-verification").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()

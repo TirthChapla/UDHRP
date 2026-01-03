@@ -34,15 +34,15 @@ function Navbar({ user, onLogout, onSearch, onNavItemClick }) {
   const getDashboardLink = () => {
     if (!user) return '/';
     switch (user.role) {
-      case 'patient':
+      case 'PATIENT':
         return '/patient/dashboard';
-      case 'doctor':
+      case 'DOCTOR':
         return '/doctor/dashboard';
-      case 'laboratory':
+      case 'LABORATORY':
         return '/laboratory/dashboard';
-      case 'insurance':
+      case 'INSURANCE':
         return '/insurance/dashboard';
-      case 'receptionist':
+      case 'RECEPTIONIST':
         return '/receptionist/dashboard';
       default:
         return '/';
@@ -50,7 +50,7 @@ function Navbar({ user, onLogout, onSearch, onNavItemClick }) {
   };
 
   // Receptionist-specific navbar
-  if (user && user.role === 'receptionist') {
+  if (user && user.role === 'RECEPTIONIST') {
     return (
       <nav className="navbar navbar-receptionist">
         <div className="navbar-container">
@@ -104,7 +104,7 @@ function Navbar({ user, onLogout, onSearch, onNavItemClick }) {
   }
 
   // Doctor-specific navbar
-  if (user && user.role === 'doctor') {
+  if (user && user.role === 'DOCTOR') {
     return (
       <nav className="navbar navbar-doctor">
         <div className="navbar-container">
@@ -166,7 +166,7 @@ function Navbar({ user, onLogout, onSearch, onNavItemClick }) {
   }
 
   // Patient-specific navbar
-  if (user && user.role === 'patient') {
+  if (user && user.role === 'PATIENT') {
     return (
       <nav className="navbar navbar-patient">
         <div className="navbar-container">

@@ -3,20 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Heart } from 'lucide-react';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
-import Select from '../../components/Select/Select';
 import Card from '../../components/Card/Card';
+import { useAuth } from '../../contexts/AuthContext';
 import './Login.css';
 
-function Login({ onLogin }) {
+function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    role: 'patient'
+    password: ''
   });
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,12 +41,6 @@ function Login({ onLogin }) {
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    if (!formData.role) {
-      newErrors.role = 'Please select your role';
     }
     
     return newErrors;
@@ -61,33 +56,34 @@ function Login({ onLogin }) {
     }
 
     setLoading(true);
+    setApiError('');
     
-    // Simulate API call
-    setTimeout(() => {
-      const mockUser = {
-        id: '1',
-        name: 'John Doe',
-        email: formData.email,
-        role: formData.role
-      };
+    try {
+      const result = await login(formData.email, formData.password);
       
-      if (onLogin) {
-        onLogin(mockUser);
+      if (result.success) {
+        // Get user role from response
+        const role = result.data.role.toLowerCase();
+        
+        // Redirect to appropriate dashboard based on role
+        const dashboardRoutes = {
+          patient: '/patient/dashboard',
+          doctor: '/doctor/dashboard',
+          laboratory: '/laboratory/dashboard',
+          insurance: '/insurance/dashboard',
+          receptionist: '/receptionist/dashboard',
+          admin: '/admin/dashboard'
+        };
+        
+        navigate(dashboardRoutes[role] || '/patient/dashboard');
+      } else {
+        setApiError(result.error || 'Login failed. Please check your credentials.');
       }
-      
+    } catch (error) {
+      setApiError('An error occurred. Please try again.');
+    } finally {
       setLoading(false);
-      
-      // Redirect to appropriate dashboard based on role
-      const dashboardRoutes = {
-        patient: '/patient/dashboard',
-        doctor: '/doctor/dashboard',
-        laboratory: '/laboratory/dashboard',
-        insurance: '/insurance/dashboard',
-        receptionist: '/receptionist/dashboard'
-      };
-      
-      navigate(dashboardRoutes[formData.role] || '/patient/dashboard');
-    }, 1500);
+    }
   };
 
   return (
@@ -130,21 +126,18 @@ function Login({ onLogin }) {
             </div>
 
             <form onSubmit={handleSubmit} className="login-form">
-              <Select
-                label="Login As"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                error={errors.role}
-                options={[
-                  { value: 'patient', label: 'Patient' },
-                  { value: 'doctor', label: 'Doctor' },
-                  { value: 'receptionist', label: 'Receptionist' },
-                  { value: 'laboratory', label: 'Laboratory' },
-                  { value: 'insurance', label: 'Insurance Company' }
-                ]}
-                required
-              />
+              {apiError && (
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: '#fee',
+                  border: '1px solid #fcc',
+                  borderRadius: '8px',
+                  color: '#c33',
+                  marginBottom: '16px'
+                }}>
+                  {apiError}
+                </div>
+              )}
 
               <Input
                 label="Email Address"

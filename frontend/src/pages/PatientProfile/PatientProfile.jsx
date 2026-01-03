@@ -15,15 +15,18 @@ import {
   ToggleRight,
   Edit,
   Save,
-  X as XIcon
+  X as XIcon,
+  Lock
 } from 'lucide-react';
 import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
+import ChangePasswordModal from '../../components/ChangePasswordModal/ChangePasswordModal';
 import './PatientProfile.css';
 
 function PatientProfile() {
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   
   // Mock data - In real app, this would come from API/database
   const [formData, setFormData] = useState({
@@ -117,13 +120,22 @@ function PatientProfile() {
           </div>
         </div>
         {!isEditMode && (
-          <Button
-            variant="primary"
-            icon={<Edit size={20} />}
-            onClick={handleEdit}
-          >
-            Edit Profile
-          </Button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <Button
+              variant="secondary"
+              icon={<Lock size={20} />}
+              onClick={() => setIsChangePasswordOpen(true)}
+            >
+              Change Password
+            </Button>
+            <Button
+              variant="primary"
+              icon={<Edit size={20} />}
+              onClick={handleEdit}
+            >
+              Edit Profile
+            </Button>
+          </div>
         )}
       </div>
 
@@ -561,6 +573,11 @@ function PatientProfile() {
           </div>
         )}
       </form>
+
+      <ChangePasswordModal 
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </div>
   );
 }

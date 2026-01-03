@@ -5,6 +5,7 @@ import com.doctorai.exception.BadRequestException;
 import com.doctorai.exception.ResourceNotFoundException;
 import com.doctorai.model.User;
 import com.doctorai.repository.UserRepository;
+import com.doctorai.security.CustomUserDetailsService;
 import com.doctorai.security.JwtTokenProvider;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ public class AuthService {
     
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @Transactional
     public UserDTO register(RegisterRequest registerRequest) {
@@ -175,25 +179,94 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         
-        // Generate reset token
-        String resetToken = UUID.randomUUID().toString();
+        // Generate 6-digit OTP
+        String otp = String.format("%06d", (int)(Math.random() * 1000000));
         
-        // Store reset token with 1 hour expiration
-        user.setResetToken(resetToken);
-        user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        // Store OTP with 10 minutes expiration
+        user.setPasswordResetOtp(otp);
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
         
-        // Send password reset email
+        // Send OTP email
         try {
-            emailService.sendPasswordResetEmail(
+            emailService.sendPasswordResetOtp(
                 user.getEmail(),
                 user.getFirstName(),
-                resetToken
+                otp
             );
         } catch (Exception e) {
             // Log error but don't fail request
-            System.err.println("Failed to send password reset email: " + e.getMessage());
+            System.err.println("Failed to send OTP email: " + e.getMessage());
         }
+    }
+    
+    @Transactional
+    public ApiResponse<String> verifyOtp(String email, String otp) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        
+        // Check if OTP is set
+        if (user.getPasswordResetOtp() == null) {
+            throw new BadRequestException("No OTP request found for this email");
+        }
+        
+        // Check if OTP is expired (10 minutes)
+        if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            user.setPasswordResetOtp(null);
+            user.setOtpExpiry(null);
+            userRepository.save(user);
+            throw new BadRequestException("OTP has expired. Please request a new one");
+        }
+        
+        // Verify OTP
+        if (!otp.equals(user.getPasswordResetOtp())) {
+            throw new BadRequestException("Invalid OTP");
+        }
+        
+        return ApiResponse.success("OTP verified successfully. You can now reset your password", null);
+    }
+    
+    @Transactional
+    public JwtAuthResponse resetPasswordWithOtp(String email, String otp, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        
+        // Check if OTP is set
+        if (user.getPasswordResetOtp() == null) {
+            throw new BadRequestException("No OTP request found for this email");
+        }
+        
+        // Check if OTP is expired
+        if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            user.setPasswordResetOtp(null);
+            user.setOtpExpiry(null);
+            userRepository.save(user);
+            throw new BadRequestException("OTP has expired. Please request a new one");
+        }
+        
+        // Verify OTP
+        if (!otp.equals(user.getPasswordResetOtp())) {
+            throw new BadRequestException("Invalid OTP");
+        }
+        
+        // Update password and clear OTP
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordResetOtp(null);
+        user.setOtpExpiry(null);
+        userRepository.save(user);
+        
+        // Auto login - generate JWT token
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        String token = jwtTokenProvider.generateToken(userDetails);
+        
+        JwtAuthResponse response = new JwtAuthResponse();
+        response.setToken(token);
+        response.setType("Bearer");
+        response.setUserId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole().name());
+        
+        return response;
     }
     
     @Transactional

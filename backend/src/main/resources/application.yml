@@ -59,8 +59,8 @@ app:
   name: Doctor AI
   version: 1.0.0
   base-url: http://localhost:8080/api  # Change this to your production URL
-  frontend-url: http://localhost:5173  # Change this to your frontend URL
-  allowed-origins: http://localhost:5173,http://localhost:3000
+  frontend-url: http://localhost:3000  # Change this to your frontend URL
+  allowed-origins: http://localhost:5173,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003
 
 # Actuator Configuration
 management:

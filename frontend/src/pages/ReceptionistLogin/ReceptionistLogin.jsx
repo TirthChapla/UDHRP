@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Heart } from 'lucide-react';
 import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
-import './ReceptionistLogin.css';
+import '../Login/Login.css';
 
 function ReceptionistLogin() {
   const navigate = useNavigate();
@@ -50,68 +50,110 @@ function ReceptionistLogin() {
   };
 
   return (
-    <div className="receptionist-login">
+    <div className="login-page">
       <div className="login-container">
-        <Card variant="default" className="login-card">
-          <div className="login-header">
-            <div className="header-icon">
-              <LogIn size={32} />
-            </div>
-            <h1>Receptionist Login</h1>
-            <p>Sign in to manage appointments and patients</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="login-form">
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="receptionist@example.com"
-              value={formData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
-              error={errors.email}
-              required
-              icon={<Mail size={20} />}
-            />
-
-            <div className="password-input-wrapper">
-              <Input
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={(e) => handleChange('password', e.target.value)}
-                error={errors.password}
-                required
-                icon={<Lock size={20} />}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-
-            <Button type="submit" className="login-button">
-              Sign In
-            </Button>
-          </form>
-
-          <div className="login-footer">
-            <div className="divider">
-              <span>New receptionist?</span>
-            </div>
-            <Link to="/receptionist/register" className="register-link">
-              <UserPlus size={20} />
-              Create Account (Doctor Verification Required)
+        <div className="login-sidebar">
+          <div className="login-sidebar-content">
+            <Link to="/" className="login-logo">
+              <Heart size={40} />
+              <span>UDHRP</span>
             </Link>
-          </div>
+            
+            <div className="login-hero">
+              <h1>Receptionist Portal</h1>
+              <p>Manage appointments, patients, and help doctors provide better care</p>
+            </div>
 
-          <div className="back-to-main">
-            <Link to="/login">← Back to Main Login</Link>
+            <div className="login-features">
+              <div className="login-feature">
+                <div className="login-feature-icon">✓</div>
+                <div>Manage patient appointments</div>
+              </div>
+              <div className="login-feature">
+                <div className="login-feature-icon">✓</div>
+                <div>Schedule and coordinate visits</div>
+              </div>
+              <div className="login-feature">
+                <div className="login-feature-icon">✓</div>
+                <div>Streamline healthcare operations</div>
+              </div>
+            </div>
           </div>
-        </Card>
+        </div>
+
+        <div className="login-form-wrapper">
+          <Card className="login-card">
+            <div className="login-header">
+              <h2>Receptionist Sign In</h2>
+              <p>Enter your credentials to access your account</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="login-form">
+              <Input
+                label="Email Address"
+                type="email"
+                name="email"
+                placeholder="receptionist@example.com"
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                error={errors.email}
+                required
+              />
+
+              <div className="password-input-wrapper">
+                <Input
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  error={errors.password}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+
+              <div className="login-options">
+                <label className="remember-me">
+                  <input type="checkbox" />
+                  <span>Remember me</span>
+                </label>
+                <Link to="/forgot-password" className="forgot-password">
+                  Forgot Password?
+                </Link>
+              </div>
+
+              <Button
+                type="submit"
+                fullWidth
+                size="large"
+              >
+                Sign In
+              </Button>
+            </form>
+
+            <div className="login-footer">
+              <p>
+                New receptionist?{' '}
+                <Link to="/receptionist/register" className="register-link">
+                  Create Account
+                </Link>
+              </p>
+              <p style={{ marginTop: '12px' }}>
+                <Link to="/login" className="register-link">
+                  ← Back to Main Login
+                </Link>
+              </p>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );

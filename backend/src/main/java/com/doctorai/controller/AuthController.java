@@ -65,10 +65,24 @@ public class AuthController {
     }
     
     @PostMapping("/forgot-password")
-    @Operation(summary = "Request password reset")
+    @Operation(summary = "Request password reset OTP")
     public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         authService.forgotPassword(request.getEmail());
-        return ResponseEntity.ok(ApiResponse.success("Password reset link sent to your email", null));
+        return ResponseEntity.ok(ApiResponse.success("OTP sent to your email", null));
+    }
+    
+    @PostMapping("/verify-otp")
+    @Operation(summary = "Verify OTP for password reset")
+    public ResponseEntity<ApiResponse<String>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        ApiResponse<String> response = authService.verifyOtp(request.getEmail(), request.getOtp());
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/reset-password-otp")
+    @Operation(summary = "Reset password with OTP and auto login")
+    public ResponseEntity<ApiResponse<JwtAuthResponse>> resetPasswordWithOtp(@Valid @RequestBody ResetPasswordWithOtpRequest request) {
+        JwtAuthResponse authResponse = authService.resetPasswordWithOtp(request.getEmail(), request.getOtp(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password reset successful. You are now logged in", authResponse));
     }
     
     @PostMapping("/reset-password")
@@ -79,16 +93,23 @@ public class AuthController {
     }
     
     @GetMapping("/verify-email")
-    @Operation(summary = "Verify email with token")
-    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam String token) {
+    @Operation(summary = "Verify email with token (GET request)")
+    public ResponseEntity<ApiResponse<String>> verifyEmailGet(@RequestParam String token) {
         authService.verifyEmail(token);
+        return ResponseEntity.ok(ApiResponse.success("Email verified successfully", null));
+    }
+    
+    @PostMapping("/verify-email")
+    @Operation(summary = "Verify email with token (POST request)")
+    public ResponseEntity<ApiResponse<String>> verifyEmailPost(@Valid @RequestBody VerifyEmailRequest request) {
+        authService.verifyEmail(request.getToken());
         return ResponseEntity.ok(ApiResponse.success("Email verified successfully", null));
     }
     
     @PostMapping("/resend-verification")
     @Operation(summary = "Resend email verification")
-    public ResponseEntity<ApiResponse<String>> resendVerification(@RequestParam String email) {
-        authService.resendVerification(email);
+    public ResponseEntity<ApiResponse<String>> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        authService.resendVerification(request.getEmail());
         return ResponseEntity.ok(ApiResponse.success("Verification email sent", null));
     }
 }

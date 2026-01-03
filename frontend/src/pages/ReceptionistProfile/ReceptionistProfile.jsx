@@ -4,12 +4,14 @@ import { User, Mail, Phone, Trash2, Lock, Shield, AlertTriangle } from 'lucide-r
 import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
+import ChangePasswordModal from '../../components/ChangePasswordModal/ChangePasswordModal';
 import './ReceptionistProfile.css';
 
 function ReceptionistProfile() {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [deleteVerification, setDeleteVerification] = useState({
     doctorEmail: '',
     doctorPassword: ''
@@ -147,9 +149,15 @@ function ReceptionistProfile() {
                   </Button>
                 </>
               ) : (
-                <Button onClick={handleEdit}>
-                  Edit Profile
-                </Button>
+                <>
+                  <Button variant="secondary" onClick={() => setIsChangePasswordOpen(true)}>
+                    <Lock size={18} />
+                    Change Password
+                  </Button>
+                  <Button onClick={handleEdit}>
+                    Edit Profile
+                  </Button>
+                </>
               )}
             </div>
           </Card>
@@ -288,6 +296,11 @@ function ReceptionistProfile() {
           </div>
         </div>
       )}
+
+      <ChangePasswordModal 
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </div>
   );
 }
