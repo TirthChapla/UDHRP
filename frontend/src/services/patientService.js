@@ -1,4 +1,5 @@
 // patientService.js - All patient-related API calls
+import { apiRequest } from './api';
 
 // Mock data - Replace with actual API calls in production
 const mockPrescriptions = [
@@ -868,6 +869,44 @@ export const downloadLabReportPDF = async (report) => {
     console.log('Downloading lab report:', report.id);
     alert('PDF download will be implemented with backend integration');
   } catch (error) {    console.error('Error downloading prescription:', error);
+    throw error;
+  }
+};
+
+// ========================
+// PATIENT PROFILE APIs
+// ========================
+
+/**
+ * Get patient profile
+ * @returns {Promise<Object>}
+ */
+export const getPatientProfile = async () => {
+  try {
+    const response = await apiRequest('/patient/profile', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching patient profile:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update patient profile
+ * @param {Object} profileData 
+ * @returns {Promise<Object>}
+ */
+export const updatePatientProfile = async (profileData) => {
+  try {
+    const response = await apiRequest('/patient/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating patient profile:', error);
     throw error;
   }
 };

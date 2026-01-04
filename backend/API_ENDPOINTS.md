@@ -15,7 +15,8 @@ Authorization: Bearer <your-jwt-token>
 
 ## 📌 Table of Contents
 1. [Authentication APIs](#authentication-apis)
-2. [Health Check APIs](#health-check-apis)
+2. [Patient Profile APIs](#patient-profile-apis)
+3. [Health Check APIs](#health-check-apis)
 
 ---
 
@@ -305,6 +306,151 @@ Authorization: Bearer <your-jwt-token>
   "data": null
 }
 ```
+
+---
+
+## Patient Profile APIs
+
+### Base Path: `/api/patient/profile`
+
+### 1. Get Patient Profile
+**Endpoint:** `GET /api/patient/profile`
+
+**Description:** Retrieve the current logged-in patient's complete profile information including personal details, medical information, birth information, and family details.
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Patient profile retrieved successfully",
+  "data": {
+    "id": 1,
+    "email": "patient@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "phoneNumber": "+1234567890",
+    "dateOfBirth": "1990-05-15",
+    "gender": "MALE",
+    "address": "123 Main St",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "zipCode": "400001",
+    "profileImage": null,
+    "patientId": "PAT-ABC123456",
+    "isAlive": true,
+    "deathReason": null,
+    "bloodGroup": "O+",
+    "height": 175.5,
+    "weight": 70.0,
+    "allergies": "Penicillin, Pollen",
+    "chronicDiseases": "None",
+    "emergencyContact": "Jane Doe: +1234567891",
+    "insuranceProvider": "ABC Insurance",
+    "insuranceNumber": "INS123456",
+    "birthPlace": "Mumbai, Maharashtra",
+    "hospitalName": "Apollo Hospital",
+    "specificInstructions": "Allergic to sulfa drugs, Regular blood pressure monitoring required",
+    "motherHealthId": "PAT-MOM123456",
+    "fatherHealthId": "PAT-DAD789012",
+    "parentsAllergies": "Penicillin, Pollen",
+    "hasNoParentInfo": false,
+    "siblings": ["PAT-SIB123456", "PAT-SIB789012"]
+  }
+}
+```
+
+---
+
+### 2. Update Patient Profile
+**Endpoint:** `PUT /api/patient/profile`
+
+**Description:** Update the current logged-in patient's profile information. All fields except firstName and lastName are optional.
+
+**Authentication:** Required (Bearer Token)
+
+**Request Body:**
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "+1234567890",
+  "dateOfBirth": "1990-05-15",
+  "gender": "MALE",
+  "address": "123 Main St",
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "zipCode": "400001",
+  "isAlive": true,
+  "deathReason": null,
+  "bloodGroup": "O+",
+  "height": 175.5,
+  "weight": 70.0,
+  "allergies": "Penicillin, Pollen",
+  "chronicDiseases": "None",
+  "emergencyContact": "Jane Doe: +1234567891",
+  "insuranceProvider": "ABC Insurance",
+  "insuranceNumber": "INS123456",
+  "birthPlace": "Mumbai, Maharashtra",
+  "hospitalName": "Apollo Hospital",
+  "specificInstructions": "Allergic to sulfa drugs",
+  "motherHealthId": "PAT-MOM123456",
+  "fatherHealthId": "PAT-DAD789012",
+  "parentsAllergies": "Penicillin, Pollen",
+  "hasNoParentInfo": false,
+  "siblings": ["PAT-SIB123456", "PAT-SIB789012"]
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Patient profile updated successfully",
+  "data": {
+    "id": 1,
+    "email": "patient@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "phoneNumber": "+1234567890",
+    "dateOfBirth": "1990-05-15",
+    "gender": "MALE",
+    "address": "123 Main St",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "zipCode": "400001",
+    "profileImage": null,
+    "patientId": "PAT-ABC123456",
+    "isAlive": true,
+    "deathReason": null,
+    "bloodGroup": "O+",
+    "height": 175.5,
+    "weight": 70.0,
+    "allergies": "Penicillin, Pollen",
+    "chronicDiseases": "None",
+    "emergencyContact": "Jane Doe: +1234567891",
+    "insuranceProvider": "ABC Insurance",
+    "insuranceNumber": "INS123456",
+    "birthPlace": "Mumbai, Maharashtra",
+    "hospitalName": "Apollo Hospital",
+    "specificInstructions": "Allergic to sulfa drugs",
+    "motherHealthId": "PAT-MOM123456",
+    "fatherHealthId": "PAT-DAD789012",
+    "parentsAllergies": "Penicillin, Pollen",
+    "hasNoParentInfo": false,
+    "siblings": ["PAT-SIB123456", "PAT-SIB789012"]
+  }
+}
+```
+
+**Notes:**
+- `patientId` is auto-generated when a patient record is first created and cannot be changed
+- Patient ID format: `PAT-XXXXXXXXX` (9 random alphanumeric characters)
+- If `isAlive` is false, `deathReason` should be provided
+- If `hasNoParentInfo` is true, parent health IDs and allergies are not required
+- `siblings` array can be empty or contain multiple sibling health IDs
+- Empty strings in the siblings array are automatically filtered out
 
 ---
 

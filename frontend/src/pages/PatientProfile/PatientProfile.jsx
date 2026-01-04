@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Calendar, 
@@ -22,34 +22,108 @@ import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import ChangePasswordModal from '../../components/ChangePasswordModal/ChangePasswordModal';
+import { getPatientProfile, updatePatientProfile } from '../../services/patientService';
 import './PatientProfile.css';
 
 function PatientProfile() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Mock data - In real app, this would come from API/database
   const [formData, setFormData] = useState({
-    name: 'John Doe',
-    dob: '1990-05-15',
-    patientId: 'PAT-' + Math.random().toString(36).substr(2, 9).toUpperCase(), // Auto-generated
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    dateOfBirth: '',
+    gender: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    patientId: '',
     isAlive: true,
     deathReason: '',
-    motherHealthId: 'PAT-MOM123456',
-    fatherHealthId: 'PAT-DAD789012',
-    parentsAllergies: 'Penicillin, Pollen',
+    motherHealthId: '',
+    fatherHealthId: '',
+    parentsAllergies: '',
     hasNoParentInfo: false,
-    bloodGroup: 'O+',
-    birthPlace: 'Mumbai, Maharashtra',
-    hospitalName: 'Apollo Hospital',
-    specificInstructions: 'Allergic to sulfa drugs, Regular blood pressure monitoring required'
+    bloodGroup: '',
+    birthPlace: '',
+    hospitalName: '',
+    specificInstructions: '',
+    height: '',
+    weight: '',
+    allergies: '',
+    chronicDiseases: '',
+    emergencyContact: '',
+    insuranceProvider: '',
+    insuranceNumber: ''
   });
 
-  const [siblings, setSiblings] = useState(['PAT-SIB123456', 'PAT-SIB789012']); // Default 2 siblings
+  const [siblings, setSiblings] = useState([]);
   
   // Keep original data for cancel functionality
   const [originalData, setOriginalData] = useState({ ...formData });
   const [originalSiblings, setOriginalSiblings] = useState([...siblings]);
+
+  // Fetch patient profile on component mount
+  useEffect(() => {
+    fetchPatientProfile();
+  }, []);
+
+  const fetchPatientProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getPatientProfile();
+      
+      console.log('Fetched patient profile data:', data);
+      
+      // Map backend data to frontend format
+      const mappedData = {
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        phoneNumber: data.phoneNumber || '',
+        dateOfBirth: data.dateOfBirth || '',
+        gender: data.gender || '',
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '',
+        zipCode: data.zipCode || '',
+        patientId: data.patientId || '',
+        isAlive: data.isAlive !== undefined ? data.isAlive : true,
+        deathReason: data.deathReason || '',
+        motherHealthId: data.motherHealthId || '',
+        fatherHealthId: data.fatherHealthId || '',
+        parentsAllergies: data.parentsAllergies || '',
+        hasNoParentInfo: data.hasNoParentInfo || false,
+        bloodGroup: data.bloodGroup || '',
+        birthPlace: data.birthPlace || '',
+        hospitalName: data.hospitalName || '',
+        specificInstructions: data.specificInstructions || '',
+        height: data.height || '',
+        weight: data.weight || '',
+        allergies: data.allergies || '',
+        chronicDiseases: data.chronicDiseases || '',
+        emergencyContact: data.emergencyContact || '',
+        insuranceProvider: data.insuranceProvider || '',
+        insuranceNumber: data.insuranceNumber || ''
+      };
+      
+      console.log('Mapped form data:', mappedData);
+      
+      setFormData(mappedData);
+      setSiblings(data.siblings || []);
+      setOriginalData(mappedData);
+      setOriginalSiblings(data.siblings || []);
+    } catch (err) {
+      console.error('Error fetching patient profile:', err);
+      setError('Failed to load patient profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -77,10 +151,8 @@ function PatientProfile() {
   };
 
   const removeSibling = (index) => {
-    if (siblings.length > 1) {
-      const newSiblings = siblings.filter((_, i) => i !== index);
-      setSiblings(newSiblings);
-    }
+    const newSiblings = siblings.filter((_, i) => i !== index);
+    setSiblings(newSiblings);
   };
 
   const handleEdit = () => {
@@ -95,16 +167,63 @@ function PatientProfile() {
     setIsEditMode(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const profileData = {
-      ...formData,
-      siblings: siblings.filter(id => id.trim() !== '')
-    };
-    console.log('Profile Data:', profileData);
-    // Here you would typically send this to your backend
-    setIsEditMode(false);
-    alert('Profile updated successfully!');
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const profileData = {
+        ...formData,
+        siblings: siblings.filter(id => id.trim() !== '')
+      };
+      
+      const updatedProfile = await updatePatientProfile(profileData);
+      
+      // Update local state with returned data
+      const mappedData = {
+        firstName: updatedProfile.firstName || '',
+        lastName: updatedProfile.lastName || '',
+        phoneNumber: updatedProfile.phoneNumber || '',
+        dateOfBirth: updatedProfile.dateOfBirth || '',
+        gender: updatedProfile.gender || '',
+        address: updatedProfile.address || '',
+        city: updatedProfile.city || '',
+        state: updatedProfile.state || '',
+        zipCode: updatedProfile.zipCode || '',
+        patientId: updatedProfile.patientId || '',
+        isAlive: updatedProfile.isAlive !== undefined ? updatedProfile.isAlive : true,
+        deathReason: updatedProfile.deathReason || '',
+        motherHealthId: updatedProfile.motherHealthId || '',
+        fatherHealthId: updatedProfile.fatherHealthId || '',
+        parentsAllergies: updatedProfile.parentsAllergies || '',
+        hasNoParentInfo: updatedProfile.hasNoParentInfo || false,
+        bloodGroup: updatedProfile.bloodGroup || '',
+        birthPlace: updatedProfile.birthPlace || '',
+        hospitalName: updatedProfile.hospitalName || '',
+        specificInstructions: updatedProfile.specificInstructions || '',
+        height: updatedProfile.height || '',
+        weight: updatedProfile.weight || '',
+        allergies: updatedProfile.allergies || '',
+        chronicDiseases: updatedProfile.chronicDiseases || '',
+        emergencyContact: updatedProfile.emergencyContact || '',
+        insuranceProvider: updatedProfile.insuranceProvider || '',
+        insuranceNumber: updatedProfile.insuranceNumber || ''
+      };
+      
+      setFormData(mappedData);
+      setSiblings(updatedProfile.siblings || []);
+      setOriginalData(mappedData);
+      setOriginalSiblings(updatedProfile.siblings || []);
+      setIsEditMode(false);
+      alert('Profile updated successfully!');
+    } catch (err) {
+      console.error('Error updating patient profile:', err);
+      setError('Failed to update profile. Please try again.');
+      alert('Failed to update profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -132,12 +251,16 @@ function PatientProfile() {
               variant="primary"
               icon={<Edit size={20} />}
               onClick={handleEdit}
+              disabled={loading}
             >
               Edit Profile
             </Button>
           </div>
         )}
       </div>
+
+      {loading && <div className="loading-message">Loading profile...</div>}
+      {error && <div className="error-message">{error}</div>}
 
       <form onSubmit={handleSubmit} className="profile-form">
         {/* Personal Information Section */}
@@ -152,20 +275,30 @@ function PatientProfile() {
             <>
               <div className="form-grid">
                 <Input
-                  label="Full Name"
+                  label="First Name"
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleInputChange}
-                  placeholder="Enter your full name"
+                  placeholder="Enter your first name"
+                  required
+                />
+
+                <Input
+                  label="Last Name"
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Enter your last name"
                   required
                 />
 
                 <Input
                   label="Date of Birth"
                   type="date"
-                  name="dob"
-                  value={formData.dob}
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   required
                 />
@@ -227,7 +360,7 @@ function PatientProfile() {
                 <label className="view-label">Full Name</label>
                 <div className="view-value">
                   <User size={18} className="view-icon" />
-                  <span>{formData.name}</span>
+                  <span>{formData.firstName} {formData.lastName}</span>
                 </div>
               </div>
 
@@ -235,9 +368,9 @@ function PatientProfile() {
                 <label className="view-label">Date of Birth</label>
                 <div className="view-value">
                   <Calendar size={18} className="view-icon" />
-                  <span>{new Date(formData.dob).toLocaleDateString('en-IN', { 
+                  <span>{formData.dateOfBirth ? new Date(formData.dateOfBirth).toLocaleDateString('en-IN', { 
                     year: 'numeric', month: 'long', day: 'numeric' 
-                  })}</span>
+                  }) : 'Not provided'}</span>
                 </div>
               </div>
 
@@ -304,6 +437,78 @@ function PatientProfile() {
                     <option value="O-">O-</option>
                   </select>
                 </div>
+
+                <Input
+                  label="Height (cm)"
+                  type="number"
+                  name="height"
+                  value={formData.height}
+                  onChange={handleInputChange}
+                  placeholder="Enter height in cm"
+                  step="0.1"
+                />
+
+                <Input
+                  label="Weight (kg)"
+                  type="number"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  placeholder="Enter weight in kg"
+                  step="0.1"
+                />
+              </div>
+
+              <div className="form-grid">
+                <Input
+                  label="Allergies"
+                  type="text"
+                  name="allergies"
+                  value={formData.allergies}
+                  onChange={handleInputChange}
+                  placeholder="List any allergies (comma separated)"
+                />
+
+                <Input
+                  label="Chronic Diseases"
+                  type="text"
+                  name="chronicDiseases"
+                  value={formData.chronicDiseases}
+                  onChange={handleInputChange}
+                  placeholder="List any chronic conditions"
+                />
+              </div>
+
+              <Input
+                label="Emergency Contact"
+                type="text"
+                name="emergencyContact"
+                value={formData.emergencyContact}
+                onChange={handleInputChange}
+                placeholder="Emergency contact name and number"
+              />
+
+              <div className="subsection">
+                <h3 className="subsection-title">Insurance Information</h3>
+                <div className="form-grid">
+                  <Input
+                    label="Insurance Provider"
+                    type="text"
+                    name="insuranceProvider"
+                    value={formData.insuranceProvider}
+                    onChange={handleInputChange}
+                    placeholder="Insurance company name"
+                  />
+
+                  <Input
+                    label="Insurance Number"
+                    type="text"
+                    name="insuranceNumber"
+                    value={formData.insuranceNumber}
+                    onChange={handleInputChange}
+                    placeholder="Policy/member number"
+                  />
+                </div>
               </div>
 
               <div className="subsection">
@@ -351,7 +556,78 @@ function PatientProfile() {
                     <span className="blood-group-badge">{formData.bloodGroup || 'Not provided'}</span>
                   </div>
                 </div>
+
+                <div className="profile-view-item">
+                  <label className="view-label">Height</label>
+                  <div className="view-value">
+                    <User size={18} className="view-icon" />
+                    <span>{formData.height ? `${formData.height} cm` : 'Not provided'}</span>
+                  </div>
+                </div>
+
+                <div className="profile-view-item">
+                  <label className="view-label">Weight</label>
+                  <div className="view-value">
+                    <User size={18} className="view-icon" />
+                    <span>{formData.weight ? `${formData.weight} kg` : 'Not provided'}</span>
+                  </div>
+                </div>
               </div>
+
+              <div className="profile-view-grid">
+                <div className="profile-view-item">
+                  <label className="view-label">Allergies</label>
+                  <div className="view-value">
+                    <Heart size={18} className="view-icon" />
+                    <span>{formData.allergies || 'None reported'}</span>
+                  </div>
+                </div>
+
+                <div className="profile-view-item">
+                  <label className="view-label">Chronic Diseases</label>
+                  <div className="view-value">
+                    <Heart size={18} className="view-icon" />
+                    <span>{formData.chronicDiseases || 'None reported'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {formData.emergencyContact && (
+                <div className="profile-view-item full-width">
+                  <label className="view-label">Emergency Contact</label>
+                  <div className="view-value">
+                    <User size={18} className="view-icon" />
+                    <span>{formData.emergencyContact}</span>
+                  </div>
+                </div>
+              )}
+
+              {(formData.insuranceProvider || formData.insuranceNumber) && (
+                <div className="subsection">
+                  <h3 className="subsection-title">Insurance Information</h3>
+                  <div className="profile-view-grid">
+                    {formData.insuranceProvider && (
+                      <div className="profile-view-item">
+                        <label className="view-label">Insurance Provider</label>
+                        <div className="view-value">
+                          <Shield size={18} className="view-icon" />
+                          <span>{formData.insuranceProvider}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.insuranceNumber && (
+                      <div className="profile-view-item">
+                        <label className="view-label">Insurance Number</label>
+                        <div className="view-value">
+                          <Shield size={18} className="view-icon" />
+                          <span>{formData.insuranceNumber}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="subsection">
                 <h3 className="subsection-title">Birth Information</h3>
@@ -473,18 +749,16 @@ function PatientProfile() {
                           placeholder="Enter sibling's health ID"
                         />
                       </div>
-                      {siblings.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="small"
-                          icon={<Trash2 size={16} />}
-                          onClick={() => removeSibling(index)}
-                          className="remove-sibling-btn"
-                        >
-                          Remove
-                        </Button>
-                      )}
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="small"
+                        icon={<Trash2 size={16} />}
+                        onClick={() => removeSibling(index)}
+                        className="remove-sibling-btn"
+                      >
+                        Remove
+                      </Button>
                     </div>
                   ))}
                 </div>
