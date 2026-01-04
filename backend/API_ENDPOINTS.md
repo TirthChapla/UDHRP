@@ -16,7 +16,8 @@ Authorization: Bearer <your-jwt-token>
 ## 📌 Table of Contents
 1. [Authentication APIs](#authentication-apis)
 2. [Patient Profile APIs](#patient-profile-apis)
-3. [Health Check APIs](#health-check-apis)
+3. [Doctor Profile APIs](#doctor-profile-apis)
+4. [Health Check APIs](#health-check-apis)
 
 ---
 
@@ -451,6 +452,128 @@ Authorization: Bearer <your-jwt-token>
 - If `hasNoParentInfo` is true, parent health IDs and allergies are not required
 - `siblings` array can be empty or contain multiple sibling health IDs
 - Empty strings in the siblings array are automatically filtered out
+
+---
+
+## Doctor Profile APIs
+
+### Base Path: `/api/doctor/profile`
+
+### 1. Get Doctor Profile
+**Endpoint:** `GET /api/doctor/profile`
+
+**Description:** Retrieve the current logged-in doctor's complete profile information including personal details and professional information.
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Doctor profile retrieved successfully",
+  "data": {
+    "id": 1,
+    "email": "doctor@example.com",
+    "firstName": "Sarah",
+    "lastName": "Patel",
+    "phoneNumber": "+1234567890",
+    "dateOfBirth": "1985-05-15",
+    "gender": "FEMALE",
+    "address": "123 Medical St",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "zipCode": "400001",
+    "profileImage": null,
+    "licenseNumber": "MED123456",
+    "specialization": "Cardiology",
+    "qualification": "MBBS, MD (Cardiology)",
+    "experienceYears": 12,
+    "about": "Experienced cardiologist specializing in interventional cardiology",
+    "hospital": "Apollo Hospital",
+    "department": "Cardiology",
+    "consultationFee": 1500.0,
+    "rating": 4.8,
+    "totalReviews": 245,
+    "languages": ["English", "Hindi", "Marathi"],
+    "isAvailable": true
+  }
+}
+```
+
+---
+
+### 2. Update Doctor Profile
+**Endpoint:** `PUT /api/doctor/profile`
+
+**Description:** Update the current logged-in doctor's profile information. firstName, lastName, licenseNumber, and specialization are required fields.
+
+**Authentication:** Required (Bearer Token)
+
+**Request Body:**
+```json
+{
+  "firstName": "Sarah",
+  "lastName": "Patel",
+  "phoneNumber": "+1234567890",
+  "dateOfBirth": "1985-05-15",
+  "gender": "FEMALE",
+  "address": "123 Medical St",
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "zipCode": "400001",
+  "licenseNumber": "MED123456",
+  "specialization": "Cardiology",
+  "qualification": "MBBS, MD (Cardiology)",
+  "experienceYears": 12,
+  "about": "Experienced cardiologist specializing in interventional cardiology",
+  "hospital": "Apollo Hospital",
+  "department": "Cardiology",
+  "consultationFee": 1500.0,
+  "languages": ["English", "Hindi", "Marathi"],
+  "isAvailable": true
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Doctor profile updated successfully",
+  "data": {
+    "id": 1,
+    "email": "doctor@example.com",
+    "firstName": "Sarah",
+    "lastName": "Patel",
+    "phoneNumber": "+1234567890",
+    "dateOfBirth": "1985-05-15",
+    "gender": "FEMALE",
+    "address": "123 Medical St",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "zipCode": "400001",
+    "profileImage": null,
+    "licenseNumber": "MED123456",
+    "specialization": "Cardiology",
+    "qualification": "MBBS, MD (Cardiology)",
+    "experienceYears": 12,
+    "about": "Experienced cardiologist specializing in interventional cardiology",
+    "hospital": "Apollo Hospital",
+    "department": "Cardiology",
+    "consultationFee": 1500.0,
+    "rating": 4.8,
+    "totalReviews": 245,
+    "languages": ["English", "Hindi", "Marathi"],
+    "isAvailable": true
+  }
+}
+```
+
+**Notes:**
+- `licenseNumber` must be unique across all doctors
+- `rating` and `totalReviews` are calculated by the system and cannot be updated directly
+- `languages` is a set of strings representing languages the doctor can speak
+- `consultationFee` is in the currency unit configured for the system (default: INR)
+- `isAvailable` indicates if the doctor is currently available for appointments
 
 ---
 

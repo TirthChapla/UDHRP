@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   GraduationCap,
@@ -19,53 +19,85 @@ import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import ChangePasswordModal from '../../components/ChangePasswordModal/ChangePasswordModal';
+import { getDoctorProfile, updateDoctorProfile } from '../../services/doctorService';
 import './DoctorProfile.css';
 
 function DoctorProfile() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Mock data - In real app, this would come from API/database
   const [formData, setFormData] = useState({
-    name: 'Dr. Sarah Patel',
-    degree: 'MBBS, MD (Internal Medicine)',
-    college: 'All India Institute of Medical Sciences (AIIMS), New Delhi',
-    speciality: 'Cardiology',
-    currentHospital: 'Apollo Hospital',
-    currentHospitalAddress: 'Sector 26, Noida, Uttar Pradesh - 201301',
-    registrationNumber: 'MCI-' + Math.random().toString(36).substr(2, 9).toUpperCase(), // Auto-generated
-    consultationFee: '1500',
-    yearsOfExperience: '12'
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    dateOfBirth: '',
+    gender: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    licenseNumber: '',
+    specialization: '',
+    qualification: '',
+    experienceYears: '',
+    about: '',
+    hospital: '',
+    department: '',
+    consultationFee: '',
+    languages: [],
+    isAvailable: true
   });
-
-  const [experiences, setExperiences] = useState([
-    {
-      id: 1,
-      organization: 'Max Super Speciality Hospital',
-      position: 'Senior Cardiologist',
-      type: 'hospital',
-      startMonth: '06',
-      startYear: '2018',
-      endMonth: '12',
-      endYear: '2022',
-      isCurrent: false
-    },
-    {
-      id: 2,
-      organization: 'Fortis Healthcare',
-      position: 'Consultant Cardiologist',
-      type: 'hospital',
-      startMonth: '01',
-      startYear: '2015',
-      endMonth: '05',
-      endYear: '2018',
-      isCurrent: false
-    }
-  ]);
   
   // Keep original data for cancel functionality
   const [originalData, setOriginalData] = useState({ ...formData });
-  const [originalExperiences, setOriginalExperiences] = useState([...experiences]);
+
+  // Fetch doctor profile on component mount
+  useEffect(() => {
+    fetchDoctorProfile();
+  }, []);
+
+  const fetchDoctorProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getDoctorProfile();
+      
+      console.log('Fetched doctor profile data:', data);
+      
+      // Map backend data to frontend format
+      const mappedData = {
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        phoneNumber: data.phoneNumber || '',
+        dateOfBirth: data.dateOfBirth || '',
+        gender: data.gender || '',
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '',
+        zipCode: data.zipCode || '',
+        licenseNumber: data.licenseNumber || '',
+        specialization: data.specialization || '',
+        qualification: data.qualification || '',
+        experienceYears: data.experienceYears || '',
+        about: data.about || '',
+        hospital: data.hospital || '',
+        department: data.department || '',
+        consultationFee: data.consultationFee || '',
+        languages: data.languages || [],
+        isAvailable: data.isAvailable !== undefined ? data.isAvailable : true
+      };
+      
+      setFormData(mappedData);
+      setOriginalData(mappedData);
+    } catch (err) {
+      console.error('Error fetching doctor profile:', err);
+      setError('Failed to load doctor profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -75,82 +107,61 @@ function DoctorProfile() {
     }));
   };
 
-  const handleExperienceChange = (id, field, value) => {
-    setExperiences(prev => 
-      prev.map(exp => 
-        exp.id === id ? { ...exp, [field]: value } : exp
-      )
-    );
-  };
-
-  const addExperience = () => {
-    const newExp = {
-      id: Date.now(),
-      organization: '',
-      position: '',
-      type: 'hospital',
-      startMonth: '',
-      startYear: '',
-      endMonth: '',
-      endYear: '',
-      isCurrent: false
-    };
-    setExperiences([...experiences, newExp]);
-  };
-
-  const removeExperience = (id) => {
-    if (experiences.length > 1) {
-      setExperiences(experiences.filter(exp => exp.id !== id));
-    }
-  };
-
   const handleEdit = () => {
     setOriginalData({ ...formData });
-    setOriginalExperiences([...experiences]);
     setIsEditMode(true);
   };
 
   const handleCancel = () => {
     setFormData({ ...originalData });
-    setExperiences([...originalExperiences]);
     setIsEditMode(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const profileData = {
-      ...formData,
-      experiences: experiences.filter(exp => exp.organization.trim() !== '')
-    };
-    console.log('Doctor Profile Data:', profileData);
-    // Here you would typically send this to your backend
-    setIsEditMode(false);
-    alert('Profile updated successfully!');
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const profileData = { ...formData };
+      
+      const updatedProfile = await updateDoctorProfile(profileData);
+      
+      // Update local state with returned data
+      const mappedData = {
+        firstName: updatedProfile.firstName || '',
+        lastName: updatedProfile.lastName || '',
+        phoneNumber: updatedProfile.phoneNumber || '',
+        dateOfBirth: updatedProfile.dateOfBirth || '',
+        gender: updatedProfile.gender || '',
+        address: updatedProfile.address || '',
+        city: updatedProfile.city || '',
+        state: updatedProfile.state || '',
+        zipCode: updatedProfile.zipCode || '',
+        licenseNumber: updatedProfile.licenseNumber || '',
+        specialization: updatedProfile.specialization || '',
+        qualification: updatedProfile.qualification || '',
+        experienceYears: updatedProfile.experienceYears || '',
+        about: updatedProfile.about || '',
+        hospital: updatedProfile.hospital || '',
+        department: updatedProfile.department || '',
+        consultationFee: updatedProfile.consultationFee || '',
+        languages: updatedProfile.languages || [],
+        isAvailable: updatedProfile.isAvailable !== undefined ? updatedProfile.isAvailable : true
+      };
+      
+      setFormData(mappedData);
+      setOriginalData(mappedData);
+      setIsEditMode(false);
+      alert('Profile updated successfully!');
+    } catch (err) {
+      console.error('Error updating doctor profile:', err);
+      setError('Failed to update profile. Please try again.');
+      alert('Failed to update profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const formatMonthYear = (month, year) => {
-    if (!month || !year) return 'Not specified';
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${monthNames[parseInt(month) - 1]} ${year}`;
-  };
-
-  const months = [
-    { value: '01', label: 'January' },
-    { value: '02', label: 'February' },
-    { value: '03', label: 'March' },
-    { value: '04', label: 'April' },
-    { value: '05', label: 'May' },
-    { value: '06', label: 'June' },
-    { value: '07', label: 'July' },
-    { value: '08', label: 'August' },
-    { value: '09', label: 'September' },
-    { value: '10', label: 'October' },
-    { value: '11', label: 'November' },
-    { value: '12', label: 'December' }
-  ];
-
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 50 }, (_, i) => currentYear - i);
 
   return (
     <div className="doctor-profile">
@@ -196,55 +207,97 @@ function DoctorProfile() {
             <>
               <div className="form-grid">
                 <Input
-                  label="Full Name"
+                  label="First Name"
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleInputChange}
-                  placeholder="Enter your full name with title"
+                  placeholder="Enter your first name"
+                  required
+                />
+
+                <Input
+                  label="Last Name"
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Enter your last name"
+                  required
+                />
+
+                <Input
+                  label="Phone Number"
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  placeholder="+1234567890"
+                  required
+                />
+
+                <Input
+                  label="Date of Birth"
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
                   required
                 />
 
                 <div className="input-wrapper">
-                  <label className="input-label">
-                    Registration Number
-                    <span className="id-badge">Auto-generated</span>
-                  </label>
-                  <div className="registration-id-display">
-                    <Award size={18} className="id-icon" />
-                    <span className="id-text">{formData.registrationNumber}</span>
-                  </div>
-                  <p className="input-helper-text">Medical registration number (permanent)</p>
+                  <label className="input-label">Gender</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    required
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
+                  </select>
                 </div>
 
                 <Input
-                  label="Degree/Qualification"
+                  label="License Number"
                   type="text"
-                  name="degree"
-                  value={formData.degree}
+                  name="licenseNumber"
+                  value={formData.licenseNumber}
                   onChange={handleInputChange}
-                  placeholder="e.g., MBBS, MD, MS"
+                  placeholder="Medical license number"
                   required
                 />
 
                 <Input
-                  label="Speciality"
+                  label="Specialization"
                   type="text"
-                  name="speciality"
-                  value={formData.speciality}
+                  name="specialization"
+                  value={formData.specialization}
                   onChange={handleInputChange}
                   placeholder="e.g., Cardiology, Neurology"
                   required
                 />
 
                 <Input
+                  label="Qualification"
+                  type="text"
+                  name="qualification"
+                  value={formData.qualification}
+                  onChange={handleInputChange}
+                  placeholder="e.g., MBBS, MD, MS"
+                  required
+                />
+
+                <Input
                   label="Years of Experience"
                   type="number"
-                  name="yearsOfExperience"
-                  value={formData.yearsOfExperience}
+                  name="experienceYears"
+                  value={formData.experienceYears}
                   onChange={handleInputChange}
                   placeholder="Total years of practice"
-                  required
                 />
 
                 <Input
@@ -254,20 +307,33 @@ function DoctorProfile() {
                   value={formData.consultationFee}
                   onChange={handleInputChange}
                   placeholder="Per consultation fee"
-                  required
                 />
+
+                <div className="input-wrapper">
+                  <label className="input-label">
+                    <input
+                      type="checkbox"
+                      name="isAvailable"
+                      checked={formData.isAvailable}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isAvailable: e.target.checked }))}
+                      style={{ marginRight: '8px' }}
+                    />
+                    Available for Appointments
+                  </label>
+                </div>
               </div>
 
               <div className="form-grid" style={{ marginTop: 'var(--spacing-lg)' }}>
                 <div className="input-wrapper full-width">
-                  <Input
-                    label="Medical College/University"
-                    type="text"
-                    name="college"
-                    value={formData.college}
+                  <label className="input-label">About</label>
+                  <textarea
+                    name="about"
+                    value={formData.about}
                     onChange={handleInputChange}
-                    placeholder="Name of medical college"
-                    required
+                    placeholder="Brief description about yourself"
+                    className="input-field"
+                    rows="4"
+                    style={{ width: '100%', resize: 'vertical' }}
                   />
                 </div>
               </div>
@@ -278,31 +344,53 @@ function DoctorProfile() {
                 <label className="view-label">Full Name</label>
                 <div className="view-value">
                   <User size={18} className="view-icon" />
-                  <span>{formData.name}</span>
+                  <span>{formData.firstName} {formData.lastName}</span>
                 </div>
               </div>
 
               <div className="profile-view-item">
-                <label className="view-label">Registration Number</label>
-                <div className="registration-id-display">
-                  <Award size={18} className="id-icon" />
-                  <span className="id-text">{formData.registrationNumber}</span>
-                </div>
-              </div>
-
-              <div className="profile-view-item">
-                <label className="view-label">Degree/Qualification</label>
+                <label className="view-label">Phone Number</label>
                 <div className="view-value">
-                  <GraduationCap size={18} className="view-icon" />
-                  <span>{formData.degree}</span>
+                  <span>{formData.phoneNumber || 'Not provided'}</span>
                 </div>
               </div>
 
               <div className="profile-view-item">
-                <label className="view-label">Speciality</label>
+                <label className="view-label">Date of Birth</label>
+                <div className="view-value">
+                  <Calendar size={18} className="view-icon" />
+                  <span>{formData.dateOfBirth || 'Not provided'}</span>
+                </div>
+              </div>
+
+              <div className="profile-view-item">
+                <label className="view-label">Gender</label>
+                <div className="view-value">
+                  <span>{formData.gender || 'Not provided'}</span>
+                </div>
+              </div>
+
+              <div className="profile-view-item">
+                <label className="view-label">License Number</label>
                 <div className="view-value">
                   <Award size={18} className="view-icon" />
-                  <span>{formData.speciality}</span>
+                  <span>{formData.licenseNumber || 'Not provided'}</span>
+                </div>
+              </div>
+
+              <div className="profile-view-item">
+                <label className="view-label">Specialization</label>
+                <div className="view-value">
+                  <Stethoscope size={18} className="view-icon" />
+                  <span>{formData.specialization || 'Not provided'}</span>
+                </div>
+              </div>
+
+              <div className="profile-view-item">
+                <label className="view-label">Qualification</label>
+                <div className="view-value">
+                  <GraduationCap size={18} className="view-icon" />
+                  <span>{formData.qualification || 'Not provided'}</span>
                 </div>
               </div>
 
@@ -310,250 +398,184 @@ function DoctorProfile() {
                 <label className="view-label">Experience</label>
                 <div className="view-value">
                   <Briefcase size={18} className="view-icon" />
-                  <span>{formData.yearsOfExperience} years</span>
+                  <span>{formData.experienceYears ? `${formData.experienceYears} years` : 'Not provided'}</span>
                 </div>
               </div>
 
               <div className="profile-view-item">
                 <label className="view-label">Consultation Fee</label>
                 <div className="view-value">
-                  <span className="fee-badge">₹{formData.consultationFee}</span>
+                  <span className="fee-badge">{formData.consultationFee ? `₹${formData.consultationFee}` : 'Not set'}</span>
                 </div>
               </div>
 
-              <div className="profile-view-item full-width">
-                <label className="view-label">Medical College/University</label>
+              <div className="profile-view-item">
+                <label className="view-label">Availability Status</label>
                 <div className="view-value">
-                  <GraduationCap size={18} className="view-icon" />
-                  <span>{formData.college}</span>
+                  <span className={formData.isAvailable ? 'status-badge-active' : 'status-badge-inactive'}>
+                    {formData.isAvailable ? 'Available' : 'Unavailable'}
+                  </span>
+                </div>
+              </div>
+
+              {formData.about && (
+                <div className="profile-view-item full-width">
+                  <label className="view-label">About</label>
+                  <div className="view-value">
+                    <span>{formData.about}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Card>
+
+        {/* Address Information */}
+        <Card variant="default">
+          <div className="section-header">
+            <MapPin className="section-icon" />
+            <h2 className="section-title">Address Information</h2>
+          </div>
+
+          {isEditMode ? (
+            <div className="form-grid">
+              <Input
+                label="Address"
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                placeholder="Street address"
+              />
+
+              <Input
+                label="City"
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                placeholder="City"
+              />
+
+              <Input
+                label="State"
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleInputChange}
+                placeholder="State"
+              />
+
+              <Input
+                label="Zip Code"
+                type="text"
+                name="zipCode"
+                value={formData.zipCode}
+                onChange={handleInputChange}
+                placeholder="Zip code"
+              />
+            </div>
+          ) : (
+            <div className="profile-view-grid">
+              <div className="profile-view-item">
+                <label className="view-label">Address</label>
+                <div className="view-value">
+                  <MapPin size={18} className="view-icon" />
+                  <span>{formData.address || 'Not provided'}</span>
+                </div>
+              </div>
+
+              <div className="profile-view-item">
+                <label className="view-label">City</label>
+                <div className="view-value">
+                  <span>{formData.city || 'Not provided'}</span>
+                </div>
+              </div>
+
+              <div className="profile-view-item">
+                <label className="view-label">State</label>
+                <div className="view-value">
+                  <span>{formData.state || 'Not provided'}</span>
+                </div>
+              </div>
+
+              <div className="profile-view-item">
+                <label className="view-label">Zip Code</label>
+                <div className="view-value">
+                  <span>{formData.zipCode || 'Not provided'}</span>
                 </div>
               </div>
             </div>
           )}
         </Card>
 
-        {/* Current Practice Information */}
+        {/* Hospital & Department Information */}
         <Card variant="default">
           <div className="section-header">
             <Building2 className="section-icon" />
-            <h2 className="section-title">Current Practice</h2>
+            <h2 className="section-title">Hospital & Department</h2>
           </div>
 
           {isEditMode ? (
             <div className="form-grid">
               <Input
-                label="Hospital/Clinic Name"
+                label="Hospital"
                 type="text"
-                name="currentHospital"
-                value={formData.currentHospital}
+                name="hospital"
+                value={formData.hospital}
                 onChange={handleInputChange}
-                placeholder="Current workplace"
-                required
+                placeholder="Hospital name"
+              />
+
+              <Input
+                label="Department"
+                type="text"
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
+                placeholder="Department"
               />
 
               <div className="input-wrapper full-width">
-                <Input
-                  label="Hospital/Clinic Address"
+                <label className="input-label">Languages (comma-separated)</label>
+                <input
                   type="text"
-                  name="currentHospitalAddress"
-                  value={formData.currentHospitalAddress}
-                  onChange={handleInputChange}
-                  placeholder="Complete address"
-                  required
+                  name="languages"
+                  value={formData.languages.join(', ')}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    languages: e.target.value.split(',').map(lang => lang.trim()).filter(Boolean)
+                  }))}
+                  placeholder="e.g., English, Hindi, Spanish"
+                  className="input-field"
                 />
               </div>
             </div>
           ) : (
             <div className="profile-view-grid">
               <div className="profile-view-item">
-                <label className="view-label">Hospital/Clinic</label>
+                <label className="view-label">Hospital</label>
                 <div className="view-value">
                   <Building2 size={18} className="view-icon" />
-                  <span>{formData.currentHospital}</span>
+                  <span>{formData.hospital || 'Not provided'}</span>
                 </div>
               </div>
 
-              <div className="profile-view-item full-width">
-                <label className="view-label">Address</label>
+              <div className="profile-view-item">
+                <label className="view-label">Department</label>
                 <div className="view-value">
-                  <MapPin size={18} className="view-icon" />
-                  <span>{formData.currentHospitalAddress}</span>
+                  <span>{formData.department || 'Not provided'}</span>
                 </div>
               </div>
-            </div>
-          )}
-        </Card>
 
-        {/* Experience History */}
-        <Card variant="default">
-          <div className="section-header">
-            <Briefcase className="section-icon" />
-            <h2 className="section-title">Experience History</h2>
-          </div>
-
-          {isEditMode ? (
-            <>
-              {experiences.map((exp, index) => (
-                <div key={exp.id} className="experience-card">
-                  <div className="experience-header">
-                    <h3 className="experience-number">Experience {index + 1}</h3>
-                    {experiences.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="small"
-                        icon={<Trash2 size={16} />}
-                        onClick={() => removeExperience(exp.id)}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="form-grid">
-                    <Input
-                      label="Organization/Hospital"
-                      type="text"
-                      value={exp.organization}
-                      onChange={(e) => handleExperienceChange(exp.id, 'organization', e.target.value)}
-                      placeholder="Hospital or clinic name"
-                      required
-                    />
-
-                    <Input
-                      label="Position/Role"
-                      type="text"
-                      value={exp.position}
-                      onChange={(e) => handleExperienceChange(exp.id, 'position', e.target.value)}
-                      placeholder="Your designation"
-                      required
-                    />
-
-                    <div className="input-wrapper">
-                      <label className="input-label">
-                        Practice Type
-                        <span className="input-required">*</span>
-                      </label>
-                      <select
-                        value={exp.type}
-                        onChange={(e) => handleExperienceChange(exp.id, 'type', e.target.value)}
-                        className="select-field"
-                        required
-                      >
-                        <option value="hospital">Hospital</option>
-                        <option value="clinic">Private Clinic</option>
-                        <option value="personal">Personal Practice</option>
-                      </select>
-                    </div>
-
-                    <div className="input-wrapper">
-                      <label className="input-label">Start Date</label>
-                      <div className="date-input-group">
-                        <select
-                          value={exp.startMonth}
-                          onChange={(e) => handleExperienceChange(exp.id, 'startMonth', e.target.value)}
-                          className="select-field select-month"
-                          required
-                        >
-                          <option value="">Month</option>
-                          {months.map(month => (
-                            <option key={month.value} value={month.value}>
-                              {month.label}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={exp.startYear}
-                          onChange={(e) => handleExperienceChange(exp.id, 'startYear', e.target.value)}
-                          className="select-field select-year"
-                          required
-                        >
-                          <option value="">Year</option>
-                          {years.map(year => (
-                            <option key={year} value={year}>
-                              {year}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="input-wrapper">
-                      <label className="input-label">End Date</label>
-                      <div className="date-input-group">
-                        <select
-                          value={exp.endMonth}
-                          onChange={(e) => handleExperienceChange(exp.id, 'endMonth', e.target.value)}
-                          className="select-field select-month"
-                          disabled={exp.isCurrent}
-                        >
-                          <option value="">Month</option>
-                          {months.map(month => (
-                            <option key={month.value} value={month.value}>
-                              {month.label}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={exp.endYear}
-                          onChange={(e) => handleExperienceChange(exp.id, 'endYear', e.target.value)}
-                          className="select-field select-year"
-                          disabled={exp.isCurrent}
-                        >
-                          <option value="">Year</option>
-                          {years.map(year => (
-                            <option key={year} value={year}>
-                              {year}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <label className="checkbox-label" style={{ marginTop: 'var(--spacing-sm)' }}>
-                        <input
-                          type="checkbox"
-                          checked={exp.isCurrent}
-                          onChange={(e) => handleExperienceChange(exp.id, 'isCurrent', e.target.checked)}
-                        />
-                        <span>Currently working here</span>
-                      </label>
-                    </div>
+              {formData.languages && formData.languages.length > 0 && (
+                <div className="profile-view-item full-width">
+                  <label className="view-label">Languages</label>
+                  <div className="view-value">
+                    <span>{formData.languages.join(', ')}</span>
                   </div>
                 </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                icon={<Plus size={20} />}
-                onClick={addExperience}
-                style={{ marginTop: 'var(--spacing-lg)' }}
-              >
-                Add Experience
-              </Button>
-            </>
-          ) : (
-            <div className="experience-timeline">
-              {experiences.map((exp, index) => (
-                <div key={exp.id} className="timeline-item">
-                  <div className="timeline-marker">
-                    <Briefcase size={16} />
-                  </div>
-                  <div className="timeline-content">
-                    <div className="timeline-header">
-                      <h3 className="timeline-title">{exp.position}</h3>
-                      <span className="timeline-type-badge">{exp.type}</span>
-                    </div>
-                    <p className="timeline-organization">{exp.organization}</p>
-                    <div className="timeline-date">
-                      <Calendar size={14} />
-                      <span>
-                        {formatMonthYear(exp.startMonth, exp.startYear)} - {' '}
-                        {exp.isCurrent ? 'Present' : formatMonthYear(exp.endMonth, exp.endYear)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              )}
             </div>
           )}
         </Card>

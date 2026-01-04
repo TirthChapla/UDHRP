@@ -43,7 +43,7 @@ public class Doctor extends BaseEntity {
     
     private Integer totalReviews = 0;
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "doctor_languages", joinColumns = @JoinColumn(name = "doctor_id"))
     @Column(name = "language")
     private Set<String> languages;
