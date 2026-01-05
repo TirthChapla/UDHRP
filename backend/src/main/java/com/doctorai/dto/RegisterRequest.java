@@ -26,4 +26,8 @@ public class RegisterRequest {
     
     @NotBlank(message = "Role is required")
     private String role; // PATIENT, DOCTOR, RECEPTIONIST, etc.
+    
+    // Receptionist specific fields
+    private String department;
+    private String employeeId;
 }

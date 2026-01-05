@@ -112,4 +112,13 @@ public class AuthController {
         authService.resendVerification(request.getEmail());
         return ResponseEntity.ok(ApiResponse.success("Verification email sent", null));
     }
+    
+    @PostMapping("/register-receptionist")
+    @Operation(summary = "Register a new receptionist with doctor verification")
+    public ResponseEntity<ApiResponse<UserDTO>> registerReceptionist(@Valid @RequestBody RegisterReceptionistRequest request) {
+        UserDTO user = authService.registerReceptionist(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Receptionist registered successfully", user));
+    }
 }

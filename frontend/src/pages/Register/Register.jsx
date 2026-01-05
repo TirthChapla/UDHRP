@@ -21,14 +21,17 @@ function Register() {
   const [apiError, setApiError] = useState('');
   
   const [formData, setFormData] = useState({
-    role: roleParam.toUpperCase(),
+    role: roleParam.toLowerCase(),
     // Personal Info
     firstName: '',
     lastName: '',
     email: '',
     phoneNumber: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    // Receptionist specific
+    department: '',
+    employeeId: ''
   });
   
   const [errors, setErrors] = useState({});
@@ -59,12 +62,6 @@ function Register() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // If user selects receptionist, redirect to receptionist register page
-    if (name === 'role' && value === 'receptionist') {
-      navigate('/receptionist/register');
-      return;
-    }
-    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -77,16 +74,17 @@ function Register() {
   const validateStep1 = () => {
     const newErrors = {};
     
-    if (!formData.fullName) newErrors.fullName = 'Full name is required';
+    if (!formData.firstName) newErrors.firstName = 'First name is required';
+    if (!formData.lastName) newErrors.lastName = 'Last name is required';
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    if (!formData.phone) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = 'Phone number must be 10 digits';
+    if (!formData.phoneNumber) {
+      newErrors.phoneNumber = 'Phone number is required';
+    } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = 'Phone number must be 10 digits';
     }
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -95,6 +93,12 @@ function Register() {
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    // Receptionist-specific validations
+    if (formData.role === 'receptionist') {
+      if (!formData.department) newErrors.department = 'Department is required';
+      if (!formData.employeeId) newErrors.employeeId = 'Employee ID is required';
     }
     
     return newErrors;
@@ -159,32 +163,48 @@ function Register() {
     }
 
     setLoading(true);
+    setApiError('');
     
-    // Simulate API call
-    setTimeout(() => {
-      const mockUser = {
-        id: '1',
-        name: formData.fullName,
+    try {
+      // Prepare data for backend API
+      const registrationData = {
         email: formData.email,
-        role: formData.role
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        role: formData.role.toUpperCase()
       };
-      
-      if (onRegister) {
-        onRegister(mockUser);
+
+      // Add receptionist-specific fields if role is receptionist
+      if (formData.role === 'receptionist') {
+        registrationData.department = formData.department;
+        registrationData.employeeId = formData.employeeId;
       }
+
+      // Call the register function from AuthContext
+      const result = await register(registrationData);
       
+      if (result.success) {
+        // Redirect to appropriate dashboard based on role
+        const dashboardRoutes = {
+          patient: '/patient/dashboard',
+          doctor: '/doctor/dashboard',
+          receptionist: '/receptionist/dashboard',
+          laboratory: '/laboratory/dashboard',
+          insurance: '/insurance/dashboard'
+        };
+        
+        navigate(dashboardRoutes[formData.role] || '/patient/dashboard');
+      } else {
+        setApiError(result.error || 'Registration failed. Please try again.');
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setApiError(error.message || 'An unexpected error occurred. Please try again.');
       setLoading(false);
-      
-      // Redirect to appropriate dashboard based on role
-      const dashboardRoutes = {
-        patient: '/patient/dashboard',
-        doctor: '/doctor/dashboard',
-        laboratory: '/laboratory/dashboard',
-        insurance: '/insurance/dashboard'
-      };
-      
-      navigate(dashboardRoutes[formData.role] || '/patient/dashboard');
-    }, 2000);
+    }
   };
 
   const renderRoleIcon = () => {
@@ -242,6 +262,19 @@ function Register() {
               <p>Step {currentStep} of 2</p>
             </div>
 
+            {apiError && (
+              <div className="error-message" style={{ 
+                backgroundColor: '#fee', 
+                color: '#c33', 
+                padding: '12px', 
+                borderRadius: '6px', 
+                marginBottom: '16px',
+                border: '1px solid #fcc'
+              }}>
+                {apiError}
+              </div>
+            )}
+
             <form onSubmit={currentStep === 1 ? (e) => { e.preventDefault(); handleNext(); } : handleSubmit} className="register-form">
               {currentStep === 1 && (
                 <div className="form-step">
@@ -255,13 +288,24 @@ function Register() {
                   />
 
                   <Input
-                    label="Full Name"
+                    label="First Name"
                     type="text"
-                    name="fullName"
-                    placeholder="Enter your full name"
-                    value={formData.fullName}
+                    name="firstName"
+                    placeholder="Enter your first name"
+                    value={formData.firstName}
                     onChange={handleChange}
-                    error={errors.fullName}
+                    error={errors.firstName}
+                    required
+                  />
+
+                  <Input
+                    label="Last Name"
+                    type="text"
+                    name="lastName"
+                    placeholder="Enter your last name"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    error={errors.lastName}
                     required
                   />
 
@@ -279,13 +323,39 @@ function Register() {
                   <Input
                     label="Phone Number"
                     type="tel"
-                    name="phone"
+                    name="phoneNumber"
                     placeholder="10-digit mobile number"
-                    value={formData.phone}
+                    value={formData.phoneNumber}
                     onChange={handleChange}
-                    error={errors.phone}
+                    error={errors.phoneNumber}
                     required
                   />
+
+                  {formData.role === 'receptionist' && (
+                    <>
+                      <Input
+                        label="Department"
+                        type="text"
+                        name="department"
+                        placeholder="Enter department name"
+                        value={formData.department}
+                        onChange={handleChange}
+                        error={errors.department}
+                        required
+                      />
+
+                      <Input
+                        label="Employee ID"
+                        type="text"
+                        name="employeeId"
+                        placeholder="Enter employee ID"
+                        value={formData.employeeId}
+                        onChange={handleChange}
+                        error={errors.employeeId}
+                        required
+                      />
+                    </>
+                  )}
 
                   <div className="password-input-wrapper">
                     <Input

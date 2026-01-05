@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Trash2, Lock, Shield, AlertTriangle } from 'lucide-react';
+import { User, Mail, Phone, Trash2, Lock, Shield, AlertTriangle, Calendar, MapPin, Briefcase } from 'lucide-react';
 import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import ChangePasswordModal from '../../components/ChangePasswordModal/ChangePasswordModal';
+import { getReceptionistProfile, updateReceptionistProfile } from '../../services/receptionistService';
 import './ReceptionistProfile.css';
 
 function ReceptionistProfile() {
@@ -12,25 +13,84 @@ function ReceptionistProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [deleteVerification, setDeleteVerification] = useState({
     doctorEmail: '',
     doctorPassword: ''
   });
 
-  // Mock data - replace with actual user data from context/API
   const [profileData, setProfileData] = useState({
-    name: 'Sarah Johnson',
-    email: 'sarah.receptionist@example.com',
-    phone: '+1 (555) 123-4567',
-    doctorName: 'Dr. Michael Smith',
-    doctorEmail: 'dr.smith@example.com',
-    joinedDate: '2025-12-01'
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    dateOfBirth: '',
+    gender: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    receptionistId: '',
+    department: '',
+    employeeId: '',
+    shift: '',
+    notes: '',
+    doctorName: '',
+    doctorEmail: ''
   });
 
   const [editData, setEditData] = useState({ ...profileData });
 
-  const handleEdit = () => {
+  // Fetch profile on mount
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getReceptionistProfile();
+      
+      console.log('Fetched receptionist profile:', data);
+      
+      const mappedData = {
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        phoneNumber: data.phoneNumber || '',
+        dateOfBirth: data.dateOfBirth || '',
+        gender: data.gender || '',
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '',
+        zipCode: data.zipCode || '',
+        receptionistId: data.receptionistId || '',
+        department: data.department || '',
+        employeeId: data.employeeId || '',
+        shift: data.shift || '',
+        notes: data.notes || '',
+        doctorName: data.doctorName || '',
+        doctorEmail: data.doctorEmail || ''
+      };
+      
+      setProfileData(mappedData);
+      setEditData(mappedData);
+    } catch (err) {
+      console.error('Error fetching receptionist profile:', err);
+      setError('Failed to load profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (e) => {
+    if (e) e.preventDefault();
+    console.log('Edit button clicked, entering edit mode');
+    setEditData({ ...profileData });
     setIsEditing(true);
+    console.log('isEditing set to true');
   };
 
   const handleCancel = () => {
@@ -38,11 +98,71 @@ function ReceptionistProfile() {
     setIsEditing(false);
   };
 
-  const handleSave = () => {
-    // Mock save - replace with API call
-    setProfileData({ ...editData });
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+  const handleSave = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const updateRequest = {
+        firstName: editData.firstName,
+        lastName: editData.lastName,
+        phoneNumber: editData.phoneNumber,
+        dateOfBirth: editData.dateOfBirth,
+        gender: editData.gender,
+        address: editData.address,
+        city: editData.city,
+        state: editData.state,
+        zipCode: editData.zipCode,
+        department: editData.department,
+        employeeId: editData.employeeId,
+        shift: editData.shift,
+        notes: editData.notes,
+        doctorName: editData.doctorName,
+        doctorEmail: editData.doctorEmail
+      };
+      
+      console.log('Sending update request:', updateRequest);
+      
+      const updatedProfile = await updateReceptionistProfile(updateRequest);
+      
+      console.log('Received updated profile:', updatedProfile);
+      
+      if (updatedProfile) {
+        const mappedData = {
+          firstName: updatedProfile.firstName || '',
+          lastName: updatedProfile.lastName || '',
+          email: updatedProfile.email || profileData.email || '',
+          phoneNumber: updatedProfile.phoneNumber || '',
+          dateOfBirth: updatedProfile.dateOfBirth || '',
+          gender: updatedProfile.gender || '',
+          address: updatedProfile.address || '',
+          city: updatedProfile.city || '',
+          state: updatedProfile.state || '',
+          zipCode: updatedProfile.zipCode || '',
+          receptionistId: updatedProfile.receptionistId || profileData.receptionistId || '',
+          department: updatedProfile.department || '',
+          employeeId: updatedProfile.employeeId || '',
+          shift: updatedProfile.shift || '',
+          notes: updatedProfile.notes || '',
+          doctorName: updatedProfile.doctorName || '',
+          doctorEmail: updatedProfile.doctorEmail || ''
+        };
+        
+        setProfileData(mappedData);
+        setEditData(mappedData);
+      }
+      
+      setIsEditing(false);
+      alert('Profile updated successfully!');
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError('Failed to update profile. Please try again.');
+      alert('Failed to update profile: ' + (err.message || 'Unknown error'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteAccount = (e) => {
@@ -66,24 +186,24 @@ function ReceptionistProfile() {
 
   return (
     <div className="receptionist-profile">
+      {loading && <div className="loading-spinner">Loading...</div>}
+      {error && <div className="error-message">{error}</div>}
+      
       <div className="profile-container">
         <div className="profile-header">
           <div className="profile-avatar">
             <User size={48} />
           </div>
           <div className="profile-header-info">
-            <h1>{profileData.name}</h1>
+            <h1>{profileData.firstName} {profileData.lastName}</h1>
             <p className="profile-role">Receptionist</p>
-            <p className="profile-joined">
-              Joined {new Date(profileData.joinedDate).toLocaleDateString('en-US', {
-                month: 'long',
-                year: 'numeric'
-              })}
-            </p>
+            {profileData.receptionistId && (
+              <p className="profile-id">ID: {profileData.receptionistId}</p>
+            )}
           </div>
         </div>
 
-        <div className="profile-grid">
+        <form onSubmit={handleSave} className="profile-grid">
           {/* Personal Information */}
           <Card variant="default" className="profile-section">
             <div className="section-header">
@@ -93,15 +213,30 @@ function ReceptionistProfile() {
 
             <div className="info-grid">
               <div className="info-item">
-                <label>Full Name</label>
+                <label>First Name</label>
                 {isEditing ? (
                   <Input
                     type="text"
-                    value={editData.name}
-                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                    value={editData.firstName}
+                    onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                    required
                   />
                 ) : (
-                  <p>{profileData.name}</p>
+                  <p>{profileData.firstName || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item">
+                <label>Last Name</label>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    value={editData.lastName}
+                    onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
+                    required
+                  />
+                ) : (
+                  <p>{profileData.lastName || 'Not provided'}</p>
                 )}
               </div>
 
@@ -110,15 +245,7 @@ function ReceptionistProfile() {
                   <Mail size={16} />
                   Email Address
                 </label>
-                {isEditing ? (
-                  <Input
-                    type="email"
-                    value={editData.email}
-                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                  />
-                ) : (
-                  <p>{profileData.email}</p>
-                )}
+                <p>{profileData.email}</p>
               </div>
 
               <div className="info-item">
@@ -129,36 +256,178 @@ function ReceptionistProfile() {
                 {isEditing ? (
                   <Input
                     type="tel"
-                    value={editData.phone}
-                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                    value={editData.phoneNumber}
+                    onChange={(e) => setEditData({ ...editData, phoneNumber: e.target.value })}
                   />
                 ) : (
-                  <p>{profileData.phone}</p>
+                  <p>{profileData.phoneNumber || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item">
+                <label>
+                  <Calendar size={16} />
+                  Date of Birth
+                </label>
+                {isEditing ? (
+                  <Input
+                    type="date"
+                    value={editData.dateOfBirth}
+                    onChange={(e) => setEditData({ ...editData, dateOfBirth: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.dateOfBirth || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item">
+                <label>Gender</label>
+                {isEditing ? (
+                  <select
+                    value={editData.gender}
+                    onChange={(e) => setEditData({ ...editData, gender: e.target.value })}
+                    className="input-field"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                ) : (
+                  <p>{profileData.gender || 'Not provided'}</p>
                 )}
               </div>
             </div>
+          </Card>
 
-            <div className="section-actions">
-              {isEditing ? (
-                <>
-                  <Button variant="outline" onClick={handleCancel}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSave}>
-                    Save Changes
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="secondary" onClick={() => setIsChangePasswordOpen(true)}>
-                    <Lock size={18} />
-                    Change Password
-                  </Button>
-                  <Button onClick={handleEdit}>
-                    Edit Profile
-                  </Button>
-                </>
-              )}
+          {/* Address Information */}
+          <Card variant="default" className="profile-section">
+            <div className="section-header">
+              <MapPin size={24} />
+              <h2>Address Information</h2>
+            </div>
+
+            <div className="info-grid">
+              <div className="info-item">
+                <label>Address</label>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    value={editData.address}
+                    onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.address || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item">
+                <label>City</label>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    value={editData.city}
+                    onChange={(e) => setEditData({ ...editData, city: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.city || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item">
+                <label>State</label>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    value={editData.state}
+                    onChange={(e) => setEditData({ ...editData, state: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.state || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item">
+                <label>Zip Code</label>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    value={editData.zipCode}
+                    onChange={(e) => setEditData({ ...editData, zipCode: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.zipCode || 'Not provided'}</p>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Work Information */}
+          <Card variant="default" className="profile-section">
+            <div className="section-header">
+              <Briefcase size={24} />
+              <h2>Work Information</h2>
+            </div>
+
+            <div className="info-grid">
+              <div className="info-item">
+                <label>Department</label>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    value={editData.department}
+                    onChange={(e) => setEditData({ ...editData, department: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.department || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item">
+                <label>Employee ID</label>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    value={editData.employeeId}
+                    onChange={(e) => setEditData({ ...editData, employeeId: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.employeeId || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item">
+                <label>Shift</label>
+                {isEditing ? (
+                  <select
+                    value={editData.shift}
+                    onChange={(e) => setEditData({ ...editData, shift: e.target.value })}
+                    className="input-field"
+                  >
+                    <option value="">Select Shift</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Evening">Evening</option>
+                    <option value="Night">Night</option>
+                  </select>
+                ) : (
+                  <p>{profileData.shift || 'Not provided'}</p>
+                )}
+              </div>
+
+              <div className="info-item full-width">
+                <label>Notes</label>
+                {isEditing ? (
+                  <textarea
+                    value={editData.notes}
+                    onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
+                    className="input-field"
+                    rows="3"
+                    placeholder="Additional notes..."
+                  />
+                ) : (
+                  <p>{profileData.notes || 'No notes'}</p>
+                )}
+              </div>
             </div>
           </Card>
 
@@ -169,10 +438,18 @@ function ReceptionistProfile() {
               <h2>Associated Doctor</h2>
             </div>
 
-            <div className="doctor-info">
+            <div className="info-grid">
               <div className="info-item">
                 <label>Doctor Name</label>
-                <p>{profileData.doctorName}</p>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    value={editData.doctorName}
+                    onChange={(e) => setEditData({ ...editData, doctorName: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.doctorName || 'Not assigned'}</p>
+                )}
               </div>
 
               <div className="info-item">
@@ -180,13 +457,47 @@ function ReceptionistProfile() {
                   <Mail size={16} />
                   Doctor Email
                 </label>
-                <p>{profileData.doctorEmail}</p>
+                {isEditing ? (
+                  <Input
+                    type="email"
+                    value={editData.doctorEmail}
+                    onChange={(e) => setEditData({ ...editData, doctorEmail: e.target.value })}
+                  />
+                ) : (
+                  <p>{profileData.doctorEmail || 'Not assigned'}</p>
+                )}
               </div>
             </div>
 
             <div className="info-note">
               <AlertTriangle size={16} />
               <span>You are authorized by this doctor to manage appointments</span>
+            </div>
+          </Card>
+
+          {/* Action Buttons */}
+          <Card variant="default" className="profile-section action-section">
+            <div className="section-actions">
+              {isEditing ? (
+                <>
+                  <Button type="button" variant="outline" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="secondary" type="button" onClick={() => setIsChangePasswordOpen(true)}>
+                    <Lock size={18} />
+                    Change Password
+                  </Button>
+                  <Button type="button" onClick={(e) => handleEdit(e)}>
+                    Edit Profile
+                  </Button>
+                </>
+              )}
             </div>
           </Card>
 
@@ -207,6 +518,7 @@ function ReceptionistProfile() {
               </div>
 
               <Button
+                type="button"
                 variant="outline"
                 className="delete-button"
                 onClick={() => setShowDeleteModal(true)}
@@ -216,7 +528,7 @@ function ReceptionistProfile() {
               </Button>
             </div>
           </Card>
-        </div>
+        </form>
       </div>
 
       {/* Delete Confirmation Modal */}

@@ -15,7 +15,6 @@ import LaboratoryDashboard from './pages/LaboratoryDashboard/LaboratoryDashboard
 import InsuranceDashboard from './pages/InsuranceDashboard/InsuranceDashboard';
 import ReceptionistDashboard from './pages/ReceptionistDashboard/ReceptionistDashboard';
 import ReceptionistLogin from './pages/ReceptionistLogin/ReceptionistLogin';
-import ReceptionistRegister from './pages/ReceptionistRegister/ReceptionistRegister';
 import ReceptionistProfile from './pages/ReceptionistProfile/ReceptionistProfile';
 import './styles/globals.css';
 
@@ -105,7 +104,6 @@ function AppContent() {
 
           {/* Receptionist Routes */}
           <Route path="/receptionist/login" element={<ReceptionistLogin />} />
-          <Route path="/receptionist/register" element={<ReceptionistRegister />} />
           
           <Route 
             path="/receptionist/dashboard" 

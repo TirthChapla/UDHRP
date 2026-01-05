@@ -3,7 +3,9 @@ package com.doctorai.service;
 import com.doctorai.dto.*;
 import com.doctorai.exception.BadRequestException;
 import com.doctorai.exception.ResourceNotFoundException;
+import com.doctorai.model.Receptionist;
 import com.doctorai.model.User;
+import com.doctorai.repository.ReceptionistRepository;
 import com.doctorai.repository.UserRepository;
 import com.doctorai.security.CustomUserDetailsService;
 import com.doctorai.security.JwtTokenProvider;
@@ -19,7 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -27,6 +32,9 @@ public class AuthService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private ReceptionistRepository receptionistRepository;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -71,6 +79,16 @@ public class AuthService {
         user.setEmailVerified(false);
         
         User savedUser = userRepository.save(user);
+        
+        // Create receptionist record if role is receptionist
+        if ("RECEPTIONIST".equalsIgnoreCase(registerRequest.getRole())) {
+            Receptionist receptionist = new Receptionist();
+            receptionist.setUser(savedUser);
+            receptionist.setReceptionistId("REC-" + savedUser.getId());
+            receptionist.setDepartment(registerRequest.getDepartment());
+            receptionist.setEmployeeId(registerRequest.getEmployeeId());
+            receptionistRepository.save(receptionist);
+        }
         
         // Generate verification token
         String verificationToken = UUID.randomUUID().toString();
@@ -333,5 +351,93 @@ public class AuthService {
             // Log error but don't fail request
             System.err.println("Failed to send verification email: " + e.getMessage());
         }
+    }
+    
+    @Transactional
+    public UserDTO registerReceptionist(RegisterReceptionistRequest request) {
+        // Verify doctor credentials
+        User doctor = userRepository.findByEmail(request.getDoctorEmail())
+                .orElseThrow(() -> new BadRequestException("Doctor not found with email: " + request.getDoctorEmail()));
+        
+        // Check if user is actually a doctor
+        if (doctor.getRole() != User.UserRole.DOCTOR) {
+            throw new BadRequestException("User is not a doctor");
+        }
+        
+        // Verify doctor password
+        if (!passwordEncoder.matches(request.getDoctorPassword(), doctor.getPassword())) {
+            throw new BadCredentialsException("Invalid doctor credentials");
+        }
+        
+        // Check if receptionist email already exists
+        if (userRepository.existsByEmail(request.getReceptionistEmail())) {
+            throw new BadRequestException("Email already exists");
+        }
+        
+        // Parse receptionist name
+        String[] nameParts = request.getReceptionistName().trim().split("\\s+", 2);
+        String firstName = nameParts[0];
+        String lastName = nameParts.length > 1 ? nameParts[1] : "";
+        
+        // Create new receptionist user
+        User receptionistUser = new User();
+        receptionistUser.setEmail(request.getReceptionistEmail());
+        receptionistUser.setPassword(passwordEncoder.encode(request.getReceptionistPassword()));
+        receptionistUser.setFirstName(firstName);
+        receptionistUser.setLastName(lastName);
+        receptionistUser.setPhoneNumber(request.getReceptionistPhone());
+        receptionistUser.setRole(User.UserRole.RECEPTIONIST);
+        receptionistUser.setIsActive(true);
+        receptionistUser.setEmailVerified(false);
+        
+        User savedUser = userRepository.save(receptionistUser);
+        
+        // Create receptionist record
+        Receptionist receptionist = new Receptionist();
+        receptionist.setUser(savedUser);
+        receptionist.setDoctor(doctor);
+        receptionist.setReceptionistId(generateReceptionistId());
+        receptionistRepository.save(receptionist);
+        
+        // Generate verification token
+        String verificationToken = UUID.randomUUID().toString();
+        savedUser.setVerificationToken(verificationToken);
+        savedUser.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+        userRepository.save(savedUser);
+        
+        // Send verification email
+        try {
+            emailService.sendVerificationEmail(
+                savedUser.getEmail(),
+                savedUser.getFirstName(),
+                verificationToken
+            );
+        } catch (Exception e) {
+            // Log error but don't fail registration
+            System.err.println("Failed to send verification email: " + e.getMessage());
+        }
+        
+        return modelMapper.map(savedUser, UserDTO.class);
+    }
+    
+    private String generateReceptionistId() {
+        String prefix = "REC";
+        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        Random random = new Random();
+        String receptionistId;
+        
+        // Generate unique ID
+        int attempts = 0;
+        while (attempts < 100) {
+            int randomNum = random.nextInt(10000);
+            receptionistId = String.format("%s%s%04d", prefix, datePart, randomNum);
+            
+            if (!receptionistRepository.existsByReceptionistId(receptionistId)) {
+                return receptionistId;
+            }
+            attempts++;
+        }
+        
+        throw new RuntimeException("Failed to generate unique receptionist ID after 100 attempts");
     }
 }

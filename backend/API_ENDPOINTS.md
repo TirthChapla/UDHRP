@@ -17,7 +17,8 @@ Authorization: Bearer <your-jwt-token>
 1. [Authentication APIs](#authentication-apis)
 2. [Patient Profile APIs](#patient-profile-apis)
 3. [Doctor Profile APIs](#doctor-profile-apis)
-4. [Health Check APIs](#health-check-apis)
+4. [Receptionist Profile APIs](#receptionist-profile-apis)
+5. [Health Check APIs](#health-check-apis)
 
 ---
 
@@ -574,6 +575,126 @@ Authorization: Bearer <your-jwt-token>
 - `languages` is a set of strings representing languages the doctor can speak
 - `consultationFee` is in the currency unit configured for the system (default: INR)
 - `isAvailable` indicates if the doctor is currently available for appointments
+
+---
+
+## Receptionist Profile APIs
+
+### Base Path: `/api/receptionist`
+
+### 1. Get Receptionist Profile
+**Endpoint:** `GET /api/receptionist/profile`
+
+**Description:** Retrieves the complete profile of the authenticated receptionist.
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Receptionist profile retrieved successfully",
+  "data": {
+    "firstName": "Sarah",
+    "lastName": "Johnson",
+    "email": "sarah.receptionist@example.com",
+    "phoneNumber": "+1234567890",
+    "dateOfBirth": "1995-03-15",
+    "gender": "FEMALE",
+    "address": "123 Main St",
+    "city": "Boston",
+    "state": "MA",
+    "zipCode": "02101",
+    "receptionistId": "REC202601040001",
+    "department": "Cardiology",
+    "shift": "Morning",
+    "notes": "Fluent in English and Spanish",
+    "doctorName": "Dr. Michael Smith",
+    "doctorEmail": "dr.smith@example.com"
+  }
+}
+```
+
+---
+
+### 2. Update Receptionist Profile
+**Endpoint:** `PUT /api/receptionist/profile`
+
+**Description:** Updates the receptionist's personal and work information.
+
+**Authentication:** Required (Bearer Token)
+
+**Request Body:**
+```json
+{
+  "firstName": "Sarah",
+  "lastName": "Johnson",
+  "phoneNumber": "+1234567890",
+  "dateOfBirth": "1995-03-15",
+  "gender": "FEMALE",
+  "address": "123 Main St",
+  "city": "Boston",
+  "state": "MA",
+  "zipCode": "02101",
+  "department": "Cardiology",
+  "shift": "Morning",
+  "notes": "Fluent in English and Spanish"
+}
+```
+
+**Required Fields:**
+- `firstName`
+- `lastName`
+
+**Optional Fields:**
+- `phoneNumber`
+- `dateOfBirth` (Format: YYYY-MM-DD)
+- `gender` (MALE, FEMALE, OTHER)
+- `address`
+- `city`
+- `state`
+- `zipCode`
+- `department`
+- `shift` (Morning, Evening, Night)
+- `notes`
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Receptionist profile updated successfully",
+  "data": {
+    "firstName": "Sarah",
+    "lastName": "Johnson",
+    "email": "sarah.receptionist@example.com",
+    "phoneNumber": "+1234567890",
+    "dateOfBirth": "1995-03-15",
+    "gender": "FEMALE",
+    "address": "123 Main St",
+    "city": "Boston",
+    "state": "MA",
+    "zipCode": "02101",
+    "receptionistId": "REC202601040001",
+    "department": "Cardiology",
+    "shift": "Morning",
+    "notes": "Fluent in English and Spanish",
+    "doctorName": "Dr. Michael Smith",
+    "doctorEmail": "dr.smith@example.com"
+  }
+}
+```
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "data": {
+    "firstName": "First name is required",
+    "lastName": "Last name is required"
+  }
+}
+```
 
 ---
 
