@@ -224,3 +224,172 @@ export const deletePrescription = async (id) => {
     throw error;
   }
 };
+
+// ==================== SCHEDULE/APPOINTMENT APIs ====================
+
+/**
+ * Get all appointments for the logged-in doctor
+ * @returns {Promise<Array>}
+ */
+export const getAllAppointments = async () => {
+  try {
+    const response = await apiRequest('/doctor/schedule/appointments', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching appointments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get today's appointments
+ * @returns {Promise<Array>}
+ */
+export const getTodayAppointments = async () => {
+  try {
+    const response = await apiRequest('/doctor/schedule/appointments/today', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching today appointments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get tomorrow's appointments
+ * @returns {Promise<Array>}
+ */
+export const getTomorrowAppointments = async () => {
+  try {
+    const response = await apiRequest('/doctor/schedule/appointments/tomorrow', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching tomorrow appointments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get yesterday's appointments
+ * @returns {Promise<Array>}
+ */
+export const getYesterdayAppointments = async () => {
+  try {
+    const response = await apiRequest('/doctor/schedule/appointments/yesterday', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching yesterday appointments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get last week's appointments
+ * @returns {Promise<Array>}
+ */
+export const getLastWeekAppointments = async () => {
+  try {
+    const response = await apiRequest('/doctor/schedule/appointments/last-week', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching last week appointments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get appointments by specific date
+ * @param {string} date - Date in YYYY-MM-DD format
+ * @returns {Promise<Array>}
+ */
+export const getAppointmentsByDate = async (date) => {
+  try {
+    const response = await apiRequest(`/doctor/schedule/appointments/date/${date}`, {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching appointments by date:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get appointments by date range
+ * @param {string} startDate - Start date in YYYY-MM-DD format
+ * @param {string} endDate - End date in YYYY-MM-DD format
+ * @returns {Promise<Array>}
+ */
+export const getAppointmentsByDateRange = async (startDate, endDate) => {
+  try {
+    const response = await apiRequest(`/doctor/schedule/appointments/date-range?startDate=${startDate}&endDate=${endDate}`, {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching appointments by date range:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get today's schedule summary
+ * @returns {Promise<Object>}
+ */
+export const getTodaySummary = async () => {
+  try {
+    const response = await apiRequest('/doctor/schedule/summary/today', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching today summary:', error);
+    throw error;
+  }
+};
+
+/**
+ * Reschedule an appointment
+ * @param {Object} rescheduleData - { appointmentId, date, time, reason }
+ * @returns {Promise<Object>}
+ */
+export const rescheduleAppointment = async (rescheduleData) => {
+  try {
+    const response = await apiRequest('/doctor/schedule/appointments/reschedule', {
+      method: 'POST',
+      body: JSON.stringify(rescheduleData),
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error rescheduling appointment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update appointment status
+ * @param {number} id - Appointment ID
+ * @param {string} status - New status (SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW)
+ * @returns {Promise<Object>}
+ */
+export const updateAppointmentStatus = async (id, status) => {
+  try {
+    const response = await apiRequest(`/doctor/schedule/appointments/${id}/status?status=${status}`, {
+      method: 'PATCH',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating appointment status:', error);
+    throw error;
+  }
+};

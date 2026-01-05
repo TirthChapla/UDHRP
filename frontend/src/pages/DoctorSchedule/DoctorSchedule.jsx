@@ -5,156 +5,26 @@ import {
   Activity, 
   Calendar,
   X as XIcon,
-  AlertCircle
+  AlertCircle,
+  Loader
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
+import {
+  getTodayAppointments,
+  getTomorrowAppointments,
+  getYesterdayAppointments,
+  getLastWeekAppointments,
+  getAppointmentsByDate,
+  rescheduleAppointment
+} from '../../services/doctorService';
 import './DoctorSchedule.css';
 
 function DoctorSchedule() {
-  const [allAppointments] = useState([
-    // Yesterday appointments
-    {
-      id: 1,
-      time: '9:00 AM',
-      patientName: 'Rajesh Kumar',
-      patientId: 'PAT-101',
-      type: 'Consultation',
-      status: 'completed',
-      date: '2026-01-02'
-    },
-    {
-      id: 2,
-      time: '11:00 AM',
-      patientName: 'Priya Sharma',
-      patientId: 'PAT-102',
-      type: 'Follow-up',
-      status: 'completed',
-      date: '2026-01-02'
-    },
-    {
-      id: 3,
-      time: '2:00 PM',
-      patientName: 'Amit Patel',
-      patientId: 'PAT-103',
-      type: 'Checkup',
-      status: 'completed',
-      date: '2026-01-02'
-    },
-    // Today's appointments
-    {
-      id: 4,
-      time: '9:00 AM',
-      patientName: 'Sanjay Patel',
-      patientId: 'PAT-001',
-      type: 'Follow-up',
-      status: 'completed',
-      date: '2026-01-03'
-    },
-    {
-      id: 5,
-      time: '10:00 AM',
-      patientName: 'Meera Singh',
-      patientId: 'PAT-002',
-      type: 'Consultation',
-      status: 'completed',
-      date: '2026-01-03'
-    },
-    {
-      id: 6,
-      time: '11:00 AM',
-      patientName: 'Vikram Reddy',
-      patientId: 'PAT-003',
-      type: 'Emergency',
-      status: 'in-progress',
-      date: '2026-01-03'
-    },
-    {
-      id: 7,
-      time: '2:00 PM',
-      patientName: 'Anjali Desai',
-      patientId: 'PAT-004',
-      type: 'Checkup',
-      status: 'upcoming',
-      date: '2026-01-03'
-    },
-    {
-      id: 8,
-      time: '3:30 PM',
-      patientName: 'Rohan Verma',
-      patientId: 'PAT-005',
-      type: 'Follow-up',
-      status: 'upcoming',
-      date: '2026-01-03'
-    },
-    // Tomorrow's appointments
-    {
-      id: 9,
-      time: '9:30 AM',
-      patientName: 'Kavita Reddy',
-      patientId: 'PAT-201',
-      type: 'Consultation',
-      status: 'upcoming',
-      date: '2026-01-04'
-    },
-    {
-      id: 10,
-      time: '11:00 AM',
-      patientName: 'Deepak Gupta',
-      patientId: 'PAT-202',
-      type: 'Follow-up',
-      status: 'upcoming',
-      date: '2026-01-04'
-    },
-    {
-      id: 11,
-      time: '1:00 PM',
-      patientName: 'Neha Kapoor',
-      patientId: 'PAT-203',
-      type: 'Checkup',
-      status: 'upcoming',
-      date: '2026-01-04'
-    },
-    // Last week appointments (Dec 27-31)
-    {
-      id: 12,
-      time: '10:00 AM',
-      patientName: 'Ravi Singh',
-      patientId: 'PAT-301',
-      type: 'Consultation',
-      status: 'completed',
-      date: '2025-12-27'
-    },
-    {
-      id: 13,
-      time: '2:00 PM',
-      patientName: 'Sunita Sharma',
-      patientId: 'PAT-302',
-      type: 'Follow-up',
-      status: 'completed',
-      date: '2025-12-28'
-    },
-    {
-      id: 14,
-      time: '11:00 AM',
-      patientName: 'Anil Kumar',
-      patientId: 'PAT-303',
-      type: 'Checkup',
-      status: 'completed',
-      date: '2025-12-30'
-    },
-    {
-      id: 15,
-      time: '3:00 PM',
-      patientName: 'Pooja Desai',
-      patientId: 'PAT-304',
-      type: 'Consultation',
-      status: 'completed',
-      date: '2025-12-31'
-    }
-  ]);
-
+  const navigate = useNavigate();
+  const [allAppointments, setAllAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [dateFilter, setDateFilter] = useState('today');
   const [customDate, setCustomDate] = useState('');
@@ -164,9 +34,14 @@ function DoctorSchedule() {
     date: '',
     time: ''
   });
+  
+  // Loading and error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
   // Get today's date
-  const today = new Date('2026-01-03');
+  const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   const tomorrow = new Date(today);
@@ -177,66 +52,52 @@ function DoctorSchedule() {
     return date.toISOString().split('T')[0];
   };
 
-  // Convert 12-hour time to 24-hour for sorting
-  const convertTo24Hour = (time) => {
-    const [timePart, period] = time.split(' ');
-    let [hours, minutes] = timePart.split(':');
-    hours = parseInt(hours);
+  // Fetch appointments based on filter
+  const fetchAppointments = async (filter, customDateValue = null) => {
+    setLoading(true);
+    setError('');
     
-    if (period === 'PM' && hours !== 12) {
-      hours += 12;
-    } else if (period === 'AM' && hours === 12) {
-      hours = 0;
+    try {
+      let appointments = [];
+      
+      switch (filter) {
+        case 'today':
+          appointments = await getTodayAppointments();
+          break;
+        case 'tomorrow':
+          appointments = await getTomorrowAppointments();
+          break;
+        case 'yesterday':
+          appointments = await getYesterdayAppointments();
+          break;
+        case 'lastWeek':
+          appointments = await getLastWeekAppointments();
+          break;
+        case 'custom':
+          if (customDateValue) {
+            appointments = await getAppointmentsByDate(customDateValue);
+          }
+          break;
+        default:
+          appointments = await getTodayAppointments();
+      }
+      
+      setAllAppointments(appointments || []);
+      setFilteredAppointments(appointments || []);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+      setError('Failed to load appointments. Please try again.');
+      setAllAppointments([]);
+      setFilteredAppointments([]);
+    } finally {
+      setLoading(false);
     }
-    
-    return `${hours.toString().padStart(2, '0')}:${minutes}`;
   };
 
-  // Filter appointments based on selected filter
+  // Load appointments on mount and filter change
   useEffect(() => {
-    let filtered = [];
-
-    switch (dateFilter) {
-      case 'lastWeek':
-        const weekAgo = new Date(today);
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        filtered = allAppointments.filter(apt => {
-          const aptDate = new Date(apt.date);
-          return aptDate >= weekAgo && aptDate < today;
-        });
-        break;
-
-      case 'yesterday':
-        filtered = allAppointments.filter(apt => apt.date === formatDate(yesterday));
-        break;
-
-      case 'today':
-        filtered = allAppointments.filter(apt => apt.date === formatDate(today));
-        break;
-
-      case 'tomorrow':
-        filtered = allAppointments.filter(apt => apt.date === formatDate(tomorrow));
-        break;
-
-      case 'custom':
-        if (customDate) {
-          filtered = allAppointments.filter(apt => apt.date === customDate);
-        }
-        break;
-
-      default:
-        filtered = allAppointments.filter(apt => apt.date === formatDate(today));
-    }
-
-    // Sort by time
-    filtered.sort((a, b) => {
-      const timeA = convertTo24Hour(a.time);
-      const timeB = convertTo24Hour(b.time);
-      return timeA.localeCompare(timeB);
-    });
-
-    setFilteredAppointments(filtered);
-  }, [dateFilter, customDate, allAppointments, today, yesterday, tomorrow]);
+    fetchAppointments(dateFilter, customDate);
+  }, [dateFilter]);
 
   const handleDateFilterChange = (filter) => {
     setDateFilter(filter);
@@ -248,6 +109,7 @@ function DoctorSchedule() {
   const handleCustomDateChange = (date) => {
     setCustomDate(date);
     setDateFilter('custom');
+    fetchAppointments('custom', date);
   };
 
   const getFilterTitle = () => {
@@ -288,33 +150,52 @@ function DoctorSchedule() {
   };
 
   const handlePatientClick = (appointment) => {
-    // TODO: Navigate to prescription page when implemented
-    console.log('Navigating to prescription page for:', appointment.patientName);
-    alert(`Prescription page for ${appointment.patientName} will be available soon!`);
+    // Navigate to prescription page with patient info
+    navigate(`/doctor/prescription`, { 
+      state: { 
+        patientId: appointment.patientId,
+        patientName: appointment.patientName,
+        appointmentId: appointment.id
+      } 
+    });
   };
 
   const handleRescheduleClick = (appointment, e) => {
     e.stopPropagation(); // Prevent patient click event
     setSelectedAppointment(appointment);
     setRescheduleData({
-      date: appointment.date,
-      time: appointment.time
+      date: appointment.date || '',
+      time: appointment.time || ''
     });
     setRescheduleModal(true);
   };
 
-  const handleRescheduleSubmit = (e) => {
+  const handleRescheduleSubmit = async (e) => {
     e.preventDefault();
+    setRescheduleLoading(true);
     
-    // In a real app, this would update the database
-    console.log('Rescheduling appointment:', selectedAppointment, rescheduleData);
-    
-    // Close modal
-    setRescheduleModal(false);
-    setSelectedAppointment(null);
-    
-    // Show success message
-    alert(`Appointment rescheduled for ${rescheduleData.date} at ${rescheduleData.time}`);
+    try {
+      await rescheduleAppointment({
+        appointmentId: selectedAppointment.id,
+        date: rescheduleData.date,
+        time: rescheduleData.time
+      });
+      
+      // Refresh appointments
+      await fetchAppointments(dateFilter, customDate);
+      
+      // Close modal
+      setRescheduleModal(false);
+      setSelectedAppointment(null);
+      
+      // Show success message
+      alert(`Appointment rescheduled for ${rescheduleData.date} at ${rescheduleData.time}`);
+    } catch (err) {
+      console.error('Error rescheduling appointment:', err);
+      alert('Failed to reschedule appointment. Please try again.');
+    } finally {
+      setRescheduleLoading(false);
+    }
   };
 
   const closeRescheduleModal = () => {
@@ -418,7 +299,21 @@ function DoctorSchedule() {
 
       <div className="schedule-container">
         <Card variant="default" className="schedule-card">
-          {filteredAppointments.length > 0 ? (
+          {loading ? (
+            <div className="loading-container">
+              <Loader size={48} className="loading-spinner" />
+              <p>Loading appointments...</p>
+            </div>
+          ) : error ? (
+            <div className="error-container">
+              <AlertCircle size={48} className="error-icon" />
+              <h3>Error</h3>
+              <p>{error}</p>
+              <Button onClick={() => fetchAppointments(dateFilter, customDate)}>
+                Try Again
+              </Button>
+            </div>
+          ) : filteredAppointments.length > 0 ? (
             <div className="schedule-list">
               {filteredAppointments.map((appointment) => (
                 <div
@@ -553,11 +448,12 @@ function DoctorSchedule() {
                   type="button"
                   variant="outline"
                   onClick={closeRescheduleModal}
+                  disabled={rescheduleLoading}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  Confirm Reschedule
+                <Button type="submit" disabled={rescheduleLoading}>
+                  {rescheduleLoading ? 'Rescheduling...' : 'Confirm Reschedule'}
                 </Button>
               </div>
             </form>
