@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Search, User, FileText, Plus, Trash2, Calendar, Pill, Activity, AlertCircle, ChevronDown, ChevronRight, X, Menu } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, User, FileText, Plus, Trash2, Calendar, Pill, Activity, AlertCircle, ChevronDown, ChevronRight, X, Menu, Loader } from 'lucide-react';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import Card from '../../components/Card/Card';
+import { getPatientById, getPatientPrescriptions, getPatientLabReports, createPrescription } from '../../services/doctorService';
 import './DoctorPrescription.css';
 
 function DoctorPrescription() {
@@ -17,74 +18,67 @@ function DoctorPrescription() {
     { id: 1, drug: '', unit: '', dosage: '' }
   ]);
   const [prescriptionData, setPrescriptionData] = useState({
+    diagnosis: '',
+    symptoms: '',
     instructions: 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.',
-    dietToFollow: 'Stay hydrated. Avoid cold beverages. Rest adequately. Use steam inhalation twice daily.',
-    allergies: 'None',
+    dietToFollow: 'Stay hydrated. Avoid cold beverages. Rest adequately.',
+    allergies: '',
     followUp: 'If symptoms persist after 7 days',
     labReports: ''
   });
 
-  // Mock patient data
-  const mockPatient = {
-    id: 'P12345',
-    name: 'John Doe',
-    age: 35,
-    gender: 'Male',
-    bloodGroup: 'O+',
-    phone: '+1 234-567-8900',
-    email: 'john.doe@example.com',
-    address: '123 Main Street, New York, NY 10001',
-    allergies: 'None',
-    chronicConditions: ['Hypertension']
+  // Loading and error states
+  const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [submitLoading, setSubmitLoading] = useState(false);
+  
+  // Patient history data from API
+  const [patientPrescriptions, setPatientPrescriptions] = useState([]);
+  const [patientLabReports, setPatientLabReports] = useState([]);
+
+  // Fetch patient history when patient is selected
+  useEffect(() => {
+    if (selectedPatient?.patientId) {
+      fetchPatientHistory(selectedPatient.patientId);
+      // Pre-fill allergies from patient data
+      if (selectedPatient.allergies) {
+        setPrescriptionData(prev => ({ ...prev, allergies: selectedPatient.allergies }));
+      }
+    }
+  }, [selectedPatient]);
+
+  const fetchPatientHistory = async (patientId) => {
+    try {
+      const [prescriptions, labReports] = await Promise.all([
+        getPatientPrescriptions(patientId),
+        getPatientLabReports(patientId)
+      ]);
+      setPatientPrescriptions(prescriptions || []);
+      setPatientLabReports(labReports || []);
+    } catch (error) {
+      console.error('Error fetching patient history:', error);
+    }
   };
 
-  // Mock previous prescriptions
-  const mockPrescriptions = [
-    {
-      id: 'RX001',
-      date: '2025-12-28',
-      doctorName: 'Dr. Smith',
-      medications: [
-        { drug: 'Amoxicillin', unit: '500mg', dosage: 'Three times daily' },
-        { drug: 'Ibuprofen', unit: '400mg', dosage: 'Twice daily after meals' }
-      ],
-      diagnosis: 'Upper Respiratory Infection',
-      followUp: 'After 5 days'
-    },
-    {
-      id: 'RX002',
-      date: '2025-12-15',
-      doctorName: 'Dr. Johnson',
-      medications: [
-        { drug: 'Lisinopril', unit: '10mg', dosage: 'Once daily in morning' }
-      ],
-      diagnosis: 'Hypertension Management',
-      followUp: 'Monthly checkup'
+  const handleSearchPatient = async () => {
+    if (!patientId.trim()) {
+      setSearchError('Please enter a patient ID');
+      return;
     }
-  ];
 
-  // Mock lab reports
-  const mockLabReports = [
-    {
-      id: 'LAB001',
-      date: '2025-12-20',
-      testName: 'Complete Blood Count',
-      status: 'Normal',
-      details: 'All parameters within normal range'
-    },
-    {
-      id: 'LAB002',
-      date: '2025-12-10',
-      testName: 'Lipid Profile',
-      status: 'Abnormal',
-      details: 'Elevated LDL cholesterol - 165 mg/dL'
-    }
-  ];
+    setLoading(true);
+    setSearchError('');
 
-  const handleSearchPatient = () => {
-    if (patientId.trim()) {
-      // In real app, fetch patient data from API
-      setSelectedPatient(mockPatient);
+    try {
+      const patient = await getPatientById(patientId.trim());
+      setSelectedPatient(patient);
+      setSearchError('');
+    } catch (error) {
+      console.error('Error searching patient:', error);
+      setSearchError('Patient not found. Please check the patient ID and try again.');
+      setSelectedPatient(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,15 +102,76 @@ function DoctorPrescription() {
     setPrescriptionData({ ...prescriptionData, [field]: value });
   };
 
-  const handleSubmitPrescription = () => {
-    // Validate and submit prescription
-    console.log('Submitting prescription:', {
-      patient: selectedPatient,
-      medications,
-      ...prescriptionData,
-      date: new Date().toISOString()
+  const handleSubmitPrescription = async () => {
+    // Validate medications
+    const validMedications = medications.filter(med => med.drug.trim() !== '');
+    if (validMedications.length === 0) {
+      alert('Please add at least one medication');
+      return;
+    }
+
+    setSubmitLoading(true);
+
+    try {
+      const prescriptionPayload = {
+        patientId: selectedPatient.patientId,
+        diagnosis: prescriptionData.diagnosis,
+        symptoms: prescriptionData.symptoms,
+        medications: validMedications.map(med => ({
+          drug: med.drug,
+          unit: med.unit,
+          dosage: med.dosage
+        })),
+        instructions: prescriptionData.instructions,
+        dietToFollow: prescriptionData.dietToFollow,
+        allergies: prescriptionData.allergies,
+        labReports: prescriptionData.labReports,
+        followUp: prescriptionData.followUp
+      };
+
+      const result = await createPrescription(prescriptionPayload);
+      console.log('Prescription created:', result);
+      alert(`Prescription created successfully! ID: ${result.prescriptionId}`);
+      
+      // Reset form
+      setMedications([{ id: 1, drug: '', unit: '', dosage: '' }]);
+      setPrescriptionData({
+        diagnosis: '',
+        symptoms: '',
+        instructions: 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.',
+        dietToFollow: 'Stay hydrated. Avoid cold beverages. Rest adequately.',
+        allergies: selectedPatient.allergies || '',
+        followUp: 'If symptoms persist after 7 days',
+        labReports: ''
+      });
+      
+      // Refresh patient prescriptions
+      fetchPatientHistory(selectedPatient.patientId);
+    } catch (error) {
+      console.error('Error creating prescription:', error);
+      alert('Failed to create prescription. Please try again.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleClearPatient = () => {
+    setSelectedPatient(null);
+    setPatientId('');
+    setPatientPrescriptions([]);
+    setPatientLabReports([]);
+    setOpenTabs([{ id: 'create', title: 'Create Prescription', type: 'create' }]);
+    setActiveTab('create');
+    setMedications([{ id: 1, drug: '', unit: '', dosage: '' }]);
+    setPrescriptionData({
+      diagnosis: '',
+      symptoms: '',
+      instructions: 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.',
+      dietToFollow: 'Stay hydrated. Avoid cold beverages. Rest adequately.',
+      allergies: '',
+      followUp: 'If symptoms persist after 7 days',
+      labReports: ''
     });
-    alert('Prescription submitted successfully!');
   };
 
   const openTab = (type, data) => {
@@ -183,7 +238,7 @@ function DoctorPrescription() {
         <div className="profile-detail-grid">
           <div className="profile-detail-item">
             <label>Patient ID</label>
-            <p>{selectedPatient.id}</p>
+            <p>{selectedPatient.patientId}</p>
           </div>
           <div className="profile-detail-item">
             <label>Full Name</label>
@@ -191,35 +246,35 @@ function DoctorPrescription() {
           </div>
           <div className="profile-detail-item">
             <label>Age</label>
-            <p>{selectedPatient.age} years</p>
+            <p>{selectedPatient.age ? `${selectedPatient.age} years` : 'N/A'}</p>
           </div>
           <div className="profile-detail-item">
             <label>Gender</label>
-            <p>{selectedPatient.gender}</p>
+            <p>{selectedPatient.gender || 'N/A'}</p>
           </div>
           <div className="profile-detail-item">
             <label>Blood Group</label>
-            <p>{selectedPatient.bloodGroup}</p>
+            <p>{selectedPatient.bloodGroup || 'N/A'}</p>
           </div>
           <div className="profile-detail-item">
             <label>Phone</label>
-            <p>{selectedPatient.phone}</p>
+            <p>{selectedPatient.phone || 'N/A'}</p>
           </div>
           <div className="profile-detail-item full-width">
             <label>Email</label>
-            <p>{selectedPatient.email}</p>
+            <p>{selectedPatient.email || 'N/A'}</p>
           </div>
           <div className="profile-detail-item full-width">
             <label>Address</label>
-            <p>{selectedPatient.address}</p>
+            <p>{selectedPatient.address || 'N/A'}</p>
           </div>
           <div className="profile-detail-item full-width">
             <label>Allergies</label>
-            <p className="alert-text">{selectedPatient.allergies}</p>
+            <p className="alert-text">{selectedPatient.allergies || 'None reported'}</p>
           </div>
           <div className="profile-detail-item full-width">
             <label>Chronic Conditions</label>
-            <p className="alert-text">{selectedPatient.chronicConditions.join(', ')}</p>
+            <p className="alert-text">{selectedPatient.chronicConditions?.length > 0 ? selectedPatient.chronicConditions.join(', ') : 'None reported'}</p>
           </div>
         </div>
       </div>
@@ -231,7 +286,7 @@ function DoctorPrescription() {
       <div className="form-section">
         <div className="section-header">
           <FileText size={20} />
-          <h2>Prescription - {data.id}</h2>
+          <h2>Prescription - {data.prescriptionId || data.id}</h2>
         </div>
 
         <div className="prescription-view-details">
@@ -245,7 +300,7 @@ function DoctorPrescription() {
           </div>
           <div className="view-detail-row">
             <label>Diagnosis:</label>
-            <span>{data.diagnosis}</span>
+            <span>{data.diagnosis || 'N/A'}</span>
           </div>
 
           <div className="medications-view-section">
@@ -289,7 +344,7 @@ function DoctorPrescription() {
       <div className="form-section">
         <div className="section-header">
           <Activity size={20} />
-          <h2>Lab Report - {data.id}</h2>
+          <h2>Lab Report - {data.reportId || data.id}</h2>
         </div>
 
         <div className="prescription-view-details">
@@ -303,12 +358,24 @@ function DoctorPrescription() {
           </div>
           <div className="view-detail-row">
             <label>Status:</label>
-            <span className={`status-badge ${data.status.toLowerCase()}`}>{data.status}</span>
+            <span className={`status-badge ${data.status?.toLowerCase()}`}>{data.status}</span>
           </div>
           <div className="view-detail-row full-width">
-            <label>Details:</label>
-            <p>{data.details}</p>
+            <label>Results:</label>
+            <p>{data.results || data.details || 'N/A'}</p>
           </div>
+          {data.laboratoryName && (
+            <div className="view-detail-row">
+              <label>Laboratory:</label>
+              <span>{data.laboratoryName}</span>
+            </div>
+          )}
+          {data.doctorNotes && (
+            <div className="view-detail-row full-width">
+              <label>Doctor Notes:</label>
+              <p>{data.doctorNotes}</p>
+            </div>
+          )}
         </div>
       </div>
     </Card>
@@ -320,6 +387,28 @@ function DoctorPrescription() {
         <div className="section-header">
           <Pill size={20} />
           <h2>Prescription</h2>
+        </div>
+
+        {/* Diagnosis */}
+        <div className="form-group">
+          <label>Diagnosis</label>
+          <textarea
+            value={prescriptionData.diagnosis}
+            onChange={(e) => handlePrescriptionChange('diagnosis', e.target.value)}
+            rows={2}
+            placeholder="Enter diagnosis..."
+          />
+        </div>
+
+        {/* Symptoms */}
+        <div className="form-group">
+          <label>Symptoms</label>
+          <textarea
+            value={prescriptionData.symptoms}
+            onChange={(e) => handlePrescriptionChange('symptoms', e.target.value)}
+            rows={2}
+            placeholder="Enter patient symptoms..."
+          />
         </div>
         
         <div className="prescription-instructions">
@@ -442,16 +531,26 @@ function DoctorPrescription() {
         <div className="form-actions">
           <Button
             variant="secondary"
-            onClick={() => setSelectedPatient(null)}
+            onClick={handleClearPatient}
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmitPrescription}
             size="large"
+            disabled={submitLoading}
           >
-            <FileText size={20} />
-            Generate Prescription
+            {submitLoading ? (
+              <>
+                <Loader size={20} className="spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <FileText size={20} />
+                Generate Prescription
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -474,20 +573,35 @@ function DoctorPrescription() {
             <div className="search-input-group">
               <Input
                 label="Patient ID"
-                placeholder="Enter patient ID (e.g., P12345)"
+                placeholder="Enter patient ID (e.g., PAT-XXXXXXXX)"
                 value={patientId}
-                onChange={(e) => setPatientId(e.target.value)}
+                onChange={(e) => {
+                  setPatientId(e.target.value);
+                  setSearchError('');
+                }}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearchPatient()}
+                error={searchError}
               />
               <Button
                 onClick={handleSearchPatient}
                 size="large"
                 className="search-btn"
+                disabled={loading}
               >
-                <Search size={20} />
-                Search Patient
+                {loading ? (
+                  <>
+                    <Loader size={20} className="spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search size={20} />
+                    Search Patient
+                  </>
+                )}
               </Button>
             </div>
+            {searchError && <p className="search-error">{searchError}</p>}
           </Card>
         </div>
       </div>
@@ -531,21 +645,25 @@ function DoctorPrescription() {
                 onClick={() => setPrescriptionsExpanded(!prescriptionsExpanded)}
               >
                 <FileText size={18} />
-                <span>Previous Prescriptions</span>
+                <span>Previous Prescriptions ({patientPrescriptions.length})</span>
                 {prescriptionsExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
               {prescriptionsExpanded && (
                 <div className="dropdown-content">
-                  {mockPrescriptions.map(rx => (
-                    <button
-                      key={rx.id}
-                      className="dropdown-item"
-                      onClick={() => openTab('prescription', rx)}
-                    >
-                      <span className="item-id">{rx.id}</span>
-                      <span className="item-date">{rx.date}</span>
-                    </button>
-                  ))}
+                  {patientPrescriptions.length === 0 ? (
+                    <p className="no-data-text">No previous prescriptions</p>
+                  ) : (
+                    patientPrescriptions.map(rx => (
+                      <button
+                        key={rx.id}
+                        className="dropdown-item"
+                        onClick={() => openTab('prescription', rx)}
+                      >
+                        <span className="item-id">{rx.prescriptionId || rx.id}</span>
+                        <span className="item-date">{rx.date}</span>
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
             </div>
@@ -557,21 +675,25 @@ function DoctorPrescription() {
                 onClick={() => setLabReportsExpanded(!labReportsExpanded)}
               >
                 <Activity size={18} />
-                <span>Previous Lab Reports</span>
+                <span>Previous Lab Reports ({patientLabReports.length})</span>
                 {labReportsExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
               {labReportsExpanded && (
                 <div className="dropdown-content">
-                  {mockLabReports.map(lab => (
-                    <button
-                      key={lab.id}
-                      className="dropdown-item"
-                      onClick={() => openTab('lab', lab)}
-                    >
-                      <span className="item-id">{lab.id}</span>
-                      <span className="item-date">{lab.date}</span>
-                    </button>
-                  ))}
+                  {patientLabReports.length === 0 ? (
+                    <p className="no-data-text">No previous lab reports</p>
+                  ) : (
+                    patientLabReports.map(lab => (
+                      <button
+                        key={lab.id}
+                        className="dropdown-item"
+                        onClick={() => openTab('lab', lab)}
+                      >
+                        <span className="item-id">{lab.reportId || lab.id}</span>
+                        <span className="item-date">{lab.date}</span>
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
             </div>

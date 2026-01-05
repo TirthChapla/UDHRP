@@ -11,21 +11,20 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = "prescription")
 public class Medication extends BaseEntity {
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "prescription_id", nullable = false)
     private Prescription prescription;
     
     @Column(nullable = false)
-    private String medicineName;
+    private String drug; // medicineName
+    
+    private String unit; // e.g., "500mg", "10ml"
     
     @Column(nullable = false)
-    private String dosage;
-    
-    @Column(nullable = false)
-    private String frequency;
+    private String dosage; // e.g., "Twice daily after meals"
     
     private Integer duration; // in days
     
