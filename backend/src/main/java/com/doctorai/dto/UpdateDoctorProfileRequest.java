@@ -39,4 +39,8 @@ public class UpdateDoctorProfileRequest {
     private Double consultationFee;
     private Set<String> languages;
     private Boolean isAvailable;
+    
+    // Working hours
+    private String workStartTime; // Format: HH:mm (e.g., "09:00")
+    private String workEndTime; // Format: HH:mm (e.g., "17:00")
 }

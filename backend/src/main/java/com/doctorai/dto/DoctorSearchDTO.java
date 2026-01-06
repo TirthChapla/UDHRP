@@ -35,4 +35,6 @@ public class DoctorSearchDTO {
     private String availability;
     private LocalDate nextAvailable;
     private String profileImage;
+    private String workStartTime;
+    private String workEndTime;
 }

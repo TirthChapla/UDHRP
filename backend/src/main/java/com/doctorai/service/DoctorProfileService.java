@@ -89,6 +89,10 @@ public class DoctorProfileService {
         doctor.setConsultationFee(request.getConsultationFee());
         doctor.setIsAvailable(request.getIsAvailable() != null ? request.getIsAvailable() : true);
         
+        // Working hours
+        doctor.setWorkStartTime(request.getWorkStartTime());
+        doctor.setWorkEndTime(request.getWorkEndTime());
+        
         // Languages - filter out empty strings
         if (request.getLanguages() != null) {
             doctor.setLanguages(new HashSet<>(request.getLanguages()));
@@ -131,12 +135,16 @@ public class DoctorProfileService {
             dto.setTotalReviews(doctor.getTotalReviews());
             dto.setLanguages(doctor.getLanguages());
             dto.setIsAvailable(doctor.getIsAvailable());
+            dto.setWorkStartTime(doctor.getWorkStartTime());
+            dto.setWorkEndTime(doctor.getWorkEndTime());
         } else {
             // Set default values if doctor record doesn't exist
             dto.setIsAvailable(true);
             dto.setRating(0.0);
             dto.setTotalReviews(0);
             dto.setLanguages(new HashSet<>());
+            dto.setWorkStartTime("09:00");
+            dto.setWorkEndTime("17:00");
         }
         
         return dto;

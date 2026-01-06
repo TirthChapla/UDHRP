@@ -34,4 +34,8 @@ public class DoctorProfileDTO {
     private Integer totalReviews;
     private Set<String> languages;
     private Boolean isAvailable;
+    
+    // Working hours
+    private String workStartTime;
+    private String workEndTime;
 }

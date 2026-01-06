@@ -7,6 +7,7 @@ import {
   MapPin, 
   Building2,
   Calendar,
+  Clock,
   Edit,
   Save,
   X as XIcon,
@@ -47,7 +48,9 @@ function DoctorProfile() {
     department: '',
     consultationFee: '',
     languages: [],
-    isAvailable: true
+    isAvailable: true,
+    workStartTime: '09:00',
+    workEndTime: '17:00'
   });
   
   // Keep original data for cancel functionality
@@ -86,7 +89,9 @@ function DoctorProfile() {
         department: data.department || '',
         consultationFee: data.consultationFee || '',
         languages: data.languages || [],
-        isAvailable: data.isAvailable !== undefined ? data.isAvailable : true
+        isAvailable: data.isAvailable !== undefined ? data.isAvailable : true,
+        workStartTime: data.workStartTime || '09:00',
+        workEndTime: data.workEndTime || '17:00'
       };
       
       setFormData(mappedData);
@@ -147,7 +152,9 @@ function DoctorProfile() {
         department: updatedProfile.department || '',
         consultationFee: updatedProfile.consultationFee || '',
         languages: updatedProfile.languages || [],
-        isAvailable: updatedProfile.isAvailable !== undefined ? updatedProfile.isAvailable : true
+        isAvailable: updatedProfile.isAvailable !== undefined ? updatedProfile.isAvailable : true,
+        workStartTime: updatedProfile.workStartTime || '09:00',
+        workEndTime: updatedProfile.workEndTime || '17:00'
       };
       
       setFormData(mappedData);
@@ -309,6 +316,22 @@ function DoctorProfile() {
                   placeholder="Per consultation fee"
                 />
 
+                <Input
+                  label="Work Start Time"
+                  type="time"
+                  name="workStartTime"
+                  value={formData.workStartTime}
+                  onChange={handleInputChange}
+                />
+
+                <Input
+                  label="Work End Time"
+                  type="time"
+                  name="workEndTime"
+                  value={formData.workEndTime}
+                  onChange={handleInputChange}
+                />
+
                 <div className="input-wrapper">
                   <label className="input-label">
                     <input
@@ -414,6 +437,18 @@ function DoctorProfile() {
                 <div className="view-value">
                   <span className={formData.isAvailable ? 'status-badge-active' : 'status-badge-inactive'}>
                     {formData.isAvailable ? 'Available' : 'Unavailable'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="profile-view-item">
+                <label className="view-label">Working Hours</label>
+                <div className="view-value">
+                  <Clock size={18} className="view-icon" />
+                  <span>
+                    {formData.workStartTime && formData.workEndTime 
+                      ? `${formData.workStartTime} - ${formData.workEndTime}` 
+                      : 'Not set'}
                   </span>
                 </div>
               </div>

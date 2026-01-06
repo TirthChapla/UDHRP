@@ -143,8 +143,8 @@ public class DoctorSearchService {
         // Calculate next available date (for now, set to tomorrow or next working day)
         LocalDate nextAvailable = calculateNextAvailable(doctor);
         
-        // Build availability string
-        String availability = "9:00 AM - 5:00 PM"; // Default availability
+        // Build availability string from working hours
+        String availability = buildAvailabilityString(doctor);
         
         return DoctorSearchDTO.builder()
                 .id(doctor.getId())
@@ -169,7 +169,33 @@ public class DoctorSearchService {
                 .availability(availability)
                 .nextAvailable(nextAvailable)
                 .profileImage(user.getProfileImage())
+                .workStartTime(doctor.getWorkStartTime())
+                .workEndTime(doctor.getWorkEndTime())
                 .build();
+    }
+    
+    private String buildAvailabilityString(Doctor doctor) {
+        String startTime = doctor.getWorkStartTime();
+        String endTime = doctor.getWorkEndTime();
+        
+        if (startTime != null && endTime != null) {
+            return formatTime(startTime) + " - " + formatTime(endTime);
+        }
+        return "9:00 AM - 5:00 PM"; // Default
+    }
+    
+    private String formatTime(String time24h) {
+        try {
+            String[] parts = time24h.split(":");
+            int hour = Integer.parseInt(parts[0]);
+            int minute = Integer.parseInt(parts[1]);
+            String ampm = hour >= 12 ? "PM" : "AM";
+            if (hour > 12) hour -= 12;
+            if (hour == 0) hour = 12;
+            return String.format("%d:%02d %s", hour, minute, ampm);
+        } catch (Exception e) {
+            return time24h;
+        }
     }
 
     private String buildFullAddress(User user, Doctor doctor) {
