@@ -73,6 +73,9 @@ public class PatientAppointmentService {
             throw new RuntimeException("Appointment date/time must be in the future");
         }
 
+        // Validate appointment time is within doctor's working hours
+        validateWorkingHours(doctor, appointmentDateTime);
+
         // Check for conflicting appointments
         checkForConflicts(doctor.getId(), appointmentDateTime);
 
@@ -101,6 +104,54 @@ public class PatientAppointmentService {
         log.info("Appointment booked successfully with ID: {}", savedAppointment.getId());
 
         return mapToDTO(savedAppointment);
+    }
+    
+    /**
+     * Validate that the appointment time is within doctor's working hours
+     */
+    private void validateWorkingHours(Doctor doctor, LocalDateTime appointmentDateTime) {
+        String workStartTime = doctor.getWorkStartTime();
+        String workEndTime = doctor.getWorkEndTime();
+        
+        // If working hours not set, use default 09:00 - 17:00
+        if (workStartTime == null || workStartTime.isEmpty()) {
+            workStartTime = "09:00";
+        }
+        if (workEndTime == null || workEndTime.isEmpty()) {
+            workEndTime = "17:00";
+        }
+        
+        try {
+            LocalTime startTime = LocalTime.parse(workStartTime);
+            LocalTime endTime = LocalTime.parse(workEndTime);
+            LocalTime appointmentTime = appointmentDateTime.toLocalTime();
+            
+            if (appointmentTime.isBefore(startTime) || appointmentTime.isAfter(endTime)) {
+                String formattedStart = formatTimeFor12Hour(startTime);
+                String formattedEnd = formatTimeFor12Hour(endTime);
+                throw new RuntimeException(
+                    String.format("The selected time is outside the doctor's working hours. " +
+                        "Please select a time between %s and %s.", formattedStart, formattedEnd)
+                );
+            }
+        } catch (RuntimeException e) {
+            throw e; // Re-throw our custom exception
+        } catch (Exception e) {
+            log.warn("Error parsing working hours for doctor {}: {}", doctor.getId(), e.getMessage());
+            // If there's a parsing error, allow the booking (fail open)
+        }
+    }
+    
+    /**
+     * Format LocalTime to 12-hour format with AM/PM
+     */
+    private String formatTimeFor12Hour(LocalTime time) {
+        int hour = time.getHour();
+        int minute = time.getMinute();
+        String ampm = hour >= 12 ? "PM" : "AM";
+        if (hour > 12) hour -= 12;
+        if (hour == 0) hour = 12;
+        return String.format("%d:%02d %s", hour, minute, ampm);
     }
 
     /**
