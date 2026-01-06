@@ -14,3 +14,62 @@ export const updateReceptionistProfile = async (profileData) => {
   });
   return response.data;
 };
+
+// ==================== APPOINTMENT APIs ====================
+
+export const getAllAppointments = async () => {
+  const response = await apiRequest('/receptionist/appointments', {
+    method: 'GET'
+  });
+  return response.data;
+};
+
+export const getTodayAppointments = async () => {
+  const response = await apiRequest('/receptionist/appointments/today', {
+    method: 'GET'
+  });
+  return response.data;
+};
+
+export const getTomorrowAppointments = async () => {
+  const response = await apiRequest('/receptionist/appointments/tomorrow', {
+    method: 'GET'
+  });
+  return response.data;
+};
+
+export const getYesterdayAppointments = async () => {
+  const response = await apiRequest('/receptionist/appointments/yesterday', {
+    method: 'GET'
+  });
+  return response.data;
+};
+
+export const getLastWeekAppointments = async () => {
+  const response = await apiRequest('/receptionist/appointments/last-week', {
+    method: 'GET'
+  });
+  return response.data;
+};
+
+export const getAppointmentsByDate = async (date) => {
+  const response = await apiRequest(`/receptionist/appointments/date/${date}`, {
+    method: 'GET'
+  });
+  return response.data;
+};
+
+export const rescheduleAppointment = async (appointmentData) => {
+  const response = await apiRequest(`/receptionist/appointments/${appointmentData.appointmentId}/reschedule`, {
+    method: 'PUT',
+    body: JSON.stringify(appointmentData)
+  });
+  return response.data;
+};
+
+export const cancelAppointment = async (appointmentId) => {
+  const response = await apiRequest(`/receptionist/appointments/${appointmentId}`, {
+    method: 'DELETE'
+  });
+  return response.data;
+};

@@ -70,7 +70,8 @@ public class PatientAppointmentService {
 
         // Validate appointment is in the future
         if (appointmentDateTime.isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Appointment date/time must be in the future");
+            String workingHoursInfo = getWorkingHoursInfo(doctor);
+            throw new RuntimeException(workingHoursInfo);
         }
 
         // Validate appointment time is within doctor's working hours
@@ -152,6 +153,31 @@ public class PatientAppointmentService {
         if (hour > 12) hour -= 12;
         if (hour == 0) hour = 12;
         return String.format("%d:%02d %s", hour, minute, ampm);
+    }
+    
+    /**
+     * Get doctor's working hours info as a formatted string
+     */
+    private String getWorkingHoursInfo(Doctor doctor) {
+        String workStartTime = doctor.getWorkStartTime();
+        String workEndTime = doctor.getWorkEndTime();
+        
+        if (workStartTime == null || workStartTime.isEmpty()) {
+            workStartTime = "09:00";
+        }
+        if (workEndTime == null || workEndTime.isEmpty()) {
+            workEndTime = "17:00";
+        }
+        
+        try {
+            LocalTime startTime = LocalTime.parse(workStartTime);
+            LocalTime endTime = LocalTime.parse(workEndTime);
+            String formattedStart = formatTimeFor12Hour(startTime);
+            String formattedEnd = formatTimeFor12Hour(endTime);
+            return String.format("Doctor's working hours are %s to %s.", formattedStart, formattedEnd);
+        } catch (Exception e) {
+            return "Doctor's working hours are 9:00 AM to 5:00 PM.";
+        }
     }
 
     /**

@@ -16,6 +16,7 @@ import InsuranceDashboard from './pages/InsuranceDashboard/InsuranceDashboard';
 import ReceptionistDashboard from './pages/ReceptionistDashboard/ReceptionistDashboard';
 import ReceptionistLogin from './pages/ReceptionistLogin/ReceptionistLogin';
 import ReceptionistProfile from './pages/ReceptionistProfile/ReceptionistProfile';
+import ReceptionistSchedule from './pages/ReceptionistSchedule/ReceptionistSchedule';
 import './styles/globals.css';
 
 function AppContent() {
@@ -119,6 +120,15 @@ function AppContent() {
             element={
               <ProtectedRoute allowedRoles={['RECEPTIONIST']}>
                 <ReceptionistProfile />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/receptionist/schedule" 
+            element={
+              <ProtectedRoute allowedRoles={['RECEPTIONIST']}>
+                <ReceptionistSchedule />
               </ProtectedRoute>
             } 
           />

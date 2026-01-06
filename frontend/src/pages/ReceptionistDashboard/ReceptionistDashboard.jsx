@@ -177,6 +177,17 @@ function ReceptionistDashboard() {
         </Card>
       </div>
 
+      {/* Quick Actions */}
+      <div className="quick-actions-section">
+        <Button 
+          onClick={() => navigate('/receptionist/schedule')}
+          size="large"
+        >
+          <Calendar size={20} />
+          View Full Schedule
+        </Button>
+      </div>
+
       {/* Patient Search Section */}
       <Card variant="default" className="search-section">
         <div className="section-header">
