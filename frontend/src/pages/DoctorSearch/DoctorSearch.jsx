@@ -3,13 +3,15 @@ import {
   Search, 
   Stethoscope,
   Filter,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import Select from '../../components/Select/Select';
 import DoctorCard from '../../components/DoctorCard/DoctorCard';
+import { searchDoctors, getSpecializations, getCities, getAllDoctors } from '../../services/patientService';
 import './DoctorSearch.css';
 
 function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
@@ -19,6 +21,52 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
   const [showFilters, setShowFilters] = useState(false);
   const [tempCity, setTempCity] = useState('');
   const [tempSpecialization, setTempSpecialization] = useState('');
+  
+  // API states
+  const [doctors, setDoctors] = useState([]);
+  const [cities, setCities] = useState([{ value: '', label: 'All Cities' }]);
+  const [specializations, setSpecializations] = useState([{ value: '', label: 'All Specializations' }]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch initial data (all doctors, cities, specializations)
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch all data in parallel
+        const [doctorsData, citiesData, specializationsData] = await Promise.all([
+          getAllDoctors(),
+          getCities(),
+          getSpecializations()
+        ]);
+        
+        setDoctors(doctorsData || []);
+        
+        // Format cities for Select component
+        const formattedCities = [
+          { value: '', label: 'All Cities' },
+          ...(citiesData || []).map(city => ({ value: city.toLowerCase(), label: city }))
+        ];
+        setCities(formattedCities);
+        
+        // Format specializations for Select component
+        const formattedSpecializations = [
+          { value: '', label: 'All Specializations' },
+          ...(specializationsData || []).map(spec => ({ value: spec.toLowerCase(), label: spec }))
+        ];
+        setSpecializations(formattedSpecializations);
+      } catch (err) {
+        console.error('Error fetching initial data:', err);
+        setError('Failed to load doctors. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
 
   // Set initial search query if provided
   useEffect(() => {
@@ -27,145 +75,38 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
     }
   }, [initialSearchQuery]);
 
-  const cities = [
-    { value: '', label: 'All Cities' },
-    { value: 'mumbai', label: 'Mumbai' },
-    { value: 'delhi', label: 'Delhi' },
-    { value: 'bangalore', label: 'Bangalore' },
-    { value: 'pune', label: 'Pune' },
-    { value: 'hyderabad', label: 'Hyderabad' },
-    { value: 'chennai', label: 'Chennai' }
-  ];
+  // Debounced search effect
+  useEffect(() => {
+    const searchTimeout = setTimeout(async () => {
+      if (searchQuery || selectedCity || selectedSpecialization) {
+        setLoading(true);
+        try {
+          const results = await searchDoctors({
+            query: searchQuery || undefined,
+            city: selectedCity || undefined,
+            specialization: selectedSpecialization || undefined
+          });
+          setDoctors(results || []);
+        } catch (err) {
+          console.error('Error searching doctors:', err);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // If no filters, fetch all doctors
+        try {
+          const allDoctors = await getAllDoctors();
+          setDoctors(allDoctors || []);
+        } catch (err) {
+          console.error('Error fetching all doctors:', err);
+        }
+      }
+    }, 300); // 300ms debounce
 
-  const specializations = [
-    { value: '', label: 'All Specializations' },
-    { value: 'cardiology', label: 'Cardiology' },
-    { value: 'dermatology', label: 'Dermatology' },
-    { value: 'general', label: 'General Physician' },
-    { value: 'pediatrics', label: 'Pediatrics' },
-    { value: 'orthopedics', label: 'Orthopedics' },
-    { value: 'neurology', label: 'Neurology' },
-    { value: 'gynecology', label: 'Gynecology' },
-    { value: 'psychiatry', label: 'Psychiatry' }
-  ];
+    return () => clearTimeout(searchTimeout);
+  }, [searchQuery, selectedCity, selectedSpecialization]);
 
-  const doctors = [
-    {
-      id: 1,
-      name: 'Dr. Sarah Patel',
-      specialization: 'Cardiology',
-      experience: 15,
-      qualification: 'MBBS, MD (Cardiology)',
-      rating: 4.8,
-      reviews: 245,
-      address: 'Apollo Hospital, Andheri West, Mumbai',
-      city: 'mumbai',
-      availability: '10:00 AM - 5:00 PM',
-      consultationFee: 1500,
-      phone: '+91 98765 43210',
-      email: 'dr.sarah.patel@apollo.com',
-      languages: ['English', 'Hindi', 'Gujarati'],
-      nextAvailable: '2025-12-28'
-    },
-    {
-      id: 2,
-      name: 'Dr. Rajesh Kumar',
-      specialization: 'General Physician',
-      experience: 12,
-      qualification: 'MBBS, MD (Internal Medicine)',
-      rating: 4.6,
-      reviews: 189,
-      address: 'Fortis Clinic, Andheri East, Mumbai',
-      city: 'mumbai',
-      availability: '9:00 AM - 2:00 PM, 5:00 PM - 8:00 PM',
-      consultationFee: 800,
-      phone: '+91 98765 43211',
-      email: 'dr.rajesh@fortis.com',
-      languages: ['English', 'Hindi'],
-      nextAvailable: '2025-12-26'
-    },
-    {
-      id: 3,
-      name: 'Dr. Priya Sharma',
-      specialization: 'Dermatology',
-      experience: 10,
-      qualification: 'MBBS, MD (Dermatology)',
-      rating: 4.9,
-      reviews: 312,
-      address: 'Max Hospital, Saket, Delhi',
-      city: 'delhi',
-      availability: '11:00 AM - 6:00 PM',
-      consultationFee: 1200,
-      phone: '+91 98765 43212',
-      email: 'dr.priya.sharma@max.com',
-      languages: ['English', 'Hindi', 'Punjabi'],
-      nextAvailable: '2025-12-27'
-    },
-    {
-      id: 4,
-      name: 'Dr. Amit Verma',
-      specialization: 'Pediatrics',
-      experience: 18,
-      qualification: 'MBBS, MD (Pediatrics)',
-      rating: 4.7,
-      reviews: 276,
-      address: 'Manipal Hospital, Whitefield, Bangalore',
-      city: 'bangalore',
-      availability: '8:00 AM - 1:00 PM',
-      consultationFee: 1000,
-      phone: '+91 98765 43213',
-      email: 'dr.amit.verma@manipal.com',
-      languages: ['English', 'Hindi', 'Kannada'],
-      nextAvailable: '2025-12-25'
-    },
-    {
-      id: 5,
-      name: 'Dr. Meera Singh',
-      specialization: 'Orthopedics',
-      experience: 14,
-      qualification: 'MBBS, MS (Orthopedics)',
-      rating: 4.8,
-      reviews: 198,
-      address: 'Kokilaben Hospital, Andheri, Mumbai',
-      city: 'mumbai',
-      availability: '10:00 AM - 4:00 PM',
-      consultationFee: 1800,
-      phone: '+91 98765 43214',
-      email: 'dr.meera.singh@kokilaben.com',
-      languages: ['English', 'Hindi', 'Marathi'],
-      nextAvailable: '2025-12-29'
-    },
-    {
-      id: 6,
-      name: 'Dr. Vikram Reddy',
-      specialization: 'Neurology',
-      experience: 20,
-      qualification: 'MBBS, DM (Neurology)',
-      rating: 4.9,
-      reviews: 342,
-      address: 'Care Hospital, Banjara Hills, Hyderabad',
-      city: 'hyderabad',
-      availability: '9:00 AM - 3:00 PM',
-      consultationFee: 2000,
-      phone: '+91 98765 43215',
-      email: 'dr.vikram.reddy@care.com',
-      languages: ['English', 'Hindi', 'Telugu'],
-      nextAvailable: '2025-12-30'
-    }
-  ];
-
-  const filteredDoctors = doctors.filter(doctor => {
-    const matchesSearch = !searchQuery || 
-                         doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doctor.specialization.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCity = !selectedCity || doctor.city === selectedCity;
-    const matchesSpecialization = !selectedSpecialization || 
-                                  doctor.specialization.toLowerCase() === selectedSpecialization.toLowerCase();
-    
-    return matchesSearch && matchesCity && matchesSpecialization;
-  });
-
-  const handleClearFilters = () => {
+  const handleClearFilters = async () => {
     setSelectedCity('');
     setSelectedSpecialization('');
     setSearchQuery('');
@@ -192,6 +133,43 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
       onBookAppointment(doctor);
     }
   };
+
+  // Show loading state
+  if (loading && doctors.length === 0) {
+    return (
+      <div className="doctor-search">
+        <div className="search-header">
+          <h1 className="search-title">Find Your Doctor</h1>
+          <p className="search-subtitle">Search by name, specialization, or location</p>
+        </div>
+        <Card className="loading-card">
+          <div className="loading-content">
+            <Loader2 className="loading-spinner" size={48} />
+            <p>Loading doctors...</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && doctors.length === 0) {
+    return (
+      <div className="doctor-search">
+        <div className="search-header">
+          <h1 className="search-title">Find Your Doctor</h1>
+          <p className="search-subtitle">Search by name, specialization, or location</p>
+        </div>
+        <Card className="error-card">
+          <div className="error-content">
+            <X size={48} />
+            <p>{error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="doctor-search">
@@ -270,12 +248,16 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
         )}
 
         <div className="results-count">
-          Found {filteredDoctors.length} {filteredDoctors.length === 1 ? 'doctor' : 'doctors'}
+          {loading ? (
+            <span className="loading-text">Searching...</span>
+          ) : (
+            <>Found {doctors.length} {doctors.length === 1 ? 'doctor' : 'doctors'}</>
+          )}
         </div>
       </Card>
 
       <div className="doctors-grid">
-        {filteredDoctors.map(doctor => (
+        {doctors.map(doctor => (
           <DoctorCard 
             key={doctor.id} 
             doctor={doctor}
@@ -284,7 +266,7 @@ function DoctorSearch({ onBookAppointment, initialSearchQuery }) {
         ))}
       </div>
 
-      {filteredDoctors.length === 0 && (
+      {!loading && doctors.length === 0 && (
         <Card className="no-results">
           <Stethoscope size={64} />
           <h3>No doctors found</h3>

@@ -910,3 +910,134 @@ export const updatePatientProfile = async (profileData) => {
     throw error;
   }
 };
+
+// ========================
+// FIND DOCTOR APIs
+// ========================
+
+/**
+ * Get all doctors
+ * @returns {Promise<Array>}
+ */
+export const getAllDoctors = async () => {
+  try {
+    const response = await apiRequest('/patient/doctors', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all doctors:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get available doctors
+ * @returns {Promise<Array>}
+ */
+export const getAvailableDoctors = async () => {
+  try {
+    const response = await apiRequest('/patient/doctors/available', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching available doctors:', error);
+    throw error;
+  }
+};
+
+/**
+ * Search doctors with filters
+ * @param {Object} params - Search parameters
+ * @param {string} params.query - Search query (name, specialization, hospital)
+ * @param {string} params.specialization - Filter by specialization
+ * @param {string} params.city - Filter by city
+ * @returns {Promise<Array>}
+ */
+export const searchDoctors = async (params = {}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    if (params.query) queryParams.append('query', params.query);
+    if (params.specialization) queryParams.append('specialization', params.specialization);
+    if (params.city) queryParams.append('city', params.city);
+    
+    const queryString = queryParams.toString();
+    const endpoint = `/patient/doctors/search${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await apiRequest(endpoint, {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching doctors:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get doctors by specialization
+ * @param {string} specialization 
+ * @returns {Promise<Array>}
+ */
+export const getDoctorsBySpecialization = async (specialization) => {
+  try {
+    const response = await apiRequest(`/patient/doctors/specialization/${encodeURIComponent(specialization)}`, {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching doctors by specialization:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get doctor by ID
+ * @param {number|string} doctorId 
+ * @returns {Promise<Object>}
+ */
+export const getDoctorById = async (doctorId) => {
+  try {
+    const response = await apiRequest(`/patient/doctors/${doctorId}`, {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching doctor details:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all available specializations
+ * @returns {Promise<Array>}
+ */
+export const getSpecializations = async () => {
+  try {
+    const response = await apiRequest('/patient/doctors/specializations', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching specializations:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all available cities
+ * @returns {Promise<Array>}
+ */
+export const getCities = async () => {
+  try {
+    const response = await apiRequest('/patient/doctors/cities', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+    throw error;
+  }
+};

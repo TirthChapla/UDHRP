@@ -21,6 +21,45 @@
   margin: 0;
 }
 
+/* Loading and Error States */
+.loading-card,
+.error-card {
+  padding: var(--spacing-3xl);
+  text-align: center;
+}
+
+.loading-content,
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  color: var(--color-text-secondary);
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  color: var(--color-primary);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.error-content svg {
+  color: var(--color-error);
+}
+
 .search-filters-card {
   margin-bottom: var(--spacing-2xl);
 }

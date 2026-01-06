@@ -16,9 +16,10 @@ Authorization: Bearer <your-jwt-token>
 ## 📌 Table of Contents
 1. [Authentication APIs](#authentication-apis)
 2. [Patient Profile APIs](#patient-profile-apis)
-3. [Doctor Profile APIs](#doctor-profile-apis)
-4. [Receptionist Profile APIs](#receptionist-profile-apis)
-5. [Health Check APIs](#health-check-apis)
+3. [Patient - Find Doctor APIs](#patient---find-doctor-apis)
+4. [Doctor Profile APIs](#doctor-profile-apis)
+5. [Receptionist Profile APIs](#receptionist-profile-apis)
+6. [Health Check APIs](#health-check-apis)
 
 ---
 
@@ -453,6 +454,265 @@ Authorization: Bearer <your-jwt-token>
 - If `hasNoParentInfo` is true, parent health IDs and allergies are not required
 - `siblings` array can be empty or contain multiple sibling health IDs
 - Empty strings in the siblings array are automatically filtered out
+
+---
+
+## Patient - Find Doctor APIs
+
+### Base Path: `/api/patient/doctors`
+
+### 1. Get All Doctors
+**Endpoint:** `GET /api/patient/doctors`
+
+**Description:** Retrieve a list of all registered doctors.
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Doctors retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "name": "Dr. Sarah Patel",
+      "email": "sarah.patel@hospital.com",
+      "phoneNumber": "+91 98765 43210",
+      "specialization": "Cardiology",
+      "qualification": "MBBS, MD (Cardiology)",
+      "experience": 15,
+      "about": "Experienced cardiologist with focus on preventive care",
+      "hospital": "Apollo Hospital",
+      "department": "Cardiology",
+      "consultationFee": 1500.0,
+      "rating": 4.8,
+      "reviews": 245,
+      "languages": ["English", "Hindi", "Gujarati"],
+      "isAvailable": true,
+      "address": "Apollo Hospital, Andheri West, Mumbai",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "zipCode": "400058",
+      "availability": "9:00 AM - 5:00 PM",
+      "nextAvailable": "2026-01-07",
+      "profileImage": null
+    }
+  ]
+}
+```
+
+---
+
+### 2. Get Available Doctors
+**Endpoint:** `GET /api/patient/doctors/available`
+
+**Description:** Retrieve a list of doctors who are currently available for appointments.
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Available doctors retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "name": "Dr. Sarah Patel",
+      "specialization": "Cardiology",
+      "isAvailable": true,
+      ...
+    }
+  ]
+}
+```
+
+---
+
+### 3. Search Doctors
+**Endpoint:** `GET /api/patient/doctors/search`
+
+**Description:** Search doctors by name, specialization, or city with optional filters.
+
+**Authentication:** Required (Bearer Token)
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| query | string | No | Search query (matches doctor name, specialization, or hospital) |
+| specialization | string | No | Filter by specialization |
+| city | string | No | Filter by city |
+
+**Example Request:**
+```
+GET /api/patient/doctors/search?query=cardio&city=mumbai
+GET /api/patient/doctors/search?specialization=dermatology
+GET /api/patient/doctors/search?query=priya&specialization=cardiology&city=delhi
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Search completed successfully",
+  "data": [
+    {
+      "id": 1,
+      "name": "Dr. Sarah Patel",
+      "specialization": "Cardiology",
+      "city": "Mumbai",
+      ...
+    }
+  ]
+}
+```
+
+---
+
+### 4. Get Doctors by Specialization
+**Endpoint:** `GET /api/patient/doctors/specialization/{specialization}`
+
+**Description:** Retrieve doctors filtered by a specific specialization.
+
+**Authentication:** Required (Bearer Token)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| specialization | string | Yes | The specialization to filter by |
+
+**Example Request:**
+```
+GET /api/patient/doctors/specialization/Cardiology
+GET /api/patient/doctors/specialization/Dermatology
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Doctors retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "name": "Dr. Sarah Patel",
+      "specialization": "Cardiology",
+      ...
+    }
+  ]
+}
+```
+
+---
+
+### 5. Get Doctor by ID
+**Endpoint:** `GET /api/patient/doctors/{doctorId}`
+
+**Description:** Retrieve detailed information about a specific doctor.
+
+**Authentication:** Required (Bearer Token)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| doctorId | number | Yes | The ID of the doctor |
+
+**Example Request:**
+```
+GET /api/patient/doctors/1
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Doctor details retrieved successfully",
+  "data": {
+    "id": 1,
+    "name": "Dr. Sarah Patel",
+    "email": "sarah.patel@hospital.com",
+    "phoneNumber": "+91 98765 43210",
+    "specialization": "Cardiology",
+    "qualification": "MBBS, MD (Cardiology)",
+    "experience": 15,
+    "about": "Experienced cardiologist with focus on preventive care",
+    "hospital": "Apollo Hospital",
+    "department": "Cardiology",
+    "consultationFee": 1500.0,
+    "rating": 4.8,
+    "reviews": 245,
+    "languages": ["English", "Hindi", "Gujarati"],
+    "isAvailable": true,
+    "address": "Apollo Hospital, Andheri West, Mumbai",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "zipCode": "400058",
+    "availability": "9:00 AM - 5:00 PM",
+    "nextAvailable": "2026-01-07",
+    "profileImage": null
+  }
+}
+```
+
+**Error Response (404 Not Found):**
+```json
+{
+  "success": false,
+  "message": "Doctor not found with ID: 999",
+  "data": null
+}
+```
+
+---
+
+### 6. Get All Specializations
+**Endpoint:** `GET /api/patient/doctors/specializations`
+
+**Description:** Retrieve a list of all available specializations.
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Specializations retrieved successfully",
+  "data": [
+    "Cardiology",
+    "Dermatology",
+    "General Physician",
+    "Neurology",
+    "Orthopedics",
+    "Pediatrics"
+  ]
+}
+```
+
+---
+
+### 7. Get All Cities
+**Endpoint:** `GET /api/patient/doctors/cities`
+
+**Description:** Retrieve a list of all cities where doctors are available.
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Cities retrieved successfully",
+  "data": [
+    "Bangalore",
+    "Chennai",
+    "Delhi",
+    "Hyderabad",
+    "Mumbai",
+    "Pune"
+  ]
+}
+```
 
 ---
 
