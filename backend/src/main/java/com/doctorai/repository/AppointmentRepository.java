@@ -25,16 +25,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     
     List<Appointment> findByPatientIdAndAppointmentDateBetween(Long patientId, LocalDateTime start, LocalDateTime end);
     
-    @Query("SELECT a FROM Appointment a WHERE a.doctor.user.email = :email ORDER BY a.appointmentDate DESC")
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.doctor d JOIN FETCH d.user JOIN FETCH a.patient p JOIN FETCH p.user WHERE d.user.email = :email ORDER BY a.appointmentDate DESC")
     List<Appointment> findByDoctorEmail(@Param("email") String email);
     
-    @Query("SELECT a FROM Appointment a WHERE a.doctor.user.email = :email AND a.appointmentDate BETWEEN :start AND :end ORDER BY a.appointmentDate ASC")
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.doctor d JOIN FETCH d.user JOIN FETCH a.patient p JOIN FETCH p.user WHERE d.user.email = :email AND a.appointmentDate BETWEEN :start AND :end ORDER BY a.appointmentDate ASC")
     List<Appointment> findByDoctorEmailAndDateRange(
             @Param("email") String email, 
             @Param("start") LocalDateTime start, 
             @Param("end") LocalDateTime end);
     
-    @Query("SELECT a FROM Appointment a WHERE a.doctor.user.email = :email AND a.status = :status ORDER BY a.appointmentDate ASC")
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.doctor d JOIN FETCH d.user JOIN FETCH a.patient p JOIN FETCH p.user WHERE d.user.email = :email AND a.status = :status ORDER BY a.appointmentDate ASC")
     List<Appointment> findByDoctorEmailAndStatus(
             @Param("email") String email, 
             @Param("status") AppointmentStatus status);

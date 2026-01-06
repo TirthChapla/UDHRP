@@ -291,3 +291,25 @@ input::placeholder, textarea::placeholder {
     font-size: var(--font-size-lg);
   }
 }
+
+/* Loading Spinner Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl);
+}
+
+.loading-spinner svg {
+  animation: spin 1s linear infinite;
+  color: var(--color-primary);
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

@@ -56,7 +56,12 @@ public class DoctorScheduleService {
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atTime(LocalTime.MAX);
         
+        log.info("Query parameters - start: {}, end: {}", start, end);
+        
         List<Appointment> appointments = appointmentRepository.findByDoctorEmailAndDateRange(doctorEmail, start, end);
+        
+        log.info("Found {} appointments for doctor {}", appointments.size(), doctorEmail);
+        
         return appointments.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

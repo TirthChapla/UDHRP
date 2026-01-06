@@ -1,10 +1,10 @@
 import React from 'react';
-import { X, Stethoscope, Star } from 'lucide-react';
+import { X, Stethoscope, Star, Loader2 } from 'lucide-react';
 import Card from '../Card/Card';
 import Button from '../Button/Button';
 import Input from '../Input/Input';
 
-function BookingModal({ doctor, appointmentDate, appointmentTime, onDateChange, onTimeChange, onConfirm, onClose }) {
+function BookingModal({ doctor, appointmentDate, appointmentTime, onDateChange, onTimeChange, onConfirm, onClose, loading }) {
   if (!doctor) return null;
 
   const handleOverlayClick = (e) => {
@@ -14,12 +14,20 @@ function BookingModal({ doctor, appointmentDate, appointmentTime, onDateChange, 
   };
 
   const handleConfirm = () => {
+    console.log('BookingModal handleConfirm called');
+    console.log('appointmentDate:', appointmentDate);
+    console.log('appointmentTime:', appointmentTime);
+    
     if (!appointmentDate || !appointmentTime) {
       alert('Please select date and time');
       return;
     }
+    console.log('Calling onConfirm...');
     onConfirm();
   };
+
+  // Get minimum date (today)
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
@@ -29,6 +37,7 @@ function BookingModal({ doctor, appointmentDate, appointmentTime, onDateChange, 
           <button 
             className="modal-close" 
             onClick={onClose}
+            disabled={loading}
           >
             <X size={24} />
           </button>
@@ -42,10 +51,12 @@ function BookingModal({ doctor, appointmentDate, appointmentTime, onDateChange, 
             <div>
               <h3>{doctor.name}</h3>
               <p>{doctor.specialization}</p>
-              <div className="doctor-rating-modal">
-                <Star size={16} fill="currentColor" />
-                {doctor.rating} ({doctor.reviews} reviews)
-              </div>
+              {doctor.rating && (
+                <div className="doctor-rating-modal">
+                  <Star size={16} fill="currentColor" />
+                  {doctor.rating} ({doctor.reviews} reviews)
+                </div>
+              )}
             </div>
           </div>
 
@@ -55,19 +66,23 @@ function BookingModal({ doctor, appointmentDate, appointmentTime, onDateChange, 
               label="Select Date"
               value={appointmentDate}
               onChange={(e) => onDateChange(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
+              min={today}
+              disabled={loading}
             />
             <Input
               type="time"
               label="Select Time"
               value={appointmentTime}
               onChange={(e) => onTimeChange(e.target.value)}
+              disabled={loading}
             />
             
-            <div className="consultation-fee-info">
-              <span>Consultation Fee:</span>
-              <strong>₹{doctor.consultationFee}</strong>
-            </div>
+            {doctor.consultationFee && (
+              <div className="consultation-fee-info">
+                <span>Consultation Fee:</span>
+                <strong>₹{doctor.consultationFee}</strong>
+              </div>
+            )}
           </div>
         </div>
 
@@ -75,11 +90,19 @@ function BookingModal({ doctor, appointmentDate, appointmentTime, onDateChange, 
           <Button 
             variant="outline" 
             onClick={onClose}
+            disabled={loading}
           >
             Cancel
           </Button>
-          <Button onClick={handleConfirm}>
-            Confirm Booking
+          <Button onClick={handleConfirm} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="loading-spinner" size={18} />
+                Booking...
+              </>
+            ) : (
+              'Confirm Booking'
+            )}
           </Button>
         </div>
       </Card>

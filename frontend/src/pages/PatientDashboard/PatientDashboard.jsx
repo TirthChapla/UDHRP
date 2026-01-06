@@ -20,7 +20,10 @@ import {
   getDoctorsFromLabReports,
   getYearsFromLabReports,
   filterLabReports,
-  downloadLabReportPDF
+  downloadLabReportPDF,
+  bookAppointment,
+  getUpcomingAppointments,
+  cancelAppointment
 } from '../../services/patientService';
 import { FileText, FlaskRound } from 'lucide-react';
 import Card from '../../components/Card/Card';
@@ -34,6 +37,11 @@ function PatientDashboard({ searchQuery, initialTab }) {
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('');
   const [initialSearchQuery, setInitialSearchQuery] = useState('');
+  const [bookingLoading, setBookingLoading] = useState(false);
+  
+  // Appointments state
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
   
   // Prescriptions state
   const [allPrescriptions, setAllPrescriptions] = useState([]);
@@ -84,6 +92,17 @@ function PatientDashboard({ searchQuery, initialTab }) {
     }
   }, [searchQuery]);
 
+  // Fetch appointments on mount and when tab changes
+  useEffect(() => {
+    loadAppointments();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'appointments' || activeTab === 'overview') {
+      loadAppointments();
+    }
+  }, [activeTab]);
+
   // Fetch prescriptions when records tab is active
   useEffect(() => {
     if (activeTab === 'records') {
@@ -125,6 +144,31 @@ function PatientDashboard({ searchQuery, initialTab }) {
     }
   }, [allLabReports, labReportSearchQuery, selectedLabReportDoctor, selectedLabReportMonth, selectedLabReportYear]);
 
+  // Load appointments from API
+  const loadAppointments = async () => {
+    setAppointmentsLoading(true);
+    try {
+      const data = await getUpcomingAppointments();
+      // Transform the data to match the expected format
+      const formattedAppointments = (data || []).map(apt => ({
+        id: apt.id,
+        doctorName: apt.doctorName,
+        specialization: apt.doctorSpecialization,
+        date: apt.date,
+        time: apt.time,
+        status: apt.status,
+        location: apt.reason || 'In-person consultation',
+        type: apt.type
+      }));
+      setUpcomingAppointments(formattedAppointments);
+    } catch (error) {
+      console.error('Failed to load appointments:', error);
+      // Keep existing data on error
+    } finally {
+      setAppointmentsLoading(false);
+    }
+  };
+
   // Load prescriptions from service
   const loadPrescriptions = async () => {
     setPrescriptionsLoading(true);
@@ -157,26 +201,6 @@ function PatientDashboard({ searchQuery, initialTab }) {
 
   // Mock data
   const healthScore = 92;
-  const upcomingAppointments = [
-    {
-      id: 1,
-      doctorName: 'Dr. Sarah Patel',
-      specialization: 'Cardiologist',
-      date: '2025-12-28',
-      time: '10:00 AM',
-      status: 'confirmed',
-      location: 'Apollo Hospital, Mumbai'
-    },
-    {
-      id: 2,
-      doctorName: 'Dr. Rajesh Kumar',
-      specialization: 'General Physician',
-      date: '2026-01-05',
-      time: '2:30 PM',
-      status: 'pending',
-      location: 'Fortis Clinic, Andheri'
-    }
-  ];
 
   const recentRecords = [
     {
@@ -331,15 +355,60 @@ function PatientDashboard({ searchQuery, initialTab }) {
   const handleBookAppointment = (doctor) => {
     setSelectedDoctor(doctor);
     setShowBookingModal(true);
-    setActiveTab('overview');
   };
 
-  const handleConfirmBooking = () => {
-    alert(`Appointment booked with ${selectedDoctor?.name} on ${appointmentDate} at ${appointmentTime}`);
-    setShowBookingModal(false);
-    setSelectedDoctor(null);
-    setAppointmentDate('');
-    setAppointmentTime('');
+  const handleConfirmBooking = async () => {
+    if (!selectedDoctor || !appointmentDate || !appointmentTime) {
+      alert('Please select date and time');
+      return;
+    }
+
+    setBookingLoading(true);
+    try {
+      const appointmentData = {
+        doctorId: selectedDoctor.id,
+        date: appointmentDate,
+        time: appointmentTime,
+        type: 'IN_PERSON',
+        reason: `Consultation with ${selectedDoctor.specialization}`
+      };
+      
+      console.log('Booking appointment with data:', appointmentData);
+      console.log('Selected doctor:', selectedDoctor);
+      
+      const result = await bookAppointment(appointmentData);
+      console.log('Booking result:', result);
+      
+      alert(`Appointment booked successfully with ${selectedDoctor?.name} on ${appointmentDate} at ${appointmentTime}`);
+      setShowBookingModal(false);
+      setSelectedDoctor(null);
+      setAppointmentDate('');
+      setAppointmentTime('');
+      
+      // Refresh appointments list
+      loadAppointments();
+      setActiveTab('appointments');
+    } catch (error) {
+      console.error('Failed to book appointment:', error);
+      alert(error.message || 'Failed to book appointment. Please try again.');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const handleCancelAppointment = async (appointmentId) => {
+    if (!window.confirm('Are you sure you want to cancel this appointment?')) {
+      return;
+    }
+    
+    try {
+      await cancelAppointment(appointmentId);
+      alert('Appointment cancelled successfully');
+      loadAppointments();
+    } catch (error) {
+      console.error('Failed to cancel appointment:', error);
+      alert(error.message || 'Failed to cancel appointment. Please try again.');
+    }
   };
 
   return (
@@ -359,6 +428,8 @@ function PatientDashboard({ searchQuery, initialTab }) {
           <AppointmentsSection 
             appointments={upcomingAppointments}
             onBookNew={() => setActiveTab('search-doctors')}
+            onCancel={handleCancelAppointment}
+            loading={appointmentsLoading}
           />
         )}
 
@@ -493,6 +564,7 @@ function PatientDashboard({ searchQuery, initialTab }) {
             setAppointmentDate('');
             setAppointmentTime('');
           }}
+          loading={bookingLoading}
         />
       )}
 

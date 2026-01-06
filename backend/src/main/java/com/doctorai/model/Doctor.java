@@ -16,7 +16,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 public class Doctor extends BaseEntity {
     
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
@@ -50,4 +50,9 @@ public class Doctor extends BaseEntity {
     
     @Column(nullable = false)
     private Boolean isAvailable = true;
+    
+    // Working hours
+    private String workStartTime; // Format: HH:mm (e.g., "09:00")
+    
+    private String workEndTime; // Format: HH:mm (e.g., "17:00")
 }

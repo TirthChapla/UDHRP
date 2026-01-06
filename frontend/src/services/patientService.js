@@ -1041,3 +1041,99 @@ export const getCities = async () => {
     throw error;
   }
 };
+
+// ========================
+// APPOINTMENT APIs
+// ========================
+
+/**
+ * Book an appointment with a doctor
+ * @param {Object} appointmentData - Appointment details
+ * @param {number} appointmentData.doctorId - Doctor ID
+ * @param {string} appointmentData.date - Date in yyyy-MM-dd format
+ * @param {string} appointmentData.time - Time in HH:mm format
+ * @param {string} appointmentData.type - Appointment type (IN_PERSON, VIDEO_CALL, PHONE_CALL)
+ * @param {string} appointmentData.reason - Reason for appointment
+ * @param {string} appointmentData.notes - Additional notes
+ * @returns {Promise<Object>}
+ */
+export const bookAppointment = async (appointmentData) => {
+  try {
+    console.log('Sending appointment request:', appointmentData);
+    const response = await apiRequest('/patient/appointments/book', {
+      method: 'POST',
+      body: JSON.stringify(appointmentData),
+    });
+    console.log('Appointment response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error booking appointment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all appointments for the patient
+ * @returns {Promise<Array>}
+ */
+export const getPatientAppointments = async () => {
+  try {
+    const response = await apiRequest('/patient/appointments', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching appointments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get upcoming appointments for the patient
+ * @returns {Promise<Array>}
+ */
+export const getUpcomingAppointments = async () => {
+  try {
+    const response = await apiRequest('/patient/appointments/upcoming', {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching upcoming appointments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get appointment by ID
+ * @param {number} appointmentId 
+ * @returns {Promise<Object>}
+ */
+export const getAppointmentById = async (appointmentId) => {
+  try {
+    const response = await apiRequest(`/patient/appointments/${appointmentId}`, {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching appointment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Cancel an appointment
+ * @param {number} appointmentId 
+ * @returns {Promise<Object>}
+ */
+export const cancelAppointment = async (appointmentId) => {
+  try {
+    const response = await apiRequest(`/patient/appointments/${appointmentId}/cancel`, {
+      method: 'PUT',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    throw error;
+  }
+};

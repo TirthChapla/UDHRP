@@ -17,9 +17,10 @@ Authorization: Bearer <your-jwt-token>
 1. [Authentication APIs](#authentication-apis)
 2. [Patient Profile APIs](#patient-profile-apis)
 3. [Patient - Find Doctor APIs](#patient---find-doctor-apis)
-4. [Doctor Profile APIs](#doctor-profile-apis)
-5. [Receptionist Profile APIs](#receptionist-profile-apis)
-6. [Health Check APIs](#health-check-apis)
+4. [Patient - Appointments APIs](#patient---appointments-apis)
+5. [Doctor Profile APIs](#doctor-profile-apis)
+6. [Receptionist Profile APIs](#receptionist-profile-apis)
+7. [Health Check APIs](#health-check-apis)
 
 ---
 
@@ -711,6 +712,248 @@ GET /api/patient/doctors/1
     "Mumbai",
     "Pune"
   ]
+}
+```
+
+---
+
+## Patient - Appointments APIs
+
+### Base Path: `/api/patient/appointments`
+
+### 1. Book an Appointment
+**Endpoint:** `POST /api/patient/appointments/book`
+
+**Description:** Book a new appointment with a doctor. The system will automatically check for conflicting appointments in a 30-minute window.
+
+**Authentication:** Required (Bearer Token)
+
+**Request Body:**
+```json
+{
+  "doctorId": 1,
+  "date": "2025-01-15",
+  "time": "10:00",
+  "type": "IN_PERSON",
+  "reason": "Regular checkup",
+  "notes": "First time visit"
+}
+```
+
+**Available Appointment Types:**
+- `IN_PERSON`
+- `VIDEO_CALL`
+- `PHONE_CALL`
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Appointment booked successfully",
+  "data": {
+    "id": 1,
+    "patientId": 5,
+    "patientName": "John Doe",
+    "doctorId": 1,
+    "doctorName": "Dr. Sarah Patel",
+    "doctorSpecialization": "Cardiology",
+    "appointmentDate": "2025-01-15T10:00:00",
+    "status": "SCHEDULED",
+    "type": "IN_PERSON",
+    "reason": "Regular checkup",
+    "notes": "First time visit",
+    "meetingLink": null,
+    "createdAt": "2025-01-10T09:30:00"
+  }
+}
+```
+
+**Error Response (400 Bad Request - Conflicting Appointment):**
+```json
+{
+  "success": false,
+  "message": "You already have an appointment scheduled within 30 minutes of this time",
+  "data": null
+}
+```
+
+**Error Response (404 Not Found - Doctor Not Found):**
+```json
+{
+  "success": false,
+  "message": "Doctor not found",
+  "data": null
+}
+```
+
+---
+
+### 2. Get All Patient Appointments
+**Endpoint:** `GET /api/patient/appointments`
+
+**Description:** Retrieve all appointments for the logged-in patient, sorted by appointment date (most recent first).
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Appointments retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "patientId": 5,
+      "patientName": "John Doe",
+      "doctorId": 1,
+      "doctorName": "Dr. Sarah Patel",
+      "doctorSpecialization": "Cardiology",
+      "appointmentDate": "2025-01-15T10:00:00",
+      "status": "SCHEDULED",
+      "type": "IN_PERSON",
+      "reason": "Regular checkup",
+      "notes": "First time visit",
+      "meetingLink": null,
+      "createdAt": "2025-01-10T09:30:00"
+    }
+  ]
+}
+```
+
+---
+
+### 3. Get Upcoming Appointments
+**Endpoint:** `GET /api/patient/appointments/upcoming`
+
+**Description:** Retrieve upcoming appointments (within the next 3 months) for the logged-in patient, sorted by appointment date.
+
+**Authentication:** Required (Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Upcoming appointments retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "doctorName": "Dr. Sarah Patel",
+      "doctorSpecialization": "Cardiology",
+      "appointmentDate": "2025-01-15T10:00:00",
+      "status": "SCHEDULED",
+      "type": "IN_PERSON"
+    }
+  ]
+}
+```
+
+---
+
+### 4. Get Appointment by ID
+**Endpoint:** `GET /api/patient/appointments/{appointmentId}`
+
+**Description:** Retrieve detailed information about a specific appointment. Only appointments belonging to the logged-in patient can be accessed.
+
+**Authentication:** Required (Bearer Token)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| appointmentId | number | Yes | The ID of the appointment |
+
+**Example Request:**
+```
+GET /api/patient/appointments/1
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Appointment details retrieved successfully",
+  "data": {
+    "id": 1,
+    "patientId": 5,
+    "patientName": "John Doe",
+    "doctorId": 1,
+    "doctorName": "Dr. Sarah Patel",
+    "doctorSpecialization": "Cardiology",
+    "appointmentDate": "2025-01-15T10:00:00",
+    "status": "SCHEDULED",
+    "type": "IN_PERSON",
+    "reason": "Regular checkup",
+    "notes": "First time visit",
+    "meetingLink": null,
+    "createdAt": "2025-01-10T09:30:00"
+  }
+}
+```
+
+**Error Response (403 Forbidden):**
+```json
+{
+  "success": false,
+  "message": "You are not authorized to view this appointment",
+  "data": null
+}
+```
+
+**Error Response (404 Not Found):**
+```json
+{
+  "success": false,
+  "message": "Appointment not found",
+  "data": null
+}
+```
+
+---
+
+### 5. Cancel Appointment
+**Endpoint:** `PUT /api/patient/appointments/{appointmentId}/cancel`
+
+**Description:** Cancel an existing appointment. Only appointments belonging to the logged-in patient and in SCHEDULED or CONFIRMED status can be cancelled.
+
+**Authentication:** Required (Bearer Token)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| appointmentId | number | Yes | The ID of the appointment to cancel |
+
+**Example Request:**
+```
+PUT /api/patient/appointments/1/cancel
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Appointment cancelled successfully",
+  "data": {
+    "id": 1,
+    "status": "CANCELLED",
+    ...
+  }
+}
+```
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "success": false,
+  "message": "Cannot cancel appointment with status: COMPLETED",
+  "data": null
+}
+```
+
+**Error Response (403 Forbidden):**
+```json
+{
+  "success": false,
+  "message": "You are not authorized to cancel this appointment",
+  "data": null
 }
 ```
 
