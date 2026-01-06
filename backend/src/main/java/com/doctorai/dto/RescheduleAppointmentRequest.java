@@ -19,5 +19,7 @@ public class RescheduleAppointmentRequest {
     @NotNull(message = "New time is required")
     private String time;
     
+    private Integer durationMinutes; // Optional: update appointment duration
+    
     private String reason;
 }

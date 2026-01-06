@@ -50,4 +50,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("email") String email, 
             @Param("start") LocalDateTime start, 
             @Param("end") LocalDateTime end);
+    
+    @Query("SELECT a FROM Appointment a WHERE a.doctor.id = :doctorId AND a.status IN ('SCHEDULED', 'CONFIRMED', 'IN_PROGRESS') AND a.appointmentDate BETWEEN :start AND :end")
+    List<Appointment> findConflictingAppointments(
+            @Param("doctorId") Long doctorId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+    
+    @Query("SELECT a FROM Appointment a WHERE a.status = 'SCHEDULED' ORDER BY a.appointmentDate DESC")
+    List<Appointment> findRecentPendingAppointments();
 }

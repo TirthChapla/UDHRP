@@ -17,9 +17,11 @@ import {
   getTomorrowAppointments,
   getYesterdayAppointments,
   getLastWeekAppointments,
+  getRecentAppointments,
   getAppointmentsByDate,
   rescheduleAppointment,
-  cancelAppointment
+  cancelAppointment,
+  confirmAppointment
 } from '../../services/receptionistService';
 import './ReceptionistSchedule.css';
 
@@ -56,6 +58,9 @@ function ReceptionistSchedule() {
       let appointments = [];
       
       switch (filter) {
+        case 'recent':
+          appointments = await getRecentAppointments();
+          break;
         case 'today':
           appointments = await getTodayAppointments();
           break;
@@ -109,6 +114,8 @@ function ReceptionistSchedule() {
 
   const getFilterTitle = () => {
     switch (dateFilter) {
+      case 'recent':
+        return 'Recent Appointments';
       case 'lastWeek':
         return 'Last Week\'s Appointments';
       case 'yesterday':
@@ -135,6 +142,7 @@ function ReceptionistSchedule() {
     }
     
     const dateMap = {
+      recent: `All newly booked appointments awaiting confirmation`,
       lastWeek: `${yesterday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
       yesterday: yesterday.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
       today: today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
@@ -152,6 +160,19 @@ function ReceptionistSchedule() {
       time: appointment.time || ''
     });
     setRescheduleModal(true);
+  };
+
+  const handleConfirmClick = async (appointment, e) => {
+    e.stopPropagation();
+    
+    try {
+      await confirmAppointment(appointment.id);
+      alert(`Appointment confirmed for ${appointment.patientName}`);
+      await fetchAppointments(dateFilter, customDate);
+    } catch (err) {
+      console.error('Error confirming appointment:', err);
+      alert('Failed to confirm appointment. Please try again.');
+    }
   };
 
   const handleCancelClick = async (appointment, e) => {
@@ -260,6 +281,12 @@ function ReceptionistSchedule() {
       <div className="date-filter-container">
         <div className="date-filter-buttons">
           <button
+            className={`filter-btn ${dateFilter === 'recent' ? 'filter-btn-active' : ''}`}
+            onClick={() => handleDateFilterChange('recent')}
+          >
+            Recent
+          </button>
+          <button
             className={`filter-btn ${dateFilter === 'lastWeek' ? 'filter-btn-active' : ''}`}
             onClick={() => handleDateFilterChange('lastWeek')}
           >
@@ -336,6 +363,16 @@ function ReceptionistSchedule() {
                       {getStatusIcon(appointment.status)}
                       {appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
                         <>
+                          {appointment.status === 'pending' && (
+                            <Button
+                              variant="primary"
+                              size="small"
+                              onClick={(e) => handleConfirmClick(appointment, e)}
+                            >
+                              <CheckCircle2 size={16} />
+                              Confirm
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="small"

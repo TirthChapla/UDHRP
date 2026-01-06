@@ -3,6 +3,7 @@ package com.doctorai.controller;
 import com.doctorai.dto.ApiResponse;
 import com.doctorai.dto.AppointmentDTO;
 import com.doctorai.dto.RescheduleAppointmentRequest;
+import com.doctorai.dto.UpdateAppointmentDurationRequest;
 import com.doctorai.service.ReceptionistAppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -98,5 +99,34 @@ public class ReceptionistAppointmentController {
         log.info("Receptionist {} cancelling appointment ID: {}", authentication.getName(), appointmentId);
         appointmentService.cancelAppointment(appointmentId);
         return ResponseEntity.ok(ApiResponse.success("Appointment cancelled successfully", null));
+    }
+
+    @GetMapping("/recent")
+    @Operation(summary = "Get recent pending appointments", description = "Get all recent appointments awaiting confirmation")
+    public ResponseEntity<ApiResponse<List<AppointmentDTO>>> getRecentPendingAppointments(Authentication authentication) {
+        log.info("Receptionist {} fetching recent pending appointments", authentication.getName());
+        List<AppointmentDTO> appointments = appointmentService.getRecentPendingAppointments();
+        return ResponseEntity.ok(ApiResponse.success("Recent pending appointments retrieved", appointments));
+    }
+
+    @PutMapping("/{appointmentId}/confirm")
+    @Operation(summary = "Confirm appointment", description = "Confirm a pending appointment")
+    public ResponseEntity<ApiResponse<AppointmentDTO>> confirmAppointment(
+            @PathVariable Long appointmentId,
+            Authentication authentication) {
+        log.info("Receptionist {} confirming appointment ID: {}", authentication.getName(), appointmentId);
+        AppointmentDTO appointment = appointmentService.confirmAppointment(appointmentId);
+        return ResponseEntity.ok(ApiResponse.success("Appointment confirmed successfully", appointment));
+    }
+
+    @PutMapping("/{appointmentId}/duration")
+    @Operation(summary = "Update appointment duration", description = "Update the duration of an appointment")
+    public ResponseEntity<ApiResponse<AppointmentDTO>> updateAppointmentDuration(
+            @PathVariable Long appointmentId,
+            @Valid @RequestBody UpdateAppointmentDurationRequest request,
+            Authentication authentication) {
+        log.info("Receptionist {} updating appointment ID: {} duration", authentication.getName(), appointmentId);
+        AppointmentDTO appointment = appointmentService.updateAppointmentDuration(appointmentId, request.getDurationMinutes());
+        return ResponseEntity.ok(ApiResponse.success("Appointment duration updated successfully", appointment));
     }
 }

@@ -27,6 +27,9 @@ public class Appointment extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime appointmentDate;
     
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes = 20; // Default 20 minutes per appointment
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AppointmentStatus status = AppointmentStatus.SCHEDULED;

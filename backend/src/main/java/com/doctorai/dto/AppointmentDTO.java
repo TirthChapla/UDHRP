@@ -13,6 +13,7 @@ public class AppointmentDTO {
     private Long id;
     private String time;
     private String date;
+    private Integer durationMinutes; // Duration in minutes (default 20)
     private String patientName;
     private String patientId;
     private String patientEmail;

@@ -45,6 +45,13 @@ export const getYesterdayAppointments = async () => {
   return response.data;
 };
 
+export const getRecentAppointments = async () => {
+  const response = await apiRequest('/receptionist/appointments/recent', {
+    method: 'GET'
+  });
+  return response.data;
+};
+
 export const getLastWeekAppointments = async () => {
   const response = await apiRequest('/receptionist/appointments/last-week', {
     method: 'GET'
@@ -70,6 +77,13 @@ export const rescheduleAppointment = async (appointmentData) => {
 export const cancelAppointment = async (appointmentId) => {
   const response = await apiRequest(`/receptionist/appointments/${appointmentId}`, {
     method: 'DELETE'
+  });
+  return response.data;
+};
+
+export const confirmAppointment = async (appointmentId) => {
+  const response = await apiRequest(`/receptionist/appointments/${appointmentId}/confirm`, {
+    method: 'PUT'
   });
   return response.data;
 };

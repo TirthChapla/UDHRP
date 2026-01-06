@@ -64,6 +64,10 @@ function Navbar({ user, onLogout, onSearch, onNavItemClick }) {
               <Home size={20} />
               <span>Dashboard</span>
             </button>
+            <button onClick={() => { setMobileMenuOpen(false); navigate('/receptionist/schedule'); }} className="navbar-receptionist-link">
+              <Calendar size={20} />
+              <span>Schedule</span>
+            </button>
             <button onClick={() => { setMobileMenuOpen(false); navigate('/receptionist/profile'); }} className="navbar-receptionist-link">
               <User size={20} />
               <span>My Profile</span>
