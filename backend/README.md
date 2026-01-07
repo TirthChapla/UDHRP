@@ -40,14 +40,37 @@ git clone <repository-url>
 cd doctor-ai/backend
 ```
 
-### 2. Configure Database
+### 2. Configure Database & Credentials
 
-Update `src/main/resources/application.yml` with your database credentials:
+⚠️ **IMPORTANT: Never commit sensitive credentials to Git!**
+
+**Copy the example configuration file:**
+
+```bash
+cp src/main/resources/application-local.yml.example src/main/resources/application-local.yml
+```
+
+**Edit `application-local.yml` with your actual credentials:**
 
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/doctor_ai_db
+    username: your_database_username
+    password: your_database_password
+  
+  mail:
+    username: your_email@gmail.com
+    password: your_gmail_app_password
+
+jwt:
+  secret: your_secure_jwt_secret_key
+```
+
+📖 **See [SECURITY.md](SECURITY.md) for detailed setup instructions**
+
+---
+
+### 3. Create Database
     username: your_username
     password: your_password
 ```

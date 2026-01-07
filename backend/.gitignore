@@ -41,5 +41,14 @@ build/
 ### Database ###
 *.db
 
-### Environment variables ###
+### Environment variables & Secrets ###
 .env
+.env.local
+.env.*.local
+*.env
+
+### Application secrets ###
+**/application-local.yml
+**/application-secrets.yml
+**/application-local.properties
+**/application-secrets.properties
