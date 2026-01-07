@@ -53,6 +53,8 @@ function PatientDashboard({ searchQuery, initialTab }) {
   const [selectedPrescriptionDoctor, setSelectedPrescriptionDoctor] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
+  const [prescriptionDoctors, setPrescriptionDoctors] = useState([]);
+  const [prescriptionYears, setPrescriptionYears] = useState([]);
 
   // Lab Reports state
   const [allLabReports, setAllLabReports] = useState([]);
@@ -66,6 +68,8 @@ function PatientDashboard({ searchQuery, initialTab }) {
   const [selectedLabReportDoctor, setSelectedLabReportDoctor] = useState('all');
   const [selectedLabReportMonth, setSelectedLabReportMonth] = useState('all');
   const [selectedLabReportYear, setSelectedLabReportYear] = useState('all');
+  const [labReportDoctors, setLabReportDoctors] = useState([]);
+  const [labReportYears, setLabReportYears] = useState([]);
 
   // Handle navigation from search in navbar
   useEffect(() => {
@@ -119,28 +123,52 @@ function PatientDashboard({ searchQuery, initialTab }) {
 
   // Filter prescriptions when filters change
   useEffect(() => {
+    const applyFilters = async () => {
+      if (prescriptionSearchQuery || selectedPrescriptionDoctor !== 'all' || selectedMonth !== 'all' || selectedYear !== 'all') {
+        try {
+          const filtered = await filterPrescriptions({
+            searchQuery: prescriptionSearchQuery,
+            doctorName: selectedPrescriptionDoctor,
+            month: selectedMonth,
+            year: selectedYear
+          });
+          setFilteredPrescriptions(filtered);
+        } catch (error) {
+          console.error('Failed to filter prescriptions:', error);
+        }
+      } else {
+        setFilteredPrescriptions(allPrescriptions);
+      }
+    };
+    
     if (allPrescriptions.length > 0) {
-      const filtered = filterPrescriptions(allPrescriptions, {
-        searchQuery: prescriptionSearchQuery,
-        doctorName: selectedPrescriptionDoctor,
-        month: selectedMonth,
-        year: selectedYear
-      });
-      setFilteredPrescriptions(filtered);
+      applyFilters();
     }
   }, [allPrescriptions, prescriptionSearchQuery, selectedPrescriptionDoctor, selectedMonth, selectedYear]);
 
   // Filter lab reports when filters change
   useEffect(() => {
+    const applyFilters = async () => {
+      if (labReportSearchQuery || selectedLabReportDoctor !== 'all' || selectedLabReportMonth !== 'all' || selectedLabReportYear !== 'all') {
+        try {
+          const filtered = await filterLabReports({
+            searchQuery: labReportSearchQuery,
+            doctorName: selectedLabReportDoctor,
+            month: selectedLabReportMonth,
+            year: selectedLabReportYear,
+            status: 'all'
+          });
+          setFilteredLabReports(filtered);
+        } catch (error) {
+          console.error('Failed to filter lab reports:', error);
+        }
+      } else {
+        setFilteredLabReports(allLabReports);
+      }
+    };
+    
     if (allLabReports.length > 0) {
-      const filtered = filterLabReports(allLabReports, {
-        searchQuery: labReportSearchQuery,
-        doctorName: selectedLabReportDoctor,
-        month: selectedLabReportMonth,
-        year: selectedLabReportYear,
-        status: 'all'
-      });
-      setFilteredLabReports(filtered);
+      applyFilters();
     }
   }, [allLabReports, labReportSearchQuery, selectedLabReportDoctor, selectedLabReportMonth, selectedLabReportYear]);
 
@@ -173,9 +201,15 @@ function PatientDashboard({ searchQuery, initialTab }) {
   const loadPrescriptions = async () => {
     setPrescriptionsLoading(true);
     try {
-      const data = await getPrescriptions('patient-123'); // TODO: Use actual patient ID
+      const data = await getPrescriptions();
       setAllPrescriptions(data);
       setFilteredPrescriptions(data);
+      
+      // Load doctors and years for filters
+      const doctors = await getDoctorsFromPrescriptions();
+      const years = await getYearsFromPrescriptions();
+      setPrescriptionDoctors(doctors);
+      setPrescriptionYears(years);
     } catch (error) {
       console.error('Failed to load prescriptions:', error);
       // TODO: Show error notification
@@ -188,9 +222,15 @@ function PatientDashboard({ searchQuery, initialTab }) {
   const loadLabReports = async () => {
     setLabReportsLoading(true);
     try {
-      const data = await getLabReports('patient-123'); // TODO: Use actual patient ID
+      const data = await getLabReports();
       setAllLabReports(data);
       setFilteredLabReports(data);
+      
+      // Load doctors and years for filters
+      const doctors = await getDoctorsFromLabReports();
+      const years = await getYearsFromLabReports();
+      setLabReportDoctors(doctors);
+      setLabReportYears(years);
     } catch (error) {
       console.error('Failed to load lab reports:', error);
       // TODO: Show error notification
@@ -265,7 +305,7 @@ function PatientDashboard({ searchQuery, initialTab }) {
     },
     {
       title: 'Nutrition Recommendation',
-      message: 'Consider increasing omega-3 intake for better brain health.',
+      message: 'Consider increasing your daily water intake to 8 glasses.',
       type: 'info'
     },
     {
@@ -276,10 +316,10 @@ function PatientDashboard({ searchQuery, initialTab }) {
   ];
 
   // Get data for filters
-  const doctorsWhoTreatedPatient = getDoctorsFromPrescriptions(allPrescriptions);
-  const years = getYearsFromPrescriptions(allPrescriptions);
-  const doctorsWhoOrderedTests = getDoctorsFromLabReports(allLabReports);
-  const labReportYears = getYearsFromLabReports(allLabReports);
+  const doctorsWhoTreatedPatient = prescriptionDoctors;
+  const years = prescriptionYears;
+  const doctorsWhoOrderedTests = labReportDoctors;
+  const labYears = labReportYears;
 
   // Handlers
   const handleViewPrescription = (prescription) => {
@@ -507,7 +547,7 @@ function PatientDashboard({ searchQuery, initialTab }) {
               selectedYear={selectedLabReportYear}
               onYearChange={setSelectedLabReportYear}
               doctorsList={doctorsWhoOrderedTests}
-              yearsList={labReportYears}
+              yearsList={labYears}
               onClearFilters={handleClearLabReportFilters}
             />
 

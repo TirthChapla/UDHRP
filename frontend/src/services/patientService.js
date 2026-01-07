@@ -109,19 +109,12 @@ const mockPrescriptions = [
 
 /**
  * Fetch all prescriptions for a patient
- * @param {string} patientId - The patient's ID
  * @returns {Promise<Array>} Array of prescription objects
  */
-export const getPrescriptions = async (patientId) => {
+export const getPrescriptions = async () => {
   try {
-    // TODO: Replace with actual API call
-    // const response = await fetch(`/api/patients/${patientId}/prescriptions`);
-    // const data = await response.json();
-    // return data;
-
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockPrescriptions;
+    const response = await apiRequest('/patient/medical-records/prescriptions', 'GET');
+    return response.data || [];
   } catch (error) {
     console.error('Error fetching prescriptions:', error);
     throw error;
@@ -130,45 +123,56 @@ export const getPrescriptions = async (patientId) => {
 
 /**
  * Get unique doctors who have treated the patient
- * @param {Array} prescriptions - Array of prescriptions
- * @returns {Array} Array of unique doctor names
+ * @returns {Promise<Array>} Array of unique doctor names
  */
-export const getDoctorsFromPrescriptions = (prescriptions) => {
-  return [...new Set(prescriptions.map(p => p.doctorName))];
+export const getDoctorsFromPrescriptions = async () => {
+  try {
+    const response = await apiRequest('/patient/medical-records/prescriptions/doctors', 'GET');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching doctors from prescriptions:', error);
+    throw error;
+  }
 };
 
 /**
  * Get unique years from prescriptions
- * @param {Array} prescriptions - Array of prescriptions
- * @returns {Array} Array of years sorted descending
+ * @returns {Promise<Array>} Array of years sorted descending
  */
-export const getYearsFromPrescriptions = (prescriptions) => {
-  return [...new Set(prescriptions.map(p => new Date(p.date).getFullYear()))]
-    .sort((a, b) => b - a);
+export const getYearsFromPrescriptions = async () => {
+  try {
+    const response = await apiRequest('/patient/medical-records/prescriptions/years', 'GET');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching years from prescriptions:', error);
+    throw error;
+  }
 };
 
 /**
  * Filter prescriptions based on search and filter criteria
- * @param {Array} prescriptions - Array of all prescriptions
  * @param {Object} filters - Filter criteria
- * @returns {Array} Filtered prescriptions
+ * @returns {Promise<Array>} Filtered prescriptions
  */
-export const filterPrescriptions = (prescriptions, filters) => {
-  const { searchQuery, doctorName, month, year } = filters;
-
-  return prescriptions.filter(prescription => {
-    const matchesSearch = !searchQuery || 
-      prescription.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prescription.diagnosis.toLowerCase().includes(searchQuery.toLowerCase());
+export const filterPrescriptions = async (filters) => {
+  try {
+    const { searchQuery, doctorName, month, year } = filters;
     
-    const matchesDoctor = doctorName === 'all' || prescription.doctorName === doctorName;
+    const params = new URLSearchParams();
+    if (searchQuery && searchQuery.trim()) params.append('search', searchQuery);
+    if (doctorName && doctorName !== 'all') params.append('doctor', doctorName);
+    if (month && month !== 'all') params.append('month', month);
+    if (year && year !== 'all') params.append('year', year);
     
-    const prescriptionDate = new Date(prescription.date);
-    const matchesMonth = month === 'all' || prescriptionDate.getMonth() + 1 === parseInt(month);
-    const matchesYear = year === 'all' || prescriptionDate.getFullYear() === parseInt(year);
+    const queryString = params.toString();
+    const url = `/patient/medical-records/prescriptions/filter${queryString ? '?' + queryString : ''}`;
     
-    return matchesSearch && matchesDoctor && matchesMonth && matchesYear;
-  });
+    const response = await apiRequest(url, 'GET');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error filtering prescriptions:', error);
+    throw error;
+  }
 };
 
 /**
@@ -798,65 +802,71 @@ const mockLabReports = [
 
 /**
  * Get all lab reports for a patient
- * @param {string} patientId 
  * @returns {Promise<Array>}
  */
-export const getLabReports = async (patientId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(mockLabReports);
-    }, 500);
-  });
+export const getLabReports = async () => {
+  try {
+    const response = await apiRequest('/patient/medical-records/lab-reports', 'GET');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching lab reports:', error);
+    throw error;
+  }
 };
 
 /**
  * Filter lab reports based on criteria
- * @param {Array} reports 
  * @param {Object} filters 
- * @returns {Array}
+ * @returns {Promise<Array>}
  */
-export const filterLabReports = (reports, filters) => {
-  return reports.filter(report => {
-    const matchesSearch = !filters.searchQuery || 
-      report.testName.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-      report.labName.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-      report.doctorName.toLowerCase().includes(filters.searchQuery.toLowerCase());
+export const filterLabReports = async (filters) => {
+  try {
+    const { searchQuery, doctorName, month, year, status } = filters;
     
-    const matchesDoctor = filters.doctorName === 'all' || 
-      report.doctorName === filters.doctorName;
+    const params = new URLSearchParams();
+    if (searchQuery && searchQuery.trim()) params.append('search', searchQuery);
+    if (doctorName && doctorName !== 'all') params.append('doctor', doctorName);
+    if (month && month !== 'all') params.append('month', month);
+    if (year && year !== 'all') params.append('year', year);
+    if (status && status !== 'all') params.append('status', status);
     
-    const reportDate = new Date(report.date);
-    const matchesMonth = filters.month === 'all' || 
-      (reportDate.getMonth() + 1) === parseInt(filters.month);
+    const queryString = params.toString();
+    const url = `/patient/medical-records/lab-reports/filter${queryString ? '?' + queryString : ''}`;
     
-    const matchesYear = filters.year === 'all' || 
-      reportDate.getFullYear() === parseInt(filters.year);
-    
-    const matchesStatus = filters.status === 'all' ||
-      report.status === filters.status;
-    
-    return matchesSearch && matchesDoctor && matchesMonth && matchesYear && matchesStatus;
-  });
+    const response = await apiRequest(url, 'GET');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error filtering lab reports:', error);
+    throw error;
+  }
 };
 
 /**
  * Get unique doctors from lab reports
- * @param {Array} reports 
- * @returns {Array}
+ * @returns {Promise<Array>}
  */
-export const getDoctorsFromLabReports = (reports) => {
-  const doctors = new Set(reports.map(r => r.doctorName));
-  return Array.from(doctors);
+export const getDoctorsFromLabReports = async () => {
+  try {
+    const response = await apiRequest('/patient/medical-records/lab-reports/doctors', 'GET');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching doctors from lab reports:', error);
+    throw error;
+  }
 };
 
 /**
  * Get unique years from lab reports
- * @param {Array} reports 
- * @returns {Array}
+ * @returns {Promise<Array>}
  */
-export const getYearsFromLabReports = (reports) => {
-  const years = new Set(reports.map(r => new Date(r.date).getFullYear()));
-  return Array.from(years).sort((a, b) => b - a);
+export const getYearsFromLabReports = async () => {
+  try {
+    const response = await apiRequest('/patient/medical-records/lab-reports/years', 'GET');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching years from lab reports:', error);
+    throw error;
+  }
 };
 
 /**

@@ -35,6 +35,19 @@ public class UpdatePatientProfileRequest {
     private String insuranceProvider;
     private String insuranceNumber;
     
+    // Occupation and Contact
+    private String occupation;
+    private String cellNo;
+    
+    // Health Insurance Details
+    private String healthInsuranceNo;
+    private String healthCareProvider;
+    private String healthCardNo;
+    
+    // Vital Signs
+    private String bloodPressure;
+    private Integer pulseRate;
+    
     // Birth Information
     private String birthPlace;
     private String hospitalName;

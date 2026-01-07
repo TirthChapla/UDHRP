@@ -40,6 +40,23 @@ public class Patient extends BaseEntity {
     
     private String insuranceNumber;
     
+    // Occupation and Contact
+    private String occupation;
+    
+    private String cellNo;
+    
+    // Health Insurance Details
+    private String healthInsuranceNo;
+    
+    private String healthCareProvider;
+    
+    private String healthCardNo;
+    
+    // Vital Signs
+    private String bloodPressure; // Format: "120/80"
+    
+    private Integer pulseRate; // bpm
+    
     // New fields from Patient Profile
     private Boolean isAlive = true;
     

@@ -1,5 +1,6 @@
 package com.doctorai.repository;
 
+import com.doctorai.model.Patient;
 import com.doctorai.model.Prescription;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,8 @@ import java.util.Optional;
 public interface PrescriptionRepository extends JpaRepository<Prescription, Long> {
     
     List<Prescription> findByPatientId(Long patientId);
+    
+    List<Prescription> findByPatient(Patient patient);
     
     List<Prescription> findByDoctorId(Long doctorId);
     

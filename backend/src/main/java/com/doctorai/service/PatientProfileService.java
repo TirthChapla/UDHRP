@@ -99,6 +99,8 @@ public class PatientProfileService {
      * Update patient fields from request
      */
     private void updatePatientFields(Patient patient, UpdatePatientProfileRequest request) {
+        log.debug("Updating patient fields for patient ID: {}", patient.getPatientId());
+        
         patient.setIsAlive(request.getIsAlive() != null ? request.getIsAlive() : true);
         patient.setDeathReason(request.getDeathReason());
         patient.setBloodGroup(request.getBloodGroup());
@@ -109,6 +111,22 @@ public class PatientProfileService {
         patient.setEmergencyContact(request.getEmergencyContact());
         patient.setInsuranceProvider(request.getInsuranceProvider());
         patient.setInsuranceNumber(request.getInsuranceNumber());
+        
+        // Occupation and Contact
+        patient.setOccupation(request.getOccupation());
+        patient.setCellNo(request.getCellNo());
+        log.debug("Updated occupation: {}, cellNo: {}", request.getOccupation(), request.getCellNo());
+        
+        // Health Insurance Details
+        patient.setHealthInsuranceNo(request.getHealthInsuranceNo());
+        patient.setHealthCareProvider(request.getHealthCareProvider());
+        patient.setHealthCardNo(request.getHealthCardNo());
+        log.debug("Updated health insurance details");
+        
+        // Vital Signs
+        patient.setBloodPressure(request.getBloodPressure());
+        patient.setPulseRate(request.getPulseRate());
+        log.debug("Updated vital signs - BP: {}, Pulse: {}", request.getBloodPressure(), request.getPulseRate());
         
         // Birth information
         patient.setBirthPlace(request.getBirthPlace());
@@ -164,6 +182,19 @@ public class PatientProfileService {
             dto.setEmergencyContact(patient.getEmergencyContact());
             dto.setInsuranceProvider(patient.getInsuranceProvider());
             dto.setInsuranceNumber(patient.getInsuranceNumber());
+            
+            // Occupation and Contact
+            dto.setOccupation(patient.getOccupation());
+            dto.setCellNo(patient.getCellNo());
+            
+            // Health Insurance Details
+            dto.setHealthInsuranceNo(patient.getHealthInsuranceNo());
+            dto.setHealthCareProvider(patient.getHealthCareProvider());
+            dto.setHealthCardNo(patient.getHealthCardNo());
+            
+            // Vital Signs
+            dto.setBloodPressure(patient.getBloodPressure());
+            dto.setPulseRate(patient.getPulseRate());
             
             // Birth information
             dto.setBirthPlace(patient.getBirthPlace());

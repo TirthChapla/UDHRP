@@ -2,6 +2,7 @@ package com.doctorai.repository;
 
 import com.doctorai.model.LabReport;
 import com.doctorai.model.LabReport.ReportStatus;
+import com.doctorai.model.Patient;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,8 @@ import java.util.List;
 public interface LabReportRepository extends JpaRepository<LabReport, Long> {
     
     List<LabReport> findByPatientId(Long patientId);
+    
+    List<LabReport> findByPatient(Patient patient);
     
     List<LabReport> findByDoctorId(Long doctorId);
     

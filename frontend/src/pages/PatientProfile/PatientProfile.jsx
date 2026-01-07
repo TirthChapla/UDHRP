@@ -58,7 +58,15 @@ function PatientProfile() {
     chronicDiseases: '',
     emergencyContact: '',
     insuranceProvider: '',
-    insuranceNumber: ''
+    insuranceNumber: '',
+    // New fields
+    occupation: '',
+    cellNo: '',
+    healthInsuranceNo: '',
+    healthCareProvider: '',
+    healthCardNo: '',
+    bloodPressure: '',
+    pulseRate: ''
   });
 
   const [siblings, setSiblings] = useState([]);
@@ -108,7 +116,15 @@ function PatientProfile() {
         chronicDiseases: data.chronicDiseases || '',
         emergencyContact: data.emergencyContact || '',
         insuranceProvider: data.insuranceProvider || '',
-        insuranceNumber: data.insuranceNumber || ''
+        insuranceNumber: data.insuranceNumber || '',
+        // New fields
+        occupation: data.occupation || '',
+        cellNo: data.cellNo || '',
+        healthInsuranceNo: data.healthInsuranceNo || '',
+        healthCareProvider: data.healthCareProvider || '',
+        healthCardNo: data.healthCardNo || '',
+        bloodPressure: data.bloodPressure || '',
+        pulseRate: data.pulseRate || ''
       };
       
       console.log('Mapped form data:', mappedData);
@@ -208,7 +224,15 @@ function PatientProfile() {
         chronicDiseases: updatedProfile.chronicDiseases || '',
         emergencyContact: updatedProfile.emergencyContact || '',
         insuranceProvider: updatedProfile.insuranceProvider || '',
-        insuranceNumber: updatedProfile.insuranceNumber || ''
+        insuranceNumber: updatedProfile.insuranceNumber || '',
+        // New fields
+        occupation: updatedProfile.occupation || '',
+        cellNo: updatedProfile.cellNo || '',
+        healthInsuranceNo: updatedProfile.healthInsuranceNo || '',
+        healthCareProvider: updatedProfile.healthCareProvider || '',
+        healthCardNo: updatedProfile.healthCardNo || '',
+        bloodPressure: updatedProfile.bloodPressure || '',
+        pulseRate: updatedProfile.pulseRate || ''
       };
       
       setFormData(mappedData);
@@ -439,6 +463,49 @@ function PatientProfile() {
                 </div>
 
                 <Input
+                  label="Occupation"
+                  type="text"
+                  name="occupation"
+                  value={formData.occupation}
+                  onChange={handleInputChange}
+                  placeholder="Your occupation"
+                />
+
+                <Input
+                  label="Cell Number"
+                  type="tel"
+                  name="cellNo"
+                  value={formData.cellNo}
+                  onChange={handleInputChange}
+                  placeholder="Your mobile number"
+                />
+              </div>
+
+              <div className="subsection">
+                <h3 className="subsection-title">Vital Signs</h3>
+                <div className="form-grid">
+                  <Input
+                    label="Blood Pressure"
+                    type="text"
+                    name="bloodPressure"
+                    value={formData.bloodPressure}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 120/80"
+                  />
+
+                  <Input
+                    label="Pulse Rate (bpm)"
+                    type="number"
+                    name="pulseRate"
+                    value={formData.pulseRate}
+                    onChange={handleInputChange}
+                    placeholder="Beats per minute"
+                  />
+                </div>
+              </div>
+
+              <div className="form-grid">
+                <Input
                   label="Height (cm)"
                   type="number"
                   name="height"
@@ -508,6 +575,33 @@ function PatientProfile() {
                     onChange={handleInputChange}
                     placeholder="Policy/member number"
                   />
+
+                  <Input
+                    label="Health Insurance No"
+                    type="text"
+                    name="healthInsuranceNo"
+                    value={formData.healthInsuranceNo}
+                    onChange={handleInputChange}
+                    placeholder="Health insurance number"
+                  />
+
+                  <Input
+                    label="Health Care Provider"
+                    type="text"
+                    name="healthCareProvider"
+                    value={formData.healthCareProvider}
+                    onChange={handleInputChange}
+                    placeholder="Healthcare provider name"
+                  />
+
+                  <Input
+                    label="Health Card No"
+                    type="text"
+                    name="healthCardNo"
+                    value={formData.healthCardNo}
+                    onChange={handleInputChange}
+                    placeholder="Health card number"
+                  />
                 </div>
               </div>
 
@@ -558,6 +652,42 @@ function PatientProfile() {
                 </div>
 
                 <div className="profile-view-item">
+                  <label className="view-label">Occupation</label>
+                  <div className="view-value">
+                    <User size={18} className="view-icon" />
+                    <span>{formData.occupation || 'Not provided'}</span>
+                  </div>
+                </div>
+
+                <div className="profile-view-item">
+                  <label className="view-label">Cell Number</label>
+                  <div className="view-value">
+                    <User size={18} className="view-icon" />
+                    <span>{formData.cellNo || 'Not provided'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="profile-view-grid">
+                <div className="profile-view-item">
+                  <label className="view-label">Blood Pressure</label>
+                  <div className="view-value">
+                    <Heart size={18} className="view-icon" />
+                    <span>{formData.bloodPressure || 'Not measured'}</span>
+                  </div>
+                </div>
+
+                <div className="profile-view-item">
+                  <label className="view-label">Pulse Rate</label>
+                  <div className="view-value">
+                    <Heart size={18} className="view-icon" />
+                    <span>{formData.pulseRate ? `${formData.pulseRate} bpm` : 'Not measured'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="profile-view-grid">
+                <div className="profile-view-item">
                   <label className="view-label">Height</label>
                   <div className="view-value">
                     <User size={18} className="view-icon" />
@@ -602,32 +732,50 @@ function PatientProfile() {
                 </div>
               )}
 
-              {(formData.insuranceProvider || formData.insuranceNumber) && (
-                <div className="subsection">
-                  <h3 className="subsection-title">Insurance Information</h3>
-                  <div className="profile-view-grid">
-                    {formData.insuranceProvider && (
-                      <div className="profile-view-item">
-                        <label className="view-label">Insurance Provider</label>
-                        <div className="view-value">
-                          <Shield size={18} className="view-icon" />
-                          <span>{formData.insuranceProvider}</span>
-                        </div>
-                      </div>
-                    )}
+              <div className="subsection">
+                <h3 className="subsection-title">Insurance Information</h3>
+                <div className="profile-view-grid">
+                  <div className="profile-view-item">
+                    <label className="view-label">Insurance Provider</label>
+                    <div className="view-value">
+                      <Shield size={18} className="view-icon" />
+                      <span>{formData.insuranceProvider || 'Not provided'}</span>
+                    </div>
+                  </div>
 
-                    {formData.insuranceNumber && (
-                      <div className="profile-view-item">
-                        <label className="view-label">Insurance Number</label>
-                        <div className="view-value">
-                          <Shield size={18} className="view-icon" />
-                          <span>{formData.insuranceNumber}</span>
-                        </div>
-                      </div>
-                    )}
+                  <div className="profile-view-item">
+                    <label className="view-label">Insurance Number</label>
+                    <div className="view-value">
+                      <Shield size={18} className="view-icon" />
+                      <span>{formData.insuranceNumber || 'Not provided'}</span>
+                    </div>
+                  </div>
+
+                  <div className="profile-view-item">
+                    <label className="view-label">Health Insurance No</label>
+                    <div className="view-value">
+                      <Shield size={18} className="view-icon" />
+                      <span>{formData.healthInsuranceNo || 'Not provided'}</span>
+                    </div>
+                  </div>
+
+                  <div className="profile-view-item">
+                    <label className="view-label">Health Care Provider</label>
+                    <div className="view-value">
+                      <Shield size={18} className="view-icon" />
+                      <span>{formData.healthCareProvider || 'Not provided'}</span>
+                    </div>
+                  </div>
+
+                  <div className="profile-view-item">
+                    <label className="view-label">Health Card No</label>
+                    <div className="view-value">
+                      <Shield size={18} className="view-icon" />
+                      <span>{formData.healthCardNo || 'Not provided'}</span>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
 
               <div className="subsection">
                 <h3 className="subsection-title">Birth Information</h3>
