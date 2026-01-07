@@ -2,6 +2,7 @@ package com.doctorai.config;
 
 import com.doctorai.security.JwtAuthenticationEntryPoint;
 import com.doctorai.security.JwtAuthenticationFilter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@Slf4j
 public class SecurityConfig {
     
     @Autowired
@@ -34,11 +36,13 @@ public class SecurityConfig {
     
     @Bean
     public PasswordEncoder passwordEncoder() {
+        log.debug("Creating BCryptPasswordEncoder bean");
         return new BCryptPasswordEncoder();
     }
     
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
+        log.info("Configuring DaoAuthenticationProvider");
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
@@ -47,11 +51,13 @@ public class SecurityConfig {
     
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        log.info("Creating AuthenticationManager bean");
         return authConfig.getAuthenticationManager();
     }
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.info("Configuring Security Filter Chain");
         http.csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configure(http))
             .exceptionHandling(exception -> exception
@@ -74,6 +80,7 @@ public class SecurityConfig {
         // For H2 Console
         http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
         
+        log.info("Security Filter Chain configured successfully");
         return http.build();
     }
 }

@@ -1,5 +1,6 @@
 package com.doctorai.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +11,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 @Configuration
+@Slf4j
 public class CorsConfig {
     
     @Value("${app.allowed-origins}")
@@ -17,6 +19,7 @@ public class CorsConfig {
     
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        log.info("Configuring CORS with allowed origins: {}", allowedOrigins);
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
@@ -27,6 +30,7 @@ public class CorsConfig {
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+        log.info("CORS configuration completed successfully");
         return source;
     }
 }

@@ -2,6 +2,7 @@ package com.doctorai.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -9,6 +10,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class EmailService {
     
     @Autowired
@@ -30,6 +32,7 @@ public class EmailService {
      * Send verification email to user
      */
     public void sendVerificationEmail(String toEmail, String name, String verificationToken) {
+        log.info("Preparing verification email for: {}", toEmail);
         String subject = "Verify Your Email - " + appName;
         String verificationUrl = baseUrl + "/auth/verify-email?token=" + verificationToken;
         
@@ -42,12 +45,14 @@ public class EmailService {
         );
         
         sendHtmlEmail(toEmail, subject, body);
+        log.info("Verification email sent successfully to: {}", toEmail);
     }
     
     /**
      * Send password reset email
      */
     public void sendPasswordResetEmail(String toEmail, String name, String resetToken) {
+        log.info("Preparing password reset email for: {}", toEmail);
         String subject = "Reset Your Password - " + appName;
         String resetUrl = frontendUrl + "/reset-password?token=" + resetToken;
         
@@ -60,12 +65,14 @@ public class EmailService {
         );
         
         sendHtmlEmail(toEmail, subject, body);
+        log.info("Password reset email sent successfully to: {}", toEmail);
     }
     
     /**
      * Send password reset OTP email
      */
     public void sendPasswordResetOtp(String toEmail, String name, String otp) {
+        log.info("Preparing OTP email for: {}", toEmail);
         String subject = "Password Reset OTP - " + appName;
         
         String body = buildOtpEmailBody(
@@ -76,6 +83,7 @@ public class EmailService {
         );
         
         sendHtmlEmail(toEmail, subject, body);
+        log.info("OTP email sent successfully to: {}", toEmail);
     }
     
     /**
@@ -185,6 +193,7 @@ public class EmailService {
      * Send HTML email
      */
     private void sendHtmlEmail(String to, String subject, String htmlBody) {
+        log.debug("Sending HTML email to: {} with subject: {}", to, subject);
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -195,7 +204,9 @@ public class EmailService {
             helper.setText(htmlBody, true);
             
             mailSender.send(message);
+            log.debug("Email sent successfully to: {}", to);
         } catch (MessagingException e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
             throw new RuntimeException("Failed to send email", e);
         }
     }

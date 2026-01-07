@@ -26,8 +26,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class AuthService {
     
     @Autowired
@@ -56,8 +58,11 @@ public class AuthService {
 
     @Transactional
     public UserDTO register(RegisterRequest registerRequest) {
+        log.info("Starting user registration for email: {}", registerRequest.getEmail());
+        
         // Check if email already exists
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
+            log.warn("Registration failed - Email already exists: {}", registerRequest.getEmail());
             throw new BadRequestException("Email already exists");
         }
         
@@ -71,7 +76,9 @@ public class AuthService {
         
         try {
             user.setRole(User.UserRole.valueOf(registerRequest.getRole().toUpperCase()));
+            log.debug("User role set to: {}", registerRequest.getRole().toUpperCase());
         } catch (IllegalArgumentException e) {
+            log.error("Invalid role provided: {}", registerRequest.getRole());
             throw new BadRequestException("Invalid role: " + registerRequest.getRole());
         }
         
@@ -79,15 +86,18 @@ public class AuthService {
         user.setEmailVerified(false);
         
         User savedUser = userRepository.save(user);
+        log.info("User saved successfully with ID: {}", savedUser.getId());
         
         // Create receptionist record if role is receptionist
         if ("RECEPTIONIST".equalsIgnoreCase(registerRequest.getRole())) {
+            log.info("Creating receptionist record for user ID: {}", savedUser.getId());
             Receptionist receptionist = new Receptionist();
             receptionist.setUser(savedUser);
             receptionist.setReceptionistId("REC-" + savedUser.getId());
             receptionist.setDepartment(registerRequest.getDepartment());
             receptionist.setEmployeeId(registerRequest.getEmployeeId());
             receptionistRepository.save(receptionist);
+            log.info("Receptionist record created successfully");
         }
         
         // Generate verification token
@@ -112,6 +122,8 @@ public class AuthService {
     }
 
     public JwtAuthResponse login(LoginRequest loginRequest) {
+        log.info("Login attempt for email: {}", loginRequest.getEmail());
+        
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),
@@ -120,24 +132,30 @@ public class AuthService {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        log.debug("Authentication successful for: {}", loginRequest.getEmail());
         
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtTokenProvider.generateToken(userDetails);
+        log.debug("JWT token generated for: {}", loginRequest.getEmail());
         
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
+        log.info("Login successful for user: {} with role: {}", user.getEmail(), user.getRole());
         return new JwtAuthResponse(token, user.getId(), user.getEmail(), user.getRole().name());
     }
     
     public UserDTO getCurrentUser(String email) {
+        log.debug("Fetching current user details for: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        log.debug("Current user found: {} with role: {}", email, user.getRole());
         return modelMapper.map(user, UserDTO.class);
     }
     
     @Transactional
     public UserDTO updateProfile(String email, UpdateProfileRequest request) {
+        log.info("Updating profile for user: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         
@@ -174,36 +192,43 @@ public class AuthService {
         }
         
         User updatedUser = userRepository.save(user);
+        log.info("Profile updated successfully for user: {}", email);
         return modelMapper.map(updatedUser, UserDTO.class);
     }
     
     @Transactional
     public void changePassword(String email, ChangePasswordRequest request) {
+        log.info("Password change request for user: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         
         // Verify current password
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            log.warn("Password change failed - incorrect current password for user: {}", email);
             throw new BadCredentialsException("Current password is incorrect");
         }
         
         // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+        log.info("Password changed successfully for user: {}", email);
     }
     
     @Transactional
     public void forgotPassword(String email) {
+        log.info("Forgot password request for email: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         
         // Generate 6-digit OTP
         String otp = String.format("%06d", (int)(Math.random() * 1000000));
+        log.debug("OTP generated for user: {}", email);
         
         // Store OTP with 10 minutes expiration
         user.setPasswordResetOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
+        log.debug("OTP stored with 10 minutes expiry for user: {}", email);
         
         // Send OTP email
         try {
@@ -212,24 +237,28 @@ public class AuthService {
                 user.getFirstName(),
                 otp
             );
+            log.info("OTP email sent successfully to: {}", email);
         } catch (Exception e) {
             // Log error but don't fail request
-            System.err.println("Failed to send OTP email: " + e.getMessage());
+            log.error("Failed to send OTP email to {}: {}", email, e.getMessage());
         }
     }
     
     @Transactional
     public ApiResponse<String> verifyOtp(String email, String otp) {
+        log.info("OTP verification request for email: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         
         // Check if OTP is set
         if (user.getPasswordResetOtp() == null) {
+            log.warn("No OTP request found for email: {}", email);
             throw new BadRequestException("No OTP request found for this email");
         }
         
         // Check if OTP is expired (10 minutes)
         if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            log.warn("OTP expired for email: {}", email);
             user.setPasswordResetOtp(null);
             user.setOtpExpiry(null);
             userRepository.save(user);

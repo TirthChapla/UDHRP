@@ -3,6 +3,7 @@ package com.doctorai.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
+@Slf4j
 public class JwtTokenProvider {
     
     @Value("${jwt.secret}")
@@ -30,8 +32,11 @@ public class JwtTokenProvider {
     }
     
     public String generateToken(UserDetails userDetails) {
+        log.debug("Generating JWT token for user: {}", userDetails.getUsername());
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername());
+        String token = createToken(claims, userDetails.getUsername());
+        log.info("JWT token generated successfully for user: {}", userDetails.getUsername());
+        return token;
     }
 
 
@@ -75,7 +80,14 @@ public class JwtTokenProvider {
     }
     
     public Boolean validateToken(String token, UserDetails userDetails) {
+        log.debug("Validating JWT token for user: {}", userDetails.getUsername());
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        boolean isValid = (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        if (isValid) {
+            log.debug("JWT token validation successful for user: {}", username);
+        } else {
+            log.warn("JWT token validation failed for user: {}", userDetails.getUsername());
+        }
+        return isValid;
     }
 }

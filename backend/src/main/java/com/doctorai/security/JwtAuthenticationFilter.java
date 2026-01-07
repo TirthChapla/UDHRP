@@ -78,6 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             tokenProvider.extractUsername(token);
             return true;
         } catch (Exception e) {
+            logger.warn("JWT token validation failed: " + e.getMessage());
             return false;
         }
     }
