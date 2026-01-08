@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -173,7 +174,12 @@ public class PatientMedicalRecordsService {
                 .instructions(prescription.getInstructions())
                 .dietToFollow(prescription.getDietToFollow())
                 .allergies(prescription.getAllergies())
-                .labReports(prescription.getLabReports())
+                .labReports(prescription.getLabReports() != null && !prescription.getLabReports().isEmpty()
+                        ? Arrays.stream(prescription.getLabReports().split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .collect(Collectors.toList())
+                        : new ArrayList<>())
                 .followUp(prescription.getFollowUp())
                 .followUpDate(prescription.getFollowUpDate() != null ? prescription.getFollowUpDate().toString() : null)
                 .additionalNotes(prescription.getAdditionalNotes())

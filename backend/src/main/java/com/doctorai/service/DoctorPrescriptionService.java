@@ -119,7 +119,12 @@ public class DoctorPrescriptionService {
         prescription.setInstructions(request.getInstructions());
         prescription.setDietToFollow(request.getDietToFollow());
         prescription.setAllergies(request.getAllergies());
-        prescription.setLabReports(request.getLabReports());
+        if (request.getLabReports() != null && !request.getLabReports().isEmpty()) {
+            String labReportsCsv = request.getLabReports().stream()
+                .filter(r -> r != null && !r.trim().isEmpty())
+                .collect(Collectors.joining(","));
+            prescription.setLabReports(labReportsCsv);
+        }
         prescription.setFollowUp(request.getFollowUp());
         prescription.setAdditionalNotes(request.getAdditionalNotes());
         
@@ -230,7 +235,10 @@ public class DoctorPrescriptionService {
             prescription.setAllergies(request.getAllergies());
         }
         if (request.getLabReports() != null) {
-            prescription.setLabReports(request.getLabReports());
+            String labReportsCsv = request.getLabReports().stream()
+                    .filter(r -> r != null && !r.trim().isEmpty())
+                    .collect(Collectors.joining(","));
+            prescription.setLabReports(labReportsCsv);
         }
         if (request.getFollowUp() != null) {
             prescription.setFollowUp(request.getFollowUp());
@@ -362,7 +370,12 @@ public class DoctorPrescriptionService {
                 .instructions(prescription.getInstructions())
                 .dietToFollow(prescription.getDietToFollow())
                 .allergies(prescription.getAllergies())
-                .labReports(prescription.getLabReports())
+                .labReports(prescription.getLabReports() != null && !prescription.getLabReports().isEmpty()
+                        ? Arrays.stream(prescription.getLabReports().split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .collect(Collectors.toList())
+                        : new ArrayList<>())
                 .followUp(prescription.getFollowUp())
                 .followUpDate(prescription.getFollowUpDate() != null ? prescription.getFollowUpDate().toString() : null)
                 .additionalNotes(prescription.getAdditionalNotes())

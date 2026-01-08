@@ -29,7 +29,7 @@ public class CreatePrescriptionRequest {
     
     private String allergies;
     
-    private String labReports;
+    private List<String> labReports;
     
     private String followUp;
     

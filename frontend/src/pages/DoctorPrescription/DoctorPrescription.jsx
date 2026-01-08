@@ -17,14 +17,16 @@ function DoctorPrescription() {
   const [medications, setMedications] = useState([
     { id: 1, drug: '', unit: '', dosage: '' }
   ]);
+  const [labReports, setLabReports] = useState([{ id: 1, name: '' }]);
   const [prescriptionData, setPrescriptionData] = useState({
     diagnosis: '',
     symptoms: '',
     instructions: 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.',
     dietToFollow: 'Stay hydrated. Avoid cold beverages. Rest adequately.',
     allergies: '',
-    followUp: 'If symptoms persist after 7 days',
-    labReports: ''
+    followUp: '',
+    followUpDate: '',
+    labReports: []
   });
 
   // Loading and error states
@@ -86,6 +88,15 @@ function DoctorPrescription() {
     setMedications([...medications, { id: Date.now(), drug: '', unit: '', dosage: '' }]);
   };
 
+  const handleAddLabReport = () => {
+    setLabReports([...labReports, { id: Date.now(), name: '' }]);
+  };
+
+  const handleRemoveLabReport = (id) => {
+    if (labReports.length === 1) return;
+    setLabReports(prev => prev.filter(r => r.id !== id));
+  };
+
   const handleRemoveMedication = (id) => {
     if (medications.length > 1) {
       setMedications(medications.filter(med => med.id !== id));
@@ -125,8 +136,9 @@ function DoctorPrescription() {
         instructions: prescriptionData.instructions,
         dietToFollow: prescriptionData.dietToFollow,
         allergies: prescriptionData.allergies,
-        labReports: prescriptionData.labReports,
-        followUp: prescriptionData.followUp
+        labReports: labReports.filter(r => r.name.trim() !== '').map(r => r.name.trim()),
+        followUp: prescriptionData.followUp,
+        followUpDate: prescriptionData.followUpDate
       };
 
       const result = await createPrescription(prescriptionPayload);
@@ -135,14 +147,16 @@ function DoctorPrescription() {
       
       // Reset form
       setMedications([{ id: 1, drug: '', unit: '', dosage: '' }]);
+      setLabReports([{ id: 1, name: '' }]);
       setPrescriptionData({
         diagnosis: '',
         symptoms: '',
         instructions: 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.',
         dietToFollow: 'Stay hydrated. Avoid cold beverages. Rest adequately.',
         allergies: selectedPatient.allergies || '',
-        followUp: 'If symptoms persist after 7 days',
-        labReports: ''
+        followUp: '',
+        followUpDate: '',
+        labReports: []
       });
       
       // Refresh patient prescriptions
@@ -163,14 +177,16 @@ function DoctorPrescription() {
     setOpenTabs([{ id: 'create', title: 'Create Prescription', type: 'create' }]);
     setActiveTab('create');
     setMedications([{ id: 1, drug: '', unit: '', dosage: '' }]);
+    setLabReports([{ id: 1, name: '' }]);
     setPrescriptionData({
       diagnosis: '',
       symptoms: '',
       instructions: 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.',
       dietToFollow: 'Stay hydrated. Avoid cold beverages. Rest adequately.',
       allergies: '',
-      followUp: 'If symptoms persist after 7 days',
-      labReports: ''
+      followUp: '',
+      followUpDate: '',
+      labReports: []
     });
   };
 
@@ -323,16 +339,16 @@ function DoctorPrescription() {
             </div>
           </div>
 
-          {data.labReports && (
+          {data.labReports && data.labReports.length > 0 && (
             <div className="view-detail-row full-width">
               <label>Lab Reports:</label>
-              <span>{data.labReports}</span>
+              <span>{Array.isArray(data.labReports) ? data.labReports.join(', ') : data.labReports}</span>
             </div>
           )}
 
           <div className="view-detail-row">
-            <label>Follow Up:</label>
-            <span>{data.followUp}</span>
+            <label>Follow Up Date:</label>
+            <span>{data.followUpDate || 'N/A'}</span>
           </div>
         </div>
       </div>
@@ -484,14 +500,40 @@ function DoctorPrescription() {
         </div>
 
         {/* Lab Reports */}
-        <div className="form-group">
-          <label>Lab Reports</label>
-          <textarea
-            value={prescriptionData.labReports}
-            onChange={(e) => handlePrescriptionChange('labReports', e.target.value)}
-            rows={2}
-            placeholder="Enter required lab tests or reports..."
-          />
+        <div className="lab-reports-section">
+          <div className="section-title">
+            <h3>Lab Reports</h3>
+            <Button
+              variant="outline"
+              size="small"
+              onClick={handleAddLabReport}
+            >
+              <Plus size={16} />
+              Add Lab Report
+            </Button>
+          </div>
+          <div className="lab-reports-list">
+            {labReports.map((report, idx) => (
+              <div key={report.id} className="lab-report-row">
+                <input
+                  type="text"
+                  value={report.name}
+                  onChange={(e) => setLabReports(labReports.map(r => r.id === report.id ? { ...r, name: e.target.value } : r))}
+                  placeholder={`Report ${idx + 1}`}
+                />
+                <div className="lab-report-actions">
+                  <button
+                    className="delete-btn"
+                    onClick={() => handleRemoveLabReport(report.id)}
+                    disabled={labReports.length === 1}
+                    aria-label="Delete lab report"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Diet To Follow */}
@@ -518,12 +560,11 @@ function DoctorPrescription() {
 
         {/* Follow Up */}
         <div className="form-group">
-          <label>Follow Up Provision</label>
+          <label>Follow Up Date</label>
           <input
-            type="text"
-            value={prescriptionData.followUp}
-            onChange={(e) => handlePrescriptionChange('followUp', e.target.value)}
-            placeholder="e.g., If symptoms persist after 7 days"
+            type="date"
+            value={prescriptionData.followUpDate}
+            onChange={(e) => handlePrescriptionChange('followUpDate', e.target.value)}
           />
         </div>
 
