@@ -9,6 +9,19 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
 
   if (!prescription) return null;
 
+  // Helper function to calculate age from DOB
+  const calculateAge = (dob) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -75,19 +88,6 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
     }
   }, [touchDistance]);
 
-  // Calculate age from date of birth if provided
-  const calculateAge = (dob) => {
-    if (!dob) return 'N/A';
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
   return (
     <div className="prescription-modal-overlay" onClick={handleOverlayClick}>
       <div className="prescription-paper" onClick={(e) => e.stopPropagation()}>
@@ -122,206 +122,129 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
         <div className="prescription-scroll-container">
           <div 
             ref={documentRef}
-            className="prescription-document"
+            className="prescription-document-new"
             style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
           >
-          {/* Header */}
-          <div className="prescription-header">
-            <div className="header-left">
-              <h1 className="doctor-title">Doctor's</h1>
-              <p className="medical-subtitle">Medical Prescription</p>
+          {/* Header with Logo */}
+          <div className="header-new">
+            <div className="header-left-new">
+              <div className="clinic-name-new">{prescription.clinicName || 'Medical Clinic'}</div>
+              <div className="doctor-name-new">{prescription.doctorName || 'Dr. Name'}, {prescription.doctorDegree || 'MBBS, MD'}</div>
+              <div className="clinic-details-new">
+                {prescription.clinicAddress || '123 Medical Street, City, State, ZIP'}<br />
+                Phone: {prescription.clinicPhone || '+91 1234567890'} | Reg. No.: {prescription.doctorRegistration || 'REG123456'}
+              </div>
             </div>
-            <div className="header-right">
-              <div className="rx-symbol">℞</div>
-            </div>
+            <div className="clinic-logo-new">{(prescription.doctorName || 'Dr').charAt(0)}</div>
           </div>
 
-          {/* Doctor Information */}
-          <div className="doctor-info-box">
-            <div className="info-inline-row">
-              <span className="info-label-inline">Doctor Name:</span>
-              <span className="info-value-inline">{prescription.doctorName || 'Dr. [Name]'}</span>
-            </div>
-            <div className="info-inline-row">
-              <span className="info-label-inline">Reg. No:</span>
-              <span className="info-value-inline">{prescription.doctorRegNo || 'MED-123456'}</span>
-            </div>
-            <div className="info-inline-row">
-              <span className="info-label-inline">Specialization:</span>
-              <span className="info-value-inline">{prescription.doctorSpecialization || 'Cardiologist'}</span>
-            </div>
-            <div className="info-inline-row">
-              <span className="info-label-inline">Date:</span>
-              <span className="info-value-inline">{new Date(prescription.date).toLocaleDateString('en-IN')}</span>
-            </div>
+          {/* Date Info */}
+          <div className="date-info-new">
+            <span className="date-label-new">Date:</span>
+            <span className="date-value-new">{new Date(prescription.date).toLocaleDateString('en-GB')}</span>
           </div>
 
-          <div className="section-divider"></div>
-
-          {/* Patient Information */}
-          <div className="patient-info-section">
-            <h3 className="section-title">Patient Information</h3>
-            <table className="info-table">
-              <tbody>
-                <tr>
-                  <td className="label-cell">Patient Name / Patient Id No / M.R No:</td>
-                  <td className="value-cell">{prescription.patientName || 'John Doe'}</td>
-                  <td className="label-cell">Date:</td>
-                  <td className="value-cell">{new Date(prescription.date).toLocaleDateString('en-IN')}</td>
-                </tr>
-                <tr>
-                  <td className="label-cell">Date of Birth:</td>
-                  <td className="value-cell">{prescription.patientDOB || '01/01/1990'}</td>
-                  <td className="label-cell">Age:</td>
-                  <td className="value-cell">{prescription.patientAge || calculateAge(prescription.patientDOB)}</td>
-                </tr>
-                <tr>
-                  <td className="label-cell">Sex:</td>
-                  <td className="value-cell">{prescription.patientSex || 'Male'}</td>
-                  <td className="label-cell">Occupation:</td>
-                  <td className="value-cell">{prescription.patientOccupation || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td className="label-cell">Health Insurance No:</td>
-                  <td className="value-cell">{prescription.insuranceNo || 'N/A'}</td>
-                  <td className="label-cell">Health Care Provider:</td>
-                  <td className="value-cell">{prescription.healthcareProvider || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td className="label-cell">Health Card No:</td>
-                  <td className="value-cell">{prescription.healthCardNo || 'N/A'}</td>
-                  <td className="label-cell">Patient Id No:</td>
-                  <td className="value-cell">{prescription.patientId || 'PAT-' + Math.random().toString(36).substr(2, 9).toUpperCase()}</td>
-                </tr>
-                <tr>
-                  <td className="label-cell">Patient's Address:</td>
-                  <td className="value-cell">{prescription.patientAddress || 'N/A'}</td>
-                  <td className="label-cell">Cell No:</td>
-                  <td className="value-cell">{prescription.patientPhone || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td className="label-cell">Diagnosed With:</td>
-                  <td className="value-cell diagnosed-value" colSpan="3">{prescription.diagnosis}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Vitals */}
-          <div className="vitals-section">
-            <table className="vitals-table">
-              <tbody>
-                <tr>
-                  <td className="label-cell">Blood Pressure:</td>
-                  <td className="value-cell">{prescription.vitals?.bloodPressure || '120/80'}</td>
-                  <td className="label-cell">Pulse Rate:</td>
-                  <td className="value-cell">{prescription.vitals?.pulseRate || '72 bpm'}</td>
-                  <td className="label-cell">Height:</td>
-                  <td className="value-cell">{prescription.vitals?.height || '170 cm'}</td>
-                  <td className="label-cell">Weight:</td>
-                  <td className="value-cell">{prescription.vitals?.weight || '70 kg'}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Allergies */}
-          <div className="allergies-section">
-            <div className="label-cell">Allergies:</div>
-            <div className="value-cell">{prescription.allergies || 'None'}</div>
-          </div>
-
-          {/* Prescription Section */}
-          <div className="prescription-rx-section">
-            <div className="prescription-title">Prescription:</div>
-            <div className="prescription-text">
-              {prescription.prescriptionNote || 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.'}
-            </div>
-          </div>
-
-          {/* Medications Table */}
-          <div className="medications-section">
-            <table className="medications-table">
-              <thead>
-                <tr>
-                  <th>S.</th>
-                  <th>Drugs</th>
-                  <th>Unit (Tablet / Syrup)</th>
-                  <th>Dosage (Per Day)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {prescription.medications && prescription.medications.length > 0 ? (
-                  prescription.medications.map((med, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td className="drug-name">{med.name}</td>
-                      <td>{med.unit || med.dosage || 'Tablet'}</td>
-                      <td>{med.frequency || med.duration || '3 times'}</td>
-                    </tr>
-                  ))
-                ) : (
-                  Array.from({ length: 6 }).map((_, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Lab Reports */}
-          {prescription.labReports && (
-            <div className="labreports-section">
-              <div className="label-cell">Lab Reports:</div>
-              <div className="value-cell labreports-content">{prescription.labReports}</div>
+          {/* Allergies Alert */}
+          {prescription.allergies && prescription.allergies !== 'None' && (
+            <div className="inline-info-new">
+              <div><strong>⚠ Allergies:</strong> {prescription.allergies}</div>
             </div>
           )}
 
+          {/* Diagnosis */}
+          <div className="section-header-new">Diagnosis</div>
+          <div className="diagnosis-box-new">
+            {prescription.diagnosis || 'Sample Diagnosis'}
+            {prescription.symptoms && (
+              <>
+                <br /><br /><strong>Symptoms:</strong> {prescription.symptoms}
+              </>
+            )}
+          </div>
+
+          {/* Medications */}
+          <div className="section-header-new">Medications</div>
+          <table className="medications-table-new">
+            <thead>
+              <tr>
+                <th style={{ width: '40px' }}>S.No</th>
+                <th>Medicine</th>
+                <th style={{ width: '100px' }}>Dosage</th>
+                <th style={{ width: '150px' }}>Frequency</th>
+                <th style={{ width: '100px' }}>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {prescription.medications && prescription.medications.length > 0 ? (
+                prescription.medications.map((med, index) => (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td><strong>{med.drug || med.name}</strong></td>
+                    <td>{med.dosage || '-'}</td>
+                    <td>{med.timing || med.frequency || '-'}</td>
+                    <td>{med.duration || '-'}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr><td colSpan="5">No medications prescribed</td></tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Lab Reports Recommended */}
+          {prescription.labReports && prescription.labReports.length > 0 && (
+            <>
+              <div className="section-header-new">Lab Reports Recommended</div>
+              <div className="lab-reports-new">
+                {(Array.isArray(prescription.labReports) ? prescription.labReports : prescription.labReports.split(',')).map((lab, i) => (
+                  <span key={i} className="lab-tag-new">🔬 {lab.trim()}</span>
+                ))}
+              </div>
+            </>
+          )}
+
           {/* Diet to Follow */}
-          <div className="diet-section">
-            <div className="label-cell">Diet To Follow:</div>
-            <div className="value-cell diet-content">{prescription.diet || prescription.instructions || 'Regular balanced diet. Avoid oily and spicy food.'}</div>
-          </div>
-
-          {/* Brief History */}
-          <div className="history-section">
-            <div className="label-cell">Brief History of Patient:</div>
-            <div className="value-cell history-content">{prescription.patientHistory || prescription.notes || 'Patient presented with symptoms as described above.'}</div>
-          </div>
-
-          {/* Follow Up */}
-          <div className="followup-section">
-            <div className="label-cell">Follow Up Provision:</div>
-            <div className="value-cell">
-              {prescription.followUp 
-                ? (typeof prescription.followUp === 'string' && prescription.followUp.includes('-')
-                    ? new Date(prescription.followUp).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })
-                    : prescription.followUp)
-                : 'After 1 week or as needed'}
+          {(prescription.dietToFollow || prescription.diet) && (
+            <div className="info-block-new">
+              <div className="info-block-title-new">🥗 Diet to Follow</div>
+              <div className="info-block-content-new">{prescription.dietToFollow || prescription.diet}</div>
             </div>
-          </div>
+          )}
+
+          {/* Instructions */}
+          {(prescription.instructions || prescription.additionalNotes) && (
+            <div className="info-block-new">
+              <div className="info-block-title-new">📋 Instructions</div>
+              <div className="info-block-content-new">{prescription.instructions || prescription.additionalNotes}</div>
+            </div>
+          )}
+
+          {/* Follow-up */}
+          {(prescription.followUpDate || prescription.followUp) && (
+            <div className="info-block-new followup-block">
+              <div className="info-block-title-new">📅 Next Follow-up</div>
+              <div className="info-block-content-new" style={{ fontWeight: '600' }}>
+                {prescription.followUpDate 
+                  ? new Date(prescription.followUpDate).toLocaleDateString('en-GB')
+                  : (typeof prescription.followUp === 'string' && prescription.followUp.includes('-')
+                      ? new Date(prescription.followUp).toLocaleDateString('en-GB')
+                      : prescription.followUp)}
+              </div>
+            </div>
+          )}
 
           {/* Footer */}
-          <div className="prescription-footer">
-            <div className="footer-left">
-              <div className="footer-text">Prescribed by Dr. {prescription.doctorName || '[Doctor Name]'}</div>
-              <div className="footer-text">Contact: {prescription.doctorPhone || '+91-XXXXXXXXXX'}</div>
-              <div className="footer-text">Clinic Address: {prescription.clinicAddress || '[Clinic Address]'}</div>
+          <div className="footer-new">
+            <div className="footer-note-new">
+              * This is a digitally generated prescription<br />
+              * Please bring this prescription for follow-up visits<br />
+              * In case of emergency, contact: {prescription.emergencyContact || prescription.clinicPhone || 'Clinic Number'}
             </div>
-            <div className="footer-right">
-              <div className="signature-line">
-                <div className="signature-label">Signature of Physician:</div>
-                <div className="signature-box">
-                  {prescription.doctorSignature && (
-                    <img src={prescription.doctorSignature} alt="Doctor Signature" className="signature-img" />
-                  )}
-                </div>
-              </div>
+            <div className="signature-block-new">
+              <div className="signature-line-new"></div>
+              <div className="signature-name-new">{prescription.doctorName || 'Dr. Name'}</div>
+              <div className="signature-reg-new">{prescription.doctorDegree || 'MBBS, MD'}</div>
+              <div className="signature-reg-new">Reg. No: {prescription.doctorRegistration || 'REG123456'}</div>
             </div>
           </div>
         </div>

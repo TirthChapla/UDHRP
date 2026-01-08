@@ -189,7 +189,7 @@ export const downloadPrescriptionPDF = async (prescription) => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Prescription - ${prescription.id}</title>
+        <title>Prescription - ${prescription.prescriptionId || prescription.id}</title>
         <style>
           * {
             margin: 0;
@@ -197,256 +197,394 @@ export const downloadPrescriptionPDF = async (prescription) => {
             box-sizing: border-box;
           }
           body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            padding: 15px;
             background: white;
+            color: #000;
           }
           .prescription-document {
             max-width: 210mm;
             margin: 0 auto;
-            padding: 20px;
-            border: 3px solid #2563eb;
             background: white;
+            position: relative;
           }
+          
+          /* Header Section */
           .header {
-            text-align: center;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #000;
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #0ea5e9;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
           }
-          .clinic-name {
+          .header-left {
+            flex: 1;
+            text-align: left;
+          }
+          .clinic-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-size: 24px;
             font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 5px;
+            flex-shrink: 0;
           }
-          .clinic-info {
-            font-size: 12px;
-            color: #666;
+          .clinic-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #0ea5e9;
+            margin-bottom: 4px;
           }
-          .doctor-info {
-            margin-bottom: 20px;
-            padding: 12px;
-            background: #f8f9fa;
+          .doctor-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+          }
+          .clinic-details {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+          }
+          
+          /* Info Grid */
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+          }
+          .info-section {
+            background: #f8fafc;
+            padding: 10px;
+            border-left: 3px solid #0ea5e9;
+          }
+          .info-section-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
           }
           .info-row {
             display: flex;
-            padding: 6px 0;
+            margin-bottom: 5px;
+            font-size: 12px;
           }
           .info-label {
-            font-weight: bold;
-            font-size: 14px;
-            min-width: 150px;
+            font-weight: 600;
+            color: #475569;
+            min-width: 100px;
           }
           .info-value {
-            font-size: 14px;
+            color: #1e293b;
           }
-          .patient-info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
+          
+          /* Single Line Info */
+          .inline-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            margin-bottom: 15px;
+            font-size: 12px;
           }
-          .patient-info-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
+          .inline-info strong {
+            color: #92400e;
+            margin-right: 8px;
+          }
+          
+          /* Section Headers */
+          .section-header {
             font-size: 13px;
-          }
-          .label-cell {
             font-weight: bold;
-            background: #f8f9fa;
-            width: 120px;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 15px 0 8px 0;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #e2e8f0;
           }
-          .section-title {
-            font-weight: bold;
-            font-size: 16px;
-            margin: 20px 0 10px 0;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #e5e7eb;
-          }
-          .prescription-section {
-            margin-bottom: 20px;
-            padding: 12px;
-            border-bottom: 2px solid #e5e7eb;
-          }
-          .prescription-title {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 8px;
-          }
-          .prescription-text {
-            font-size: 14px;
+          
+          /* Diagnosis */
+          .diagnosis-box {
+            padding: 10px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 12px;
             line-height: 1.6;
+            color: #334155;
           }
+          
+          /* Medications Table */
           .medications-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-          }
-          .medications-table th,
-          .medications-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-            font-size: 13px;
-          }
-          .medications-table th {
-            background: #f8f9fa;
-            font-weight: bold;
-          }
-          .section-content {
-            padding: 12px;
-            border-bottom: 2px solid #e5e7eb;
-            margin-bottom: 12px;
-          }
-          .section-content .label-cell {
-            font-weight: bold;
-            margin-bottom: 8px;
-          }
-          .section-content .value-cell {
-            line-height: 1.6;
-          }
-          .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #000;
-          }
-          .signature-section {
-            text-align: right;
-            margin-top: 60px;
-          }
-          .signature-line {
-            border-top: 1px solid #000;
-            width: 200px;
-            margin-left: auto;
-            margin-top: 50px;
-            padding-top: 5px;
-            text-align: center;
+            margin-bottom: 15px;
             font-size: 12px;
           }
+          .medications-table thead {
+            background: #0ea5e9;
+            color: white;
+          }
+          .medications-table th {
+            padding: 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+          }
+          .medications-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+          }
+          .medications-table tbody tr:hover {
+            background: #f8fafc;
+          }
+          
+          /* Clean Info Sections */
+          .info-block {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f8fafc;
+            border-left: 3px solid #cbd5e1;
+            font-size: 12px;
+          }
+          .info-block-title {
+            font-weight: bold;
+            color: #475569;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+          }
+          .info-block-content {
+            color: #1e293b;
+            line-height: 1.6;
+          }
+          
+          /* Lab Reports */
+          .lab-reports {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+          }
+          .lab-tag {
+            padding: 5px 12px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+          }
+          
+          /* Footer */
+          .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+          }
+          .footer-note {
+            font-size: 10px;
+            color: #64748b;
+            max-width: 60%;
+            line-height: 1.4;
+          }
+          .signature-block {
+            text-align: center;
+          }
+          .signature-line {
+            width: 180px;
+            border-top: 2px solid #000;
+            margin-bottom: 5px;
+            padding-top: 30px;
+          }
+          .signature-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #1e293b;
+          }
+          .signature-reg {
+            font-size: 10px;
+            color: #64748b;
+          }
+          
           @media print {
             body {
               padding: 0;
             }
             .prescription-document {
-              border: 3px solid #2563eb;
+              max-width: 100%;
             }
           }
         </style>
       </head>
       <body>
         <div class="prescription-document">
-          <!-- Header -->
+          <!-- Header with Logo -->
           <div class="header">
-            <div class="clinic-name">${prescription.doctorClinic || 'Medical Clinic'}</div>
-            <div class="clinic-info">${prescription.doctorAddress || 'Medical District, City'}</div>
-            <div class="clinic-info">Phone: ${prescription.doctorPhone || '+91 1234567890'}</div>
+            <div class="header-left">
+              <div class="clinic-name">${prescription.clinicName || 'Medical Clinic'}</div>
+              <div class="doctor-name">${prescription.doctorName || 'Dr. Name'}, ${prescription.doctorDegree || 'MBBS, MD'}</div>
+              <div class="clinic-details">
+                ${prescription.clinicAddress || '123 Medical Street, City, State, ZIP'}<br>
+                Phone: ${prescription.clinicPhone || '+91 1234567890'} | Reg. No.: ${prescription.doctorRegistration || 'REG123456'}
+              </div>
+            </div>
+            <div class="clinic-logo">${(prescription.doctorName || 'Dr').charAt(0)}</div>
           </div>
 
-          <!-- Doctor Information -->
-          <div class="doctor-info">
-            <div class="info-row">
-              <span class="info-label">Doctor Name:</span>
-              <span class="info-value">${prescription.doctorName}</span>
+          <!-- Patient & Date Info Grid -->
+          <div class="info-grid">
+            <div class="info-section">
+              <div class="info-section-title">Patient Information</div>
+              <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value">${prescription.patientName || 'Sample Patient'}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">ID:</span>
+                <span class="info-value">${prescription.patientId || 'PAT001'}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Age:</span>
+                <span class="info-value">${prescription.age || '35'}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Gender:</span>
+                <span class="info-value">${prescription.gender || 'Male'}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Contact:</span>
+                <span class="info-value">${prescription.phone || '+91 9876543210'}</span>
+              </div>
             </div>
-            <div class="info-row">
-              <span class="info-label">Specialization:</span>
-              <span class="info-value">${prescription.doctorSpecialization}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Registration No:</span>
-              <span class="info-value">${prescription.doctorRegistration || 'N/A'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Date:</span>
-              <span class="info-value">${prescription.date}</span>
+            
+            <div class="info-section">
+              <div class="info-section-title">Visit Details</div>
+              <div class="info-row">
+                <span class="info-label">Date:</span>
+                <span class="info-value">${prescription.date || new Date().toLocaleDateString('en-GB')}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Specialization:</span>
+                <span class="info-value">${prescription.doctorSpecialization || 'General Physician'}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">BP:</span>
+                <span class="info-value">${prescription.bp || '-'}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Weight:</span>
+                <span class="info-value">${prescription.weight || '-'}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Temperature:</span>
+                <span class="info-value">${prescription.temperature || '-'}</span>
+              </div>
             </div>
           </div>
 
-          <!-- Patient Information -->
-          <table class="patient-info-table">
-            <tr>
-              <td class="label-cell">Patient Name:</td>
-              <td>${prescription.patientName}</td>
-              <td class="label-cell">Age:</td>
-              <td>${prescription.age} years</td>
-            </tr>
-            <tr>
-              <td class="label-cell">Gender:</td>
-              <td>${prescription.gender}</td>
-              <td class="label-cell">Cell No:</td>
-              <td>${prescription.phone || 'N/A'}</td>
-            </tr>
-            <tr>
-              <td class="label-cell">Weight:</td>
-              <td>${prescription.weight || 'N/A'}</td>
-              <td class="label-cell">BP:</td>
-              <td>${prescription.bp || 'N/A'}</td>
-            </tr>
-            <tr>
-              <td class="label-cell" colspan="4">Allergies:</td>
-            </tr>
-            <tr>
-              <td colspan="4">${prescription.allergies || 'None'}</td>
-            </tr>
-            <tr>
-              <td class="label-cell" colspan="4">Patient's Address:</td>
-            </tr>
-            <tr>
-              <td colspan="4">${prescription.address || 'N/A'}</td>
-            </tr>
-          </table>
+          <!-- Allergies Alert -->
+          ${prescription.allergies && prescription.allergies !== 'None' ? `
+          <div class="inline-info">
+            <div><strong>⚠ Allergies:</strong> ${prescription.allergies}</div>
+          </div>
+          ` : ''}
 
-          <!-- Prescription -->
-          <div class="prescription-section">
-            <div class="prescription-title">Prescription:</div>
-            <div class="prescription-text">${prescription.prescriptionNote || 'Take all medications as prescribed by the doctor. Follow the dosage instructions carefully.'}</div>
+          <!-- Diagnosis -->
+          <div class="section-header">Diagnosis</div>
+          <div class="diagnosis-box">
+            ${prescription.diagnosis || 'Sample Diagnosis'}
+            ${prescription.symptoms ? '<br><br><strong>Symptoms:</strong> ' + prescription.symptoms : ''}
           </div>
 
           <!-- Medications -->
-          <div class="section-title">Medications</div>
+          <div class="section-header">Medications</div>
           <table class="medications-table">
             <thead>
               <tr>
-                <th style="width: 60px;">S.</th>
-                <th>Drugs</th>
-                <th style="width: 100px;">Unit</th>
-                <th style="width: 200px;">Dosage</th>
+                <th style="width: 40px;">S.No</th>
+                <th>Medicine</th>
+                <th style="width: 100px;">Dosage</th>
+                <th style="width: 150px;">Frequency</th>
+                <th style="width: 100px;">Duration</th>
               </tr>
             </thead>
             <tbody>
-              ${prescription.medications.map((med, index) => `
+              ${(prescription.medications || []).map((med, index) => `
                 <tr>
                   <td>${index + 1}</td>
-                  <td>${med.name}</td>
-                  <td>${med.unit}</td>
-                  <td>${med.dosage}</td>
+                  <td><strong>${med.drug || med.name}</strong></td>
+                  <td>${med.dosage || '-'}</td>
+                  <td>${med.timing || med.frequency || '-'}</td>
+                  <td>${med.duration || '-'}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
 
-          <!-- Diet To Follow -->
-          <div class="section-content">
-            <div class="label-cell">Diet To Follow:</div>
-            <div class="value-cell">${prescription.diet || 'Maintain a balanced diet'}</div>
+          <!-- Lab Reports Recommended -->
+          ${prescription.labReports && prescription.labReports.length > 0 ? `
+          <div class="section-header">Lab Reports Recommended</div>
+          <div class="lab-reports">
+            ${(Array.isArray(prescription.labReports) ? prescription.labReports : prescription.labReports.split(',')).map(lab => `
+              <span class="lab-tag">🔬 ${lab.trim()}</span>
+            `).join('')}
           </div>
+          ` : ''}
 
-          <!-- History -->
-          <div class="section-content">
-            <div class="label-cell">History:</div>
-            <div class="value-cell">${prescription.history || 'No significant medical history'}</div>
+          <!-- Diet to Follow -->
+          ${prescription.dietToFollow || prescription.diet ? `
+          <div class="info-block">
+            <div class="info-block-title">🥗 Diet to Follow</div>
+            <div class="info-block-content">${prescription.dietToFollow || prescription.diet}</div>
           </div>
+          ` : ''}
+
+          <!-- Instructions -->
+          ${prescription.instructions || prescription.additionalNotes ? `
+          <div class="info-block">
+            <div class="info-block-title">📋 Instructions</div>
+            <div class="info-block-content">${prescription.instructions || prescription.additionalNotes}</div>
+          </div>
+          ` : ''}
 
           <!-- Follow-up -->
-          <div class="section-content">
-            <div class="label-cell">Follow-up:</div>
-            <div class="value-cell">${prescription.followUp || 'Follow up after 1 week'}</div>
+          ${prescription.followUpDate || prescription.followUp ? `
+          <div class="info-block" style="border-left-color: #10b981; background: #f0fdf4;">
+            <div class="info-block-title" style="color: #065f46;">📅 Next Follow-up</div>
+            <div class="info-block-content" style="font-weight: 600;">
+              ${prescription.followUpDate ? new Date(prescription.followUpDate).toLocaleDateString('en-GB') : prescription.followUp}
+            </div>
           </div>
+          ` : ''}
 
-          <!-- Footer with Signature -->
+          <!-- Footer -->
           <div class="footer">
-            <div class="signature-section">
-              <div class="signature-line">Doctor's Signature</div>
+            <div class="footer-note">
+              * This is a digitally generated prescription<br>
+              * Please bring this prescription for follow-up visits<br>
+              * In case of emergency, contact: ${prescription.emergencyContact || prescription.clinicPhone || 'Clinic Number'}
+            </div>
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <div class="signature-name">${prescription.doctorName || 'Dr. Name'}</div>
+              <div class="signature-reg">${prescription.doctorDegree || 'MBBS, MD'}</div>
+              <div class="signature-reg">Reg. No: ${prescription.doctorRegistration || 'REG123456'}</div>
             </div>
           </div>
         </div>
@@ -803,11 +941,12 @@ const mockLabReports = [
 /**
  * Get all lab reports for a patient
  * @returns {Promise<Array>}
+ * NOTE: Lab reports functionality is skipped for now
  */
 export const getLabReports = async () => {
   try {
-    const response = await apiRequest('/patient/medical-records/lab-reports', 'GET');
-    return response.data || [];
+    // TODO: Implement when lab reports are required
+    return [];
   } catch (error) {
     console.error('Error fetching lab reports:', error);
     throw error;
@@ -818,23 +957,12 @@ export const getLabReports = async () => {
  * Filter lab reports based on criteria
  * @param {Object} filters 
  * @returns {Promise<Array>}
+ * NOTE: Lab reports functionality is skipped for now
  */
 export const filterLabReports = async (filters) => {
   try {
-    const { searchQuery, doctorName, month, year, status } = filters;
-    
-    const params = new URLSearchParams();
-    if (searchQuery && searchQuery.trim()) params.append('search', searchQuery);
-    if (doctorName && doctorName !== 'all') params.append('doctor', doctorName);
-    if (month && month !== 'all') params.append('month', month);
-    if (year && year !== 'all') params.append('year', year);
-    if (status && status !== 'all') params.append('status', status);
-    
-    const queryString = params.toString();
-    const url = `/patient/medical-records/lab-reports/filter${queryString ? '?' + queryString : ''}`;
-    
-    const response = await apiRequest(url, 'GET');
-    return response.data || [];
+    // TODO: Implement when lab reports are required
+    return [];
   } catch (error) {
     console.error('Error filtering lab reports:', error);
     throw error;
@@ -844,11 +972,12 @@ export const filterLabReports = async (filters) => {
 /**
  * Get unique doctors from lab reports
  * @returns {Promise<Array>}
+ * NOTE: Lab reports functionality is skipped for now
  */
 export const getDoctorsFromLabReports = async () => {
   try {
-    const response = await apiRequest('/patient/medical-records/lab-reports/doctors', 'GET');
-    return response.data || [];
+    // TODO: Implement when lab reports are required
+    return [];
   } catch (error) {
     console.error('Error fetching doctors from lab reports:', error);
     throw error;
@@ -858,11 +987,12 @@ export const getDoctorsFromLabReports = async () => {
 /**
  * Get unique years from lab reports
  * @returns {Promise<Array>}
+ * NOTE: Lab reports functionality is skipped for now
  */
 export const getYearsFromLabReports = async () => {
   try {
-    const response = await apiRequest('/patient/medical-records/lab-reports/years', 'GET');
-    return response.data || [];
+    // TODO: Implement when lab reports are required
+    return [];
   } catch (error) {
     console.error('Error fetching years from lab reports:', error);
     throw error;

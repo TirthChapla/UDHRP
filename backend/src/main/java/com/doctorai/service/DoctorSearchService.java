@@ -5,7 +5,7 @@ import com.doctorai.exception.ResourceNotFoundException;
 import com.doctorai.model.Doctor;
 import com.doctorai.model.User;
 import com.doctorai.repository.DoctorRepository;
-import com.doctorai.repository.UserRepository;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,8 +21,7 @@ public class DoctorSearchService {
     @Autowired
     private DoctorRepository doctorRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+
 
     /**
      * Get all available doctors

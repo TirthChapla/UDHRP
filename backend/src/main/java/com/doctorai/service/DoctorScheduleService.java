@@ -9,8 +9,7 @@ import com.doctorai.model.Doctor;
 import com.doctorai.model.Patient;
 import com.doctorai.model.User;
 import com.doctorai.repository.AppointmentRepository;
-import com.doctorai.repository.DoctorRepository;
-import com.doctorai.repository.UserRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +29,7 @@ public class DoctorScheduleService {
     @Autowired
     private AppointmentRepository appointmentRepository;
 
-    @Autowired
-    private DoctorRepository doctorRepository;
 
-    @Autowired
-    private UserRepository userRepository;
 
     /**
      * Get all appointments for a doctor

@@ -2,7 +2,7 @@ package com.doctorai.service;
 
 import com.doctorai.dto.MedicationDTO;
 import com.doctorai.dto.PrescriptionDTO;
-import com.doctorai.model.Doctor;
+
 import com.doctorai.model.Medication;
 import com.doctorai.model.Patient;
 import com.doctorai.model.Prescription;
@@ -166,7 +166,7 @@ public class PatientMedicalRecordsService {
                 .doctorName(prescription.getDoctor() != null && prescription.getDoctor().getUser() != null ? prescription.getDoctor().getUser().getFirstName() : "Unknown")
                 .doctorSpecialization(prescription.getDoctor() != null ? prescription.getDoctor().getSpecialization() : null)
                 .patientId(prescription.getPatient() != null ? prescription.getPatient().getId().toString() : null)
-                .patientName(prescription.getPatient() != null ? prescription.getPatient().getFirstName() : "Unknown")
+                .patientName(prescription.getPatient() != null && prescription.getPatient().getUser() != null ? prescription.getPatient().getUser().getFirstName() : "Unknown")
                 .diagnosis(prescription.getDiagnosis())
                 .symptoms(prescription.getSymptoms())
                 .medications(mapMedications(prescription.getMedications()))
