@@ -159,6 +159,23 @@ public class PatientMedicalRecordsService {
     private PrescriptionDTO mapPrescriptionToDTO(Prescription prescription) {
         log.debug("Mapping prescription ID: {} to DTO", prescription.getId());
         
+        List<String> labReportsList = new ArrayList<>();
+        if (prescription.getLabReports() != null && !prescription.getLabReports().isEmpty()) {
+            labReportsList = Arrays.stream(prescription.getLabReports().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+        }
+        
+        log.debug("Mapped patient prescription DTO: prescriptionId={}, diagnosis={}, symptoms={}, dietToFollow={}, instructions={}, labReports={}, medicationsCount={}", 
+                prescription.getPrescriptionId(),
+                prescription.getDiagnosis(),
+                prescription.getSymptoms(),
+                prescription.getDietToFollow(),
+                prescription.getInstructions(),
+                labReportsList,
+                prescription.getMedications() != null ? prescription.getMedications().size() : 0);
+        
         return PrescriptionDTO.builder()
                 .id(prescription.getId())
                 .prescriptionId(prescription.getPrescriptionId())
@@ -174,12 +191,7 @@ public class PatientMedicalRecordsService {
                 .instructions(prescription.getInstructions())
                 .dietToFollow(prescription.getDietToFollow())
                 .allergies(prescription.getAllergies())
-                .labReports(prescription.getLabReports() != null && !prescription.getLabReports().isEmpty()
-                        ? Arrays.stream(prescription.getLabReports().split(","))
-                            .map(String::trim)
-                            .filter(s -> !s.isEmpty())
-                            .collect(Collectors.toList())
-                        : new ArrayList<>())
+                .labReports(labReportsList)
                 .followUp(prescription.getFollowUp())
                 .followUpDate(prescription.getFollowUpDate() != null ? prescription.getFollowUpDate().toString() : null)
                 .additionalNotes(prescription.getAdditionalNotes())

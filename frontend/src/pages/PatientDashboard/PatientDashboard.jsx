@@ -323,6 +323,16 @@ function PatientDashboard({ searchQuery, initialTab }) {
 
   // Handlers
   const handleViewPrescription = (prescription) => {
+    console.log('[PatientDashboard] Viewing prescription:', {
+      id: prescription.id,
+      prescriptionId: prescription.prescriptionId,
+      diagnosis: prescription.diagnosis,
+      symptoms: prescription.symptoms,
+      dietToFollow: prescription.dietToFollow,
+      instructions: prescription.instructions,
+      labReports: prescription.labReports,
+      medicationsCount: prescription.medications?.length
+    });
     setSelectedPrescription(prescription);
     setShowPrescriptionModal(true);
   };

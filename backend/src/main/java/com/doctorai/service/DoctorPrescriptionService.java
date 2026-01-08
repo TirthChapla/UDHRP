@@ -96,6 +96,13 @@ public class DoctorPrescriptionService {
     @Transactional
     public PrescriptionDTO createPrescription(String doctorEmail, CreatePrescriptionRequest request) {
         log.info("Creating prescription for patient: {} by doctor: {}", request.getPatientId(), doctorEmail);
+        log.debug("Prescription request details - diagnosis: {}, symptoms: {}, dietToFollow: {}, instructions: {}, labReports: {}, followUpDate: {}", 
+                request.getDiagnosis(), 
+                request.getSymptoms(),
+                request.getDietToFollow(),
+                request.getInstructions(),
+                request.getLabReports(),
+                request.getFollowUpDate());
         
         // Find doctor
         User doctorUser = userRepository.findByEmail(doctorEmail)
@@ -124,12 +131,14 @@ public class DoctorPrescriptionService {
                 .filter(r -> r != null && !r.trim().isEmpty())
                 .collect(Collectors.joining(","));
             prescription.setLabReports(labReportsCsv);
+            log.debug("Lab reports set: {}", labReportsCsv);
         }
         prescription.setFollowUp(request.getFollowUp());
         prescription.setAdditionalNotes(request.getAdditionalNotes());
         
         if (request.getFollowUpDate() != null && !request.getFollowUpDate().isEmpty()) {
             prescription.setFollowUpDate(LocalDate.parse(request.getFollowUpDate()));
+            log.debug("Follow-up date set: {}", request.getFollowUpDate());
         }
         
         // Link to appointment if provided
@@ -141,9 +150,11 @@ public class DoctorPrescriptionService {
         
         // Save prescription first to get ID
         Prescription savedPrescription = prescriptionRepository.save(prescription);
+        log.debug("Prescription saved with ID: {}, prescriptionId: {}", savedPrescription.getId(), savedPrescription.getPrescriptionId());
         
         // Add medications
         if (request.getMedications() != null && !request.getMedications().isEmpty()) {
+            log.debug("Adding {} medications", request.getMedications().size());
             for (MedicationDTO medDTO : request.getMedications()) {
                 if (medDTO.getDrug() != null && !medDTO.getDrug().trim().isEmpty()) {
                     Medication medication = new Medication();
@@ -161,7 +172,11 @@ public class DoctorPrescriptionService {
         // Save again with medications
         savedPrescription = prescriptionRepository.save(savedPrescription);
         
-        log.info("Prescription created successfully with ID: {}", savedPrescription.getPrescriptionId());
+        log.info("Prescription created successfully with ID: {} - diagnosis: {}, medications count: {}, labReports: {}", 
+                savedPrescription.getPrescriptionId(),
+                savedPrescription.getDiagnosis(),
+                savedPrescription.getMedications().size(),
+                savedPrescription.getLabReports());
         return mapToPrescriptionDTO(savedPrescription);
     }
 
@@ -339,6 +354,8 @@ public class DoctorPrescriptionService {
         List<MedicationDTO> medicationDTOs = new ArrayList<>();
         
         if (prescription.getMedications() != null) {
+            log.debug("Mapping {} medications for prescription ID: {}", 
+                    prescription.getMedications().size(), prescription.getPrescriptionId());
             medicationDTOs = prescription.getMedications().stream()
                     .map(med -> MedicationDTO.builder()
                             .id(med.getId())
@@ -355,6 +372,23 @@ public class DoctorPrescriptionService {
         User doctorUser = prescription.getDoctor().getUser();
         User patientUser = prescription.getPatient().getUser();
         
+        List<String> labReportsList = new ArrayList<>();
+        if (prescription.getLabReports() != null && !prescription.getLabReports().isEmpty()) {
+            labReportsList = Arrays.stream(prescription.getLabReports().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+        }
+        
+        log.debug("Mapped prescription DTO: prescriptionId={}, diagnosis={}, symptoms={}, dietToFollow={}, instructions={}, labReports={}, followUpDate={}", 
+                prescription.getPrescriptionId(),
+                prescription.getDiagnosis(),
+                prescription.getSymptoms(),
+                prescription.getDietToFollow(),
+                prescription.getInstructions(),
+                labReportsList,
+                prescription.getFollowUpDate());
+        
         return PrescriptionDTO.builder()
                 .id(prescription.getId())
                 .prescriptionId(prescription.getPrescriptionId())
@@ -370,12 +404,7 @@ public class DoctorPrescriptionService {
                 .instructions(prescription.getInstructions())
                 .dietToFollow(prescription.getDietToFollow())
                 .allergies(prescription.getAllergies())
-                .labReports(prescription.getLabReports() != null && !prescription.getLabReports().isEmpty()
-                        ? Arrays.stream(prescription.getLabReports().split(","))
-                            .map(String::trim)
-                            .filter(s -> !s.isEmpty())
-                            .collect(Collectors.toList())
-                        : new ArrayList<>())
+                .labReports(labReportsList)
                 .followUp(prescription.getFollowUp())
                 .followUpDate(prescription.getFollowUpDate() != null ? prescription.getFollowUpDate().toString() : null)
                 .additionalNotes(prescription.getAdditionalNotes())

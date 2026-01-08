@@ -113,10 +113,24 @@ const mockPrescriptions = [
  */
 export const getPrescriptions = async () => {
   try {
+    console.log('[patientService] Fetching prescriptions from API');
     const response = await apiRequest('/patient/medical-records/prescriptions', 'GET');
+    console.log('[patientService] Prescriptions received:', {
+      count: response.data?.length || 0,
+      firstPrescription: response.data?.[0] ? {
+        id: response.data[0].id,
+        prescriptionId: response.data[0].prescriptionId,
+        diagnosis: response.data[0].diagnosis,
+        symptoms: response.data[0].symptoms,
+        dietToFollow: response.data[0].dietToFollow,
+        instructions: response.data[0].instructions,
+        labReports: response.data[0].labReports,
+        medicationsCount: response.data[0].medications?.length
+      } : null
+    });
     return response.data || [];
   } catch (error) {
-    console.error('Error fetching prescriptions:', error);
+    console.error('[patientService] Error fetching prescriptions:', error);
     throw error;
   }
 };

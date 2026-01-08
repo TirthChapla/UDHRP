@@ -141,8 +141,19 @@ function DoctorPrescription() {
         followUpDate: prescriptionData.followUpDate
       };
 
+      console.log('[DoctorPrescription] Submitting prescription:', {
+        patientId: prescriptionPayload.patientId,
+        diagnosis: prescriptionPayload.diagnosis,
+        symptoms: prescriptionPayload.symptoms,
+        dietToFollow: prescriptionPayload.dietToFollow,
+        instructions: prescriptionPayload.instructions,
+        labReports: prescriptionPayload.labReports,
+        followUpDate: prescriptionPayload.followUpDate,
+        medicationsCount: prescriptionPayload.medications.length
+      });
+
       const result = await createPrescription(prescriptionPayload);
-      console.log('Prescription created:', result);
+      console.log('[DoctorPrescription] Prescription created successfully:', result);
       alert(`Prescription created successfully! ID: ${result.prescriptionId}`);
       
       // Reset form
@@ -162,7 +173,7 @@ function DoctorPrescription() {
       // Refresh patient prescriptions
       fetchPatientHistory(selectedPatient.patientId);
     } catch (error) {
-      console.error('Error creating prescription:', error);
+      console.error('[DoctorPrescription] Error creating prescription:', error);
       alert('Failed to create prescription. Please try again.');
     } finally {
       setSubmitLoading(false);

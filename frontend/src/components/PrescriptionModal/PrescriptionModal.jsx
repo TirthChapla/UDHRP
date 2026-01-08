@@ -9,6 +9,19 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
 
   if (!prescription) return null;
 
+  // Log prescription data for debugging
+  console.log('[PrescriptionModal] Rendering prescription:', {
+    id: prescription.id,
+    prescriptionId: prescription.prescriptionId,
+    diagnosis: prescription.diagnosis,
+    symptoms: prescription.symptoms,
+    dietToFollow: prescription.dietToFollow,
+    instructions: prescription.instructions,
+    labReports: prescription.labReports,
+    medications: prescription.medications,
+    followUpDate: prescription.followUpDate
+  });
+
   // Helper function to calculate age from DOB
   const calculateAge = (dob) => {
     if (!dob) return null;
@@ -152,9 +165,9 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
           )}
 
           {/* Diagnosis */}
-          <div className="section-header-new">Diagnosis</div>
+          <div className="section-header-new">🩺 Diagnosis</div>
           <div className="diagnosis-box-new">
-            {prescription.diagnosis || 'Sample Diagnosis'}
+            {prescription.diagnosis || 'N/A'}
             {prescription.symptoms && (
               <>
                 <br /><br /><strong>Symptoms:</strong> {prescription.symptoms}
@@ -163,14 +176,14 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
           </div>
 
           {/* Medications */}
-          <div className="section-header-new">Medications</div>
+          <div className="section-header-new">💊 Medications</div>
           <table className="medications-table-new">
             <thead>
               <tr>
                 <th style={{ width: '40px' }}>S.No</th>
                 <th>Medicine</th>
-                <th style={{ width: '100px' }}>Dosage</th>
-                <th style={{ width: '150px' }}>Frequency</th>
+                <th style={{ width: '120px' }}>Unit (Tablet/Syrup)</th>
+                <th style={{ width: '180px' }}>Dosage (Per Day)</th>
                 <th style={{ width: '100px' }}>Duration</th>
               </tr>
             </thead>
@@ -180,9 +193,9 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td><strong>{med.drug || med.name}</strong></td>
-                    <td>{med.dosage || '-'}</td>
-                    <td>{med.timing || med.frequency || '-'}</td>
-                    <td>{med.duration || '-'}</td>
+                    <td>{med.unit || '-'}</td>
+                    <td>{med.dosage || med.timing || med.frequency || '-'}</td>
+                    <td>{med.duration ? `${med.duration} days` : '-'}</td>
                   </tr>
                 ))
               ) : (
@@ -194,7 +207,7 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
           {/* Lab Reports Recommended */}
           {prescription.labReports && prescription.labReports.length > 0 && (
             <>
-              <div className="section-header-new">Lab Reports Recommended</div>
+              <div className="section-header-new">🔬 Lab Reports Recommended</div>
               <div className="lab-reports-new">
                 {(Array.isArray(prescription.labReports) ? prescription.labReports : prescription.labReports.split(',')).map((lab, i) => (
                   <span key={i} className="lab-tag-new">🔬 {lab.trim()}</span>
