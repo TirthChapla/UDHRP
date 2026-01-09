@@ -481,7 +481,7 @@ public class DoctorPrescriptionService {
                 .reportId("LAB-" + labReport.getId())
                 .date(labReport.getTestDate().toString())
                 .testName(labReport.getTestName())
-                .status(labReport.getStatus().name())
+                .status(labReport.getStatus() != null ? labReport.getStatus().name().toLowerCase() : null)
                 .details(labReport.getDoctorNotes())
                 .results(labReport.getResults())
                 .laboratoryName(labReport.getLaboratoryName())

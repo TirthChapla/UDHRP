@@ -900,15 +900,48 @@ const mockLabReports = [
   }
 ];
 
+const normalizeLabReport = (report) => {
+  if (!report) return null;
+
+  const parsedDate = report.date ? new Date(report.date) : null;
+  const normalizedStatus = report.status ? report.status.toLowerCase() : 'pending';
+
+  // If backend returns results as a string, wrap it into a basic table-friendly row
+  const normalizedResults = Array.isArray(report.results)
+    ? report.results
+    : report.results
+      ? [{ parameter: report.testName || 'Result', value: report.results, unit: '', range: '', status: 'normal' }]
+      : [];
+
+  return {
+    id: report.id,
+    reportId: report.reportId,
+    testName: report.testName,
+    labName: report.laboratoryName || report.labName || 'Laboratory',
+    doctorName: report.doctorName || 'Doctor',
+    doctorSpecialization: report.doctorSpecialization || 'Pathology',
+    date: report.date,
+    time: parsedDate ? parsedDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '00:00',
+    status: normalizedStatus,
+    preview: report.details || report.doctorNotes || 'Lab report available',
+    results: normalizedResults,
+    notes: report.doctorNotes || report.details || '',
+    patientName: report.patientName,
+    patientId: report.patientId,
+    reportFilePath: report.reportFilePath,
+  };
+};
+
 /**
  * Get all lab reports for a patient
  * @returns {Promise<Array>}
- * NOTE: Lab reports functionality is skipped for now
  */
 export const getLabReports = async () => {
   try {
-    // TODO: Implement when lab reports are required
-    return [];
+    console.log('[patientService] Fetching lab reports from API');
+    const response = await apiRequest('/patient/medical-records/lab-reports', 'GET');
+    const labReports = response.data || [];
+    return labReports.map(normalizeLabReport).filter(Boolean);
   } catch (error) {
     console.error('Error fetching lab reports:', error);
     throw error;
@@ -919,12 +952,24 @@ export const getLabReports = async () => {
  * Filter lab reports based on criteria
  * @param {Object} filters 
  * @returns {Promise<Array>}
- * NOTE: Lab reports functionality is skipped for now
  */
 export const filterLabReports = async (filters) => {
   try {
-    // TODO: Implement when lab reports are required
-    return [];
+    const { searchQuery, doctorName, month, year, status } = filters || {};
+
+    const params = new URLSearchParams();
+    if (searchQuery && searchQuery.trim()) params.append('search', searchQuery);
+    if (doctorName && doctorName !== 'all') params.append('doctor', doctorName);
+    if (month && month !== 'all') params.append('month', month);
+    if (year && year !== 'all') params.append('year', year);
+    if (status && status !== 'all') params.append('status', status);
+
+    const queryString = params.toString();
+    const url = `/patient/medical-records/lab-reports/filter${queryString ? '?' + queryString : ''}`;
+
+    const response = await apiRequest(url, 'GET');
+    const labReports = response.data || [];
+    return labReports.map(normalizeLabReport).filter(Boolean);
   } catch (error) {
     console.error('Error filtering lab reports:', error);
     throw error;
@@ -934,12 +979,11 @@ export const filterLabReports = async (filters) => {
 /**
  * Get unique doctors from lab reports
  * @returns {Promise<Array>}
- * NOTE: Lab reports functionality is skipped for now
  */
 export const getDoctorsFromLabReports = async () => {
   try {
-    // TODO: Implement when lab reports are required
-    return [];
+    const response = await apiRequest('/patient/medical-records/lab-reports/doctors', 'GET');
+    return response.data || [];
   } catch (error) {
     console.error('Error fetching doctors from lab reports:', error);
     throw error;
@@ -949,12 +993,11 @@ export const getDoctorsFromLabReports = async () => {
 /**
  * Get unique years from lab reports
  * @returns {Promise<Array>}
- * NOTE: Lab reports functionality is skipped for now
  */
 export const getYearsFromLabReports = async () => {
   try {
-    // TODO: Implement when lab reports are required
-    return [];
+    const response = await apiRequest('/patient/medical-records/lab-reports/years', 'GET');
+    return response.data || [];
   } catch (error) {
     console.error('Error fetching years from lab reports:', error);
     throw error;
