@@ -1,36 +1,54 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Pill, ClipboardList, FileText, Stethoscope, Award, FlaskRound, ChevronDown } from 'lucide-react';
+import { Calendar, Clock, Pill, ClipboardList, FileText, Stethoscope, Award, FlaskRound, X } from 'lucide-react';
 import Card from '../Card/Card';
 import Button from '../Button/Button';
+import { getLabReportsForPrescription } from '../../services/patientService';
 
-function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPrescription, relatedLabReports = [], onViewLabReport }) {
-  const [showReportsDropdown, setShowReportsDropdown] = useState(false);
+function PrescriptionCard({ prescription, onViewDetails, onViewLabReport }) {
+  const [showReportsModal, setShowReportsModal] = useState(false);
+  const [labReports, setLabReports] = useState([]);
+  const [loadingReports, setLoadingReports] = useState(false);
 
   const hasLabReports = (prescription.labReportIds && prescription.labReportIds.length > 0) ||
                         (Array.isArray(prescription.labReports) && prescription.labReports.length > 0);
 
   const handleCardClick = (e) => {
     // Don't trigger if clicking on lab report buttons
-    if (e.target.closest('.reports-dropdown-button') || e.target.closest('.reports-dropdown-menu')) {
+    if (e.target.closest('.reports-modal-button') || e.target.closest('.lab-reports-modal')) {
       return;
     }
     onViewDetails(prescription);
   };
 
-  const handleOpenLabReports = (e) => {
+  const handleOpenLabReports = async (e) => {
     e.stopPropagation();
-    if (!showReportsDropdown) {
-      onViewLabReportsForPrescription(prescription);
+    setShowReportsModal(true);
+    
+    // Fetch reports if not already loaded
+    if (labReports.length === 0 && !loadingReports) {
+      setLoadingReports(true);
+      try {
+        const reports = await getLabReportsForPrescription(prescription.id);
+        setLabReports(reports);
+      } catch (error) {
+        console.error('Failed to load lab reports:', error);
+      } finally {
+        setLoadingReports(false);
+      }
     }
-    setShowReportsDropdown(!showReportsDropdown);
+  };
+
+  const handleCloseModal = (e) => {
+    e.stopPropagation();
+    setShowReportsModal(false);
   };
 
   const handleLabReportClick = (report, e) => {
     e.stopPropagation();
+    setShowReportsModal(false);
     if (onViewLabReport) {
       onViewLabReport(report);
     }
-    setShowReportsDropdown(false);
   };
 
   return (
@@ -98,64 +116,16 @@ function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPres
           View Full Prescription
         </Button>
         
-        {/* Lab Reports Dropdown Button */}
+        {/* Lab Reports Button */}
         {hasLabReports && (
-          <div className="reports-dropdown-container">
-            <button
-              className="reports-dropdown-button"
-              onClick={handleOpenLabReports}
-              title="View lab reports linked to this prescription"
-            >
-              <FlaskRound size={16} />
-              <span>Lab Reports</span>
-              <ChevronDown 
-                size={16} 
-                style={{ 
-                  transform: showReportsDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s ease'
-                }}
-              />
-            </button>
-            
-            {showReportsDropdown && (
-              <div className="reports-dropdown-menu">
-                <div className="reports-menu-label">
-                  <FlaskRound size={14} />
-                  Related Reports ({relatedLabReports.length})
-                </div>
-                {relatedLabReports && relatedLabReports.length > 0 ? (
-                  <div className="reports-list">
-                    {relatedLabReports.map((report) => (
-                      <div
-                        key={report.id}
-                        className="report-list-item"
-                        onClick={(e) => handleLabReportClick(report, e)}
-                      >
-                        <FlaskRound size={14} />
-                        <div className="report-item-info">
-                          <div className="report-name">{report.testName}</div>
-                          <div className="report-date">
-                            {new Date(report.date).toLocaleDateString('en-IN', { 
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
-                          </div>
-                        </div>
-                        <div className={`report-status report-status-${report.status}`}>
-                          {report.status}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="reports-loading">
-                    <span>Loading lab reports...</span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <button
+            className="reports-modal-button"
+            onClick={handleOpenLabReports}
+            title="View lab reports linked to this prescription"
+          >
+            <FlaskRound size={16} />
+            <span>Lab Reports ({prescription.labReportIds?.length || 0})</span>
+          </button>
         )}
         
         {!hasLabReports && (
@@ -165,6 +135,63 @@ function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPres
           </div>
         )}
       </div>
+
+      {/* Lab Reports Modal */}
+      {showReportsModal && (
+        <div className="lab-reports-overlay" onClick={handleCloseModal}>
+          <div className="lab-reports-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3><FlaskRound size={20} /> Related Lab Reports</h3>
+              <button className="modal-close-btn" onClick={handleCloseModal}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-body">
+              {loadingReports ? (
+                <div className="loading-state">
+                  <p>Loading lab reports...</p>
+                </div>
+              ) : labReports && labReports.length > 0 ? (
+                <div className="lab-reports-grid">
+                  {labReports.map((report) => (
+                    <div
+                      key={report.id}
+                      className="lab-report-item-card"
+                      onClick={(e) => handleLabReportClick(report, e)}
+                    >
+                      <div className="lab-report-header">
+                        <FlaskRound size={20} />
+                        <h4>{report.testName}</h4>
+                      </div>
+                      <div className="lab-report-details">
+                        <p className="lab-report-date">
+                          <Calendar size={14} />
+                          {new Date(report.date).toLocaleDateString('en-IN', { 
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </p>
+                        <span className={`report-status-badge status-${report.status?.toLowerCase()}`}>
+                          {report.status}
+                        </span>
+                      </div>
+                      {report.laboratoryName && (
+                        <p className="lab-name">Lab: {report.laboratoryName}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <FlaskRound size={48} />
+                  <p>No lab reports found for this prescription</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

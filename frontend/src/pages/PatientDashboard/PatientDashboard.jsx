@@ -26,7 +26,7 @@ import {
   getUpcomingAppointments,
   cancelAppointment
 } from '../../services/patientService';
-import { FileText, FlaskRound } from 'lucide-react';
+import { FileText, FlaskRound, X, Calendar } from 'lucide-react';
 import Card from '../../components/Card/Card';
 import './PatientDashboard.css';
 
@@ -63,8 +63,6 @@ function PatientDashboard({ searchQuery, initialTab }) {
   const [labReportsLoading, setLabReportsLoading] = useState(false);
   const [selectedLabReport, setSelectedLabReport] = useState(null);
   const [showLabReportModal, setShowLabReportModal] = useState(false);
-  const [showRelatedLabReportsModal, setShowRelatedLabReportsModal] = useState(false);
-  const [relatedLabReports, setRelatedLabReports] = useState([]);
   const [labReportSearchQuery, setLabReportSearchQuery] = useState('');
   const [selectedLabReportDoctor, setSelectedLabReportDoctor] = useState('all');
   const [selectedLabReportMonth, setSelectedLabReportMonth] = useState('all');
@@ -340,6 +338,7 @@ function PatientDashboard({ searchQuery, initialTab }) {
   };
 
   const handleClosePrescriptionModal = () => {
+    console.log('[PatientDashboard] Closing prescription modal');
     setShowPrescriptionModal(false);
     setSelectedPrescription(null);
   };
@@ -386,49 +385,6 @@ function PatientDashboard({ searchQuery, initialTab }) {
     setSelectedLabReportDoctor('all');
     setSelectedLabReportMonth('all');
     setSelectedLabReportYear('all');
-  };
-
-  const handleViewLabReportsFromPrescription = async (prescription) => {
-    const labReportIds = (prescription.labReportIds && prescription.labReportIds.length > 0)
-      ? prescription.labReportIds
-      : (Array.isArray(prescription.labReports)
-          ? prescription.labReports.map((id) => Number(id)).filter(Boolean)
-          : []);
-
-    try {
-      let reports = [];
-
-      if (labReportIds.length > 0) {
-        // Try to resolve from already loaded reports first
-        const available = allLabReports.filter(report => labReportIds.includes(report.id));
-        const missingCount = labReportIds.filter(id => !available.some(r => r.id === id)).length;
-
-        if (missingCount > 0) {
-          const fetched = await getLabReportsForPrescription(prescription.id);
-          reports = [...available, ...fetched.filter(r => !available.some(a => a.id === r.id))];
-        } else {
-          reports = available;
-        }
-      } else {
-        // Fallback: fetch from backend even if IDs were not present
-        reports = await getLabReportsForPrescription(prescription.id);
-      }
-
-      setRelatedLabReports(reports);
-      setShowRelatedLabReportsModal(true);
-    } catch (error) {
-      console.error('Failed to load lab reports for prescription:', error);
-    }
-  };
-
-  const handleCloseRelatedLabReportsModal = () => {
-    setShowRelatedLabReportsModal(false);
-    setRelatedLabReports([]);
-  };
-
-  const handleViewLabReportFromList = (report) => {
-    setSelectedLabReport(report);
-    setShowLabReportModal(true);
   };
 
   const handleBookAppointment = (doctor) => {
@@ -555,8 +511,6 @@ function PatientDashboard({ searchQuery, initialTab }) {
                     key={prescription.id}
                     prescription={prescription}
                     onViewDetails={handleViewPrescription}
-                    onViewLabReportsForPrescription={handleViewLabReportsFromPrescription}
-                    relatedLabReports={relatedLabReports}
                     onViewLabReport={handleViewLabReport}
                   />
                 ))}
@@ -656,6 +610,12 @@ function PatientDashboard({ searchQuery, initialTab }) {
           onDownload={handleDownloadPrescription}
         />
       )}
+      {showPrescriptionModal && !selectedPrescription && (
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '20px', zIndex: 9999 }}>
+          <p>Error: Prescription modal opened but no prescription selected</p>
+          <button onClick={handleClosePrescriptionModal}>Close</button>
+        </div>
+      )}
 
       {/* Lab Report Modal */}
       {showLabReportModal && selectedLabReport && (
@@ -664,44 +624,6 @@ function PatientDashboard({ searchQuery, initialTab }) {
           onClose={handleCloseLabReportModal}
           onDownload={handleDownloadLabReport}
         />
-      )}
-
-      {/* Related Lab Reports Modal */}
-      {showRelatedLabReportsModal && relatedLabReports.length > 0 && (
-        <div className="modal-overlay" onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            handleCloseRelatedLabReportsModal();
-          }
-        }}>
-          <div className="related-reports-modal">
-            <div className="related-reports-header">
-              <h2>Related Lab Reports ({relatedLabReports.length})</h2>
-              <button className="close-button" onClick={handleCloseRelatedLabReportsModal}>
-                <X size={24} />
-              </button>
-            </div>
-            <div className="related-reports-content">
-              {relatedLabReports.map(report => (
-                <div key={report.id} className="related-report-item" onClick={() => handleViewLabReportFromList(report)}>
-                  <div className="report-icon">
-                    <FlaskRound size={32} />
-                  </div>
-                  <div className="report-info">
-                    <h3>{report.testName}</h3>
-                    <p className="report-lab">{report.labName}</p>
-                    <div className="report-meta">
-                      <span><Calendar size={14} /> {new Date(report.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                      <span className={`status-badge status-${report.status}`}>{report.status}</span>
-                    </div>
-                  </div>
-                  <div className="view-arrow">
-                    <FileText size={20} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

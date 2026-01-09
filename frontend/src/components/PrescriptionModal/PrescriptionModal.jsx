@@ -98,7 +98,11 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
     }
   }, [touchDistance]);
 
-  return (
+  // Ensure medications is always an array
+  const medicationsArray = Array.isArray(prescription.medications) ? prescription.medications : [];
+
+  try {
+    return (
     <div className="prescription-modal-overlay" onClick={handleOverlayClick}>
       <div className="prescription-paper" onClick={(e) => e.stopPropagation()}>
         {/* Action Buttons */}
@@ -181,11 +185,11 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
               </tr>
             </thead>
             <tbody>
-              {prescription.medications && prescription.medications.length > 0 ? (
-                prescription.medications.map((med, index) => (
+              {medicationsArray && medicationsArray.length > 0 ? (
+                medicationsArray.map((med, index) => (
                   <tr key={index}>
                     <td>{index + 1}</td>
-                    <td><strong>{med.drug || med.name}</strong></td>
+                    <td><strong>{med.drug || med.name || '-'}</strong></td>
                     <td>{med.unit || '-'}</td>
                     <td>{med.dosage || med.timing || med.frequency || '-'}</td>
                     <td>{med.duration ? `${med.duration} days` : '-'}</td>
@@ -257,7 +261,19 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
         </div>
       </div>
     </div>
-  );
+    );
+  } catch (error) {
+    console.error('[PrescriptionModal] Rendering error:', error);
+    return (
+      <div className="prescription-modal-overlay" onClick={onClose}>
+        <div className="prescription-paper" style={{ textAlign: 'center', padding: '40px' }}>
+          <h2>Error Loading Prescription</h2>
+          <p>{error.message}</p>
+          <button className="action-btn close-btn" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    );
+  }
 }
 
 export default PrescriptionModal;
