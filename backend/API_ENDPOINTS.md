@@ -18,9 +18,10 @@ Authorization: Bearer <your-jwt-token>
 2. [Patient Profile APIs](#patient-profile-apis)
 3. [Patient - Find Doctor APIs](#patient---find-doctor-apis)
 4. [Patient - Appointments APIs](#patient---appointments-apis)
-5. [Doctor Profile APIs](#doctor-profile-apis)
-6. [Receptionist Profile APIs](#receptionist-profile-apis)
-7. [Health Check APIs](#health-check-apis)
+5. [Patient - Medical Records APIs](#patient---medical-records-apis)
+6. [Doctor Profile APIs](#doctor-profile-apis)
+7. [Receptionist Profile APIs](#receptionist-profile-apis)
+8. [Health Check APIs](#health-check-apis)
 
 ---
 
@@ -1296,6 +1297,369 @@ curl -X POST http://localhost:8080/api/auth/register \
     "password": "password123",
     "firstName": "John",
     "lastName": "Doe",
+---
+
+## Patient - Medical Records APIs
+
+### Base Path: `/api/patient/medical-records`
+
+**Authentication:** Required (JWT Bearer Token)
+
+### 1. Get All Prescriptions
+**Endpoint:** `GET /patient/medical-records/prescriptions`
+
+**Description:** Retrieve all prescriptions for the logged-in patient, sorted by date (newest first).
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Prescriptions retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "prescriptionId": "RX-ABC123",
+      "date": "2025-12-15",
+      "doctorId": "DOC-1",
+      "doctorName": "Dr. Sarah Patel",
+      "doctorSpecialization": "Cardiologist",
+      "patientId": "PAT-001",
+      "patientName": "John Doe",
+      "diagnosis": "Mild Hypertension",
+      "symptoms": "Elevated blood pressure",
+      "medications": [
+        {
+          "id": 1,
+          "drug": "Amlodipine",
+          "unit": "tablet",
+          "dosage": "5mg",
+          "duration": 30,
+          "instructions": "Take with water",
+          "timing": "Once daily"
+        }
+      ],
+      "instructions": "Take medications as prescribed",
+      "dietToFollow": "Low salt diet",
+      "allergies": "None",
+      "labReports": ["1", "2"],
+      "labReportIds": [1, 2],
+      "followUp": "2026-01-15",
+      "followUpDate": "2026-01-15",
+      "additionalNotes": "Monitor blood pressure",
+      "createdAt": "2025-12-15T10:30:00"
+    }
+  ]
+}
+```
+
+**Logs:**
+```
+[INFO] Fetching all prescriptions for patient: patient@example.com
+[INFO] Retrieved X prescriptions for patient: patient@example.com
+```
+
+---
+
+### 2. Get Prescription by ID
+**Endpoint:** `GET /patient/medical-records/prescriptions/{id}`
+
+**Description:** Retrieve a specific prescription with complete details.
+
+**Authentication:** Required
+
+**Parameters:**
+- `id` (path) - Prescription ID
+
+**Response (200 OK):** Same as single prescription object from endpoint #1
+
+**Error Cases:**
+- `404` - Prescription not found
+- `403` - Prescription doesn't belong to logged-in patient
+
+---
+
+### 3. Get Doctors from Prescriptions
+**Endpoint:** `GET /patient/medical-records/prescriptions/doctors`
+
+**Description:** Get list of unique doctors who have treated the patient.
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Doctors list retrieved successfully",
+  "data": ["Sarah", "Rajesh", "Amit"]
+}
+```
+
+---
+
+### 4. Get Years from Prescriptions
+**Endpoint:** `GET /patient/medical-records/prescriptions/years`
+
+**Description:** Get list of years with prescriptions (sorted descending).
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Years list retrieved successfully",
+  "data": [2025, 2024, 2023]
+}
+```
+
+---
+
+### 5. Filter Prescriptions
+**Endpoint:** `GET /patient/medical-records/prescriptions/filter`
+
+**Description:** Filter prescriptions by search query, doctor, month, and year.
+
+**Authentication:** Required
+
+**Query Parameters:**
+- `search` (optional) - Search doctor name, diagnosis, or prescription ID
+- `doctor` (optional) - Doctor name
+- `month` (optional) - Month (1-12)
+- `year` (optional) - Year (YYYY)
+
+**Example:**
+```
+GET /patient/medical-records/prescriptions/filter?search=blood&doctor=Sarah&month=12&year=2025
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Prescriptions filtered successfully",
+  "data": [
+    {
+      "id": 1,
+      "prescriptionId": "RX-ABC123",
+      "date": "2025-12-15",
+      "doctorName": "Dr. Sarah Patel",
+      "diagnosis": "Mild Hypertension",
+      "medications": [...],
+      "labReportIds": [1, 2],
+      ...
+    }
+  ]
+}
+```
+
+---
+
+### 6. Get All Lab Reports
+**Endpoint:** `GET /patient/medical-records/lab-reports`
+
+**Description:** Retrieve all lab reports for the logged-in patient.
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Lab reports retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "reportId": "LAB-1",
+      "date": "2025-12-15",
+      "testName": "Complete Blood Count",
+      "status": "completed",
+      "details": "All values within normal range",
+      "results": "WBC: 7.5, RBC: 4.5, Hb: 13.5",
+      "laboratoryName": "Central Laboratory",
+      "doctorNotes": "Results look good",
+      "patientId": "PAT-001",
+      "patientName": "John Doe",
+      "doctorId": "DOC-1",
+      "doctorName": "Dr. Sarah Patel",
+      "reportFilePath": null
+    }
+  ]
+}
+```
+
+**Logs:**
+```
+[INFO] Fetching lab reports for patient with email: patient@example.com
+[INFO] Found X lab reports for patient ID: Y
+```
+
+---
+
+### 7. Get Lab Report by ID
+**Endpoint:** `GET /patient/medical-records/lab-reports/{id}`
+
+**Description:** Retrieve a specific lab report with complete details.
+
+**Authentication:** Required
+
+**Parameters:**
+- `id` (path) - Lab Report ID
+
+**Response (200 OK):** Same as single lab report object from endpoint #6
+
+**Error Cases:**
+- `404` - Lab report not found
+- `403` - Lab report doesn't belong to logged-in patient
+
+---
+
+### 8. Get Doctors from Lab Reports
+**Endpoint:** `GET /patient/medical-records/lab-reports/doctors`
+
+**Description:** Get list of unique doctors associated with patient's lab reports.
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Lab report doctors list retrieved successfully",
+  "data": ["Sarah", "Rajesh", "Priya"]
+}
+```
+
+---
+
+### 9. Get Years from Lab Reports
+**Endpoint:** `GET /patient/medical-records/lab-reports/years`
+
+**Description:** Get list of years with lab reports (sorted descending).
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Lab report years retrieved successfully",
+  "data": [2025, 2024]
+}
+```
+
+---
+
+### 10. Filter Lab Reports
+**Endpoint:** `GET /patient/medical-records/lab-reports/filter`
+
+**Description:** Filter lab reports by search, doctor, month, year, and status.
+
+**Authentication:** Required
+
+**Query Parameters:**
+- `search` (optional) - Search doctor name, test name, or report ID
+- `doctor` (optional) - Doctor name
+- `month` (optional) - Month (1-12)
+- `year` (optional) - Year (YYYY)
+- `status` (optional) - Status (pending, completed, reviewed)
+
+**Example:**
+```
+GET /patient/medical-records/lab-reports/filter?search=blood&status=completed
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Lab reports filtered successfully",
+  "data": [
+    {
+      "id": 1,
+      "reportId": "LAB-1",
+      "date": "2025-12-15",
+      "testName": "Complete Blood Count",
+      "status": "completed",
+      "doctorName": "Dr. Sarah Patel",
+      ...
+    }
+  ]
+}
+```
+
+---
+
+### 11. Get Lab Reports for Prescription ⭐ **NEW**
+**Endpoint:** `GET /patient/medical-records/prescriptions/{id}/lab-reports`
+
+**Description:** Fetch all lab reports linked to a specific prescription. This endpoint is used when patient clicks "Lab Reports" button on a prescription card.
+
+**Authentication:** Required
+
+**Parameters:**
+- `id` (path) - Prescription ID
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Lab reports retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "reportId": "LAB-1",
+      "date": "2025-12-15",
+      "testName": "Complete Blood Count",
+      "status": "completed",
+      "results": "WBC: 7.5, RBC: 4.5",
+      "doctorName": "Dr. Sarah Patel",
+      "laboratoryName": "Central Laboratory",
+      ...
+    },
+    {
+      "id": 2,
+      "reportId": "LAB-2",
+      "date": "2025-12-12",
+      "testName": "Lipid Profile",
+      "status": "completed",
+      "results": "Total Cholesterol: 180, LDL: 100",
+      ...
+    }
+  ]
+}
+```
+
+**Error Cases:**
+- `404` - Prescription not found
+- `403` - Prescription doesn't belong to logged-in patient
+
+**Logs:**
+```
+[INFO] Fetching lab reports for prescription ID: X and patient: patient@example.com
+[INFO] Found Y lab reports for prescription ID: X
+[DEBUG] Skipping non-numeric lab report reference on prescription X: invalid-id
+```
+
+**Use Cases:**
+- Called when patient clicks "Lab Reports" dropdown button on prescription card
+- Fetches only reports linked to that specific prescription
+- Supports smart caching on frontend (fetches only if reports not already loaded)
+
+---
+
+## Summary
+
+- **Total Patient Medical Records Endpoints:** 11
+- **Prescriptions Endpoints:** 5
+- **Lab Reports Endpoints:** 6 (including new linked reports endpoint)
+- **All endpoints require JWT authentication**
+- **All responses follow consistent ApiResponse format**
+- **Comprehensive logging for debugging and auditing**
+
+---
+
     "phoneNumber": "+1234567890",
     "role": "PATIENT"
   }'

@@ -14,6 +14,7 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -373,10 +374,22 @@ public class DoctorPrescriptionService {
         User patientUser = prescription.getPatient().getUser();
         
         List<String> labReportsList = new ArrayList<>();
+        List<Long> labReportIds = new ArrayList<>();
         if (prescription.getLabReports() != null && !prescription.getLabReports().isEmpty()) {
             labReportsList = Arrays.stream(prescription.getLabReports().split(","))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+            labReportIds = labReportsList.stream()
+                    .map(idStr -> {
+                        try {
+                            return Long.parseLong(idStr);
+                        } catch (NumberFormatException ex) {
+                            log.debug("Skipping non-numeric lab report reference: {}", idStr);
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         }
         
@@ -405,6 +418,7 @@ public class DoctorPrescriptionService {
                 .dietToFollow(prescription.getDietToFollow())
                 .allergies(prescription.getAllergies())
                 .labReports(labReportsList)
+                .labReportIds(labReportIds)
                 .followUp(prescription.getFollowUp())
                 .followUpDate(prescription.getFollowUpDate() != null ? prescription.getFollowUpDate().toString() : null)
                 .additionalNotes(prescription.getAdditionalNotes())

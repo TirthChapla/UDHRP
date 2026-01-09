@@ -261,6 +261,26 @@ When a patient visits the doctor:
 
 ---
 
+## 📚 Documentation & Feature Guides
+
+### Complete API & Implementation Docs
+1. **[Patient Lab Reports API](./PATIENT_LAB_REPORTS_API.md)** - Complete patient lab report REST API with 11 endpoints
+2. **[Prescription Lab Reports Feature](./PRESCRIPTION_LAB_REPORTS_FEATURE.md)** - End-to-end implementation for lab reports linked to prescriptions
+3. **[Backend API Endpoints](./backend/API_ENDPOINTS.md)** - All backend REST endpoints including medical records APIs
+4. **[Backend Security](./backend/SECURITY.md)** - JWT authentication and authorization details
+
+### Reference Guides
+- **[Lab Report ID Quick Reference](./LAB_REPORT_ID_QUICK_REFERENCE.md)** - Lab report ID implementation reference
+- **[Lab Report ID Prescription Integration](./LAB_REPORT_ID_PRESCRIPTION_INTEGRATION.md)** - Prescription-lab report mapping details
+- **[Medical Records Implementation Summary](./MEDICAL_RECORDS_IMPLEMENTATION_SUMMARY.md)** - Patient prescriptions overview
+
+### Setup & Feature Guides
+- **[Backend Setup Guide](./BACKEND_SETUP_GUIDE.md)** - Environment setup and configuration
+- **[OTP & Forgot Password Flow](./OTP_FORGOT_PASSWORD_FLOW.md)** - Authentication flow
+- **[Receptionist Endpoints](./RECEPTIONIST_ENDPOINTS_IMPLEMENTATION.md)** - Receptionist APIs
+
+---
+
 ## Non-Functional Requirements
 - High availability and scalability
 - Mobile and web applications

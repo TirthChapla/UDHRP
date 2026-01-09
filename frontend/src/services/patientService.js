@@ -949,6 +949,24 @@ export const getLabReports = async () => {
 };
 
 /**
+ * Get lab reports for a specific prescription
+ * @param {number} prescriptionId
+ * @returns {Promise<Array>}
+ */
+export const getLabReportsForPrescription = async (prescriptionId) => {
+  if (!prescriptionId) return [];
+  try {
+    console.log('[patientService] Fetching lab reports for prescription:', prescriptionId);
+    const response = await apiRequest(`/patient/medical-records/prescriptions/${prescriptionId}/lab-reports`, 'GET');
+    const labReports = response.data || [];
+    return labReports.map(normalizeLabReport).filter(Boolean);
+  } catch (error) {
+    console.error('Error fetching lab reports for prescription:', error);
+    throw error;
+  }
+};
+
+/**
  * Filter lab reports based on criteria
  * @param {Object} filters 
  * @returns {Promise<Array>}

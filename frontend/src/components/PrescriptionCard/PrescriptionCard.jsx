@@ -1,21 +1,17 @@
-import React from 'react';
-import { Calendar, Clock, Pill, ClipboardList, FileText, Stethoscope, Award, FlaskRound } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, Clock, Pill, ClipboardList, FileText, Stethoscope, Award, FlaskRound, ChevronDown } from 'lucide-react';
 import Card from '../Card/Card';
 import Button from '../Button/Button';
 
-function PrescriptionCard({ prescription, onViewDetails, onViewLabReport, labReports = [] }) {
-  // Get related lab reports for this prescription
-  const relatedReports = prescription.relatedLabReportIds 
-    ? labReports.filter(report => prescription.relatedLabReportIds.includes(report.id))
-    : [];
+function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPrescription }) {
+  const [showReportsDropdown, setShowReportsDropdown] = useState(false);
 
-  console.log('Prescription:', prescription.id, 'Related Report IDs:', prescription.relatedLabReportIds);
-  console.log('Lab Reports Available:', labReports.length);
-  console.log('Related Reports Found:', relatedReports.length, relatedReports);
+  const hasLabReports = (prescription.labReportIds && prescription.labReportIds.length > 0) ||
+                        (Array.isArray(prescription.labReports) && prescription.labReports.length > 0);
 
   const handleCardClick = (e) => {
     // Don't trigger if clicking on lab report buttons
-    if (e.target.closest('.lab-report-button')) {
+    if (e.target.closest('.reports-dropdown-button') || e.target.closest('.reports-dropdown-menu')) {
       return;
     }
     onViewDetails(prescription);
@@ -86,28 +82,46 @@ function PrescriptionCard({ prescription, onViewDetails, onViewLabReport, labRep
           View Full Prescription
         </Button>
         
-        {/* Lab Reports Section */}
-        {relatedReports.length && (
-          <div className="lab-reports-section">
-            <div className="lab-reports-header">
-              <FlaskRound size={14} />
-              <span>Related Lab Reports:</span>
-            </div>
-            <div className="lab-reports-buttons">
-              {relatedReports.map(report => (
-                <button
-                  key={report.id}
-                  className="lab-report-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onViewLabReport(report);
-                  }}
-                >
+        {/* Lab Reports Dropdown Button */}
+        {hasLabReports && (
+          <div className="reports-dropdown-container">
+            <button
+              className="reports-dropdown-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!showReportsDropdown) {
+                  onViewLabReportsForPrescription(prescription);
+                }
+                setShowReportsDropdown(!showReportsDropdown);
+              }}
+              title="View lab reports linked to this prescription"
+            >
+              <FlaskRound size={16} />
+              <span>Lab Reports</span>
+              <ChevronDown 
+                size={16} 
+                style={{ 
+                  transform: showReportsDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s ease'
+                }}
+              />
+            </button>
+            
+            {showReportsDropdown && (
+              <div className="reports-dropdown-menu">
+                <div className="reports-menu-label">
                   <FlaskRound size={14} />
-                  {report.testName}
-                </button>
-              ))}
-            </div>
+                  Related Reports
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {!hasLabReports && (
+          <div className="no-reports-badge">
+            <FlaskRound size={14} />
+            <span>No lab reports linked</span>
           </div>
         )}
       </div>

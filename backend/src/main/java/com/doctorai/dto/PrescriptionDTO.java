@@ -28,6 +28,7 @@ public class PrescriptionDTO {
     private String dietToFollow;
     private String allergies;
     private List<String> labReports;
+    private List<Long> labReportIds;
     private String followUp;
     private String followUpDate;
     private String additionalNotes;

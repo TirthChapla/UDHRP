@@ -17,6 +17,7 @@ import {
   filterPrescriptions,
   downloadPrescriptionPDF,
   getLabReports,
+  getLabReportsForPrescription,
   getDoctorsFromLabReports,
   getYearsFromLabReports,
   filterLabReports,
@@ -385,11 +386,37 @@ function PatientDashboard({ searchQuery, initialTab }) {
     setSelectedLabReportYear('all');
   };
 
-  const handleViewLabReportsFromPrescription = (labReportIds) => {
-    // Get the related lab reports
-    const reports = allLabReports.filter(report => labReportIds.includes(report.id));
-    setRelatedLabReports(reports);
-    setShowRelatedLabReportsModal(true);
+  const handleViewLabReportsFromPrescription = async (prescription) => {
+    const labReportIds = (prescription.labReportIds && prescription.labReportIds.length > 0)
+      ? prescription.labReportIds
+      : (Array.isArray(prescription.labReports)
+          ? prescription.labReports.map((id) => Number(id)).filter(Boolean)
+          : []);
+
+    try {
+      let reports = [];
+
+      if (labReportIds.length > 0) {
+        // Try to resolve from already loaded reports first
+        const available = allLabReports.filter(report => labReportIds.includes(report.id));
+        const missingCount = labReportIds.filter(id => !available.some(r => r.id === id)).length;
+
+        if (missingCount > 0) {
+          const fetched = await getLabReportsForPrescription(prescription.id);
+          reports = [...available, ...fetched.filter(r => !available.some(a => a.id === r.id))];
+        } else {
+          reports = available;
+        }
+      } else {
+        // Fallback: fetch from backend even if IDs were not present
+        reports = await getLabReportsForPrescription(prescription.id);
+      }
+
+      setRelatedLabReports(reports);
+      setShowRelatedLabReportsModal(true);
+    } catch (error) {
+      console.error('Failed to load lab reports for prescription:', error);
+    }
   };
 
   const handleCloseRelatedLabReportsModal = () => {
@@ -526,8 +553,7 @@ function PatientDashboard({ searchQuery, initialTab }) {
                     key={prescription.id}
                     prescription={prescription}
                     onViewDetails={handleViewPrescription}
-                    onViewLabReport={handleViewLabReport}
-                    labReports={allLabReports}
+                    onViewLabReportsForPrescription={handleViewLabReportsFromPrescription}
                   />
                 ))}
               </div>
