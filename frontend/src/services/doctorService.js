@@ -106,6 +106,57 @@ export const getPatientLabReports = async (patientId) => {
 };
 
 /**
+ * Create a new lab report
+ * @param {Object} labReportData 
+ * @returns {Promise<Object>}
+ */
+export const createLabReport = async (labReportData) => {
+  try {
+    console.log('[doctorService] Creating lab report:', labReportData);
+    const response = await apiRequest('/doctor/prescriptions/lab-reports', {
+      method: 'POST',
+      body: JSON.stringify(labReportData),
+    });
+    console.log('[doctorService] Lab report created successfully:', response.data);
+    return response;
+  } catch (error) {
+    console.error('[doctorService] Error creating lab report:', error);
+    
+    // Extract detailed error message from response
+    const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+    const detailedError = new Error(errorMessage);
+    detailedError.originalError = error;
+    detailedError.response = error.response;
+    
+    console.error('[doctorService] Detailed error:', {
+      message: errorMessage,
+      status: error.response?.status,
+      data: error.response?.data,
+      error: error
+    });
+    
+    throw detailedError;
+  }
+};
+
+/**
+ * Get lab report by ID
+ * @param {number} reportId 
+ * @returns {Promise<Object>}
+ */
+export const getLabReportById = async (reportId) => {
+  try {
+    const response = await apiRequest(`/doctor/prescriptions/lab-reports/${reportId}`, {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching lab report:', error);
+    throw error;
+  }
+};
+
+/**
  * Create a new prescription
  * @param {Object} prescriptionData 
  * @returns {Promise<Object>}

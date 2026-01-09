@@ -412,6 +412,58 @@ public class DoctorPrescriptionService {
                 .build();
     }
 
+    /**
+     * Create a new lab report
+     */
+    @Transactional
+    public LabReportDTO createLabReport(String doctorEmail, CreateLabReportRequest request) {
+        log.info("Creating lab report for patient: {} - test type: {}", request.getPatientId(), request.getTestName());
+        
+        // Find doctor
+        User doctorUser = userRepository.findByEmail(doctorEmail)
+                .orElseThrow(() -> new RuntimeException("Doctor user not found"));
+        
+        Doctor doctor = doctorRepository.findByUserId(doctorUser.getId())
+                .orElseThrow(() -> new RuntimeException("Doctor profile not found"));
+        
+        // Find patient
+        Patient patient = patientRepository.findByPatientId(request.getPatientId())
+                .orElseThrow(() -> new RuntimeException("Patient not found with ID: " + request.getPatientId()));
+        
+        // Create lab report
+        LabReport labReport = new LabReport();
+        labReport.setPatient(patient);
+        labReport.setDoctor(doctor);
+        labReport.setTestName(request.getTestName());
+        labReport.setLaboratoryName(request.getLaboratoryName() != null ? request.getLaboratoryName() : "Central Laboratory");
+        labReport.setResults(request.getResults());
+        labReport.setDoctorNotes(request.getDoctorNotes());
+        labReport.setReportFilePath(request.getReportFilePath());
+        
+        if (request.getTestDate() != null && !request.getTestDate().isEmpty()) {
+            labReport.setTestDate(LocalDate.parse(request.getTestDate()));
+        } else {
+            labReport.setTestDate(LocalDate.now());
+        }
+        
+        labReport.setStatus(LabReport.ReportStatus.COMPLETED);
+        
+        // Save lab report
+        LabReport savedLabReport = labReportRepository.save(labReport);
+        log.info("Lab report created successfully with ID: {} - test name: {}", savedLabReport.getId(), savedLabReport.getTestName());
+        
+        return mapToLabReportDTO(savedLabReport);
+    }
+
+    /**
+     * Get lab report by ID
+     */
+    public LabReportDTO getLabReportById(Long reportId) {
+        LabReport labReport = labReportRepository.findById(reportId)
+                .orElseThrow(() -> new RuntimeException("Lab report not found with ID: " + reportId));
+        return mapToLabReportDTO(labReport);
+    }
+
     private LabReportDTO mapToLabReportDTO(LabReport labReport) {
         String doctorName = null;
         String doctorId = null;

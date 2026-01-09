@@ -129,4 +129,25 @@ public class DoctorPrescriptionController {
         prescriptionService.deletePrescription(id, authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Prescription deleted successfully", null));
     }
+
+    // ==================== LAB REPORT MANAGEMENT ====================
+
+    @PostMapping("/lab-reports")
+    @Operation(summary = "Create lab report", description = "Create a new lab report for a patient")
+    public ResponseEntity<ApiResponse<LabReportDTO>> createLabReport(
+            @Valid @RequestBody CreateLabReportRequest request,
+            Authentication authentication) {
+        log.info("Creating lab report for patient: {} by doctor: {} - test type: {}", 
+                request.getPatientId(), authentication.getName(), request.getTestName());
+        LabReportDTO labReport = prescriptionService.createLabReport(authentication.getName(), request);
+        return ResponseEntity.ok(ApiResponse.success("Lab report created successfully", labReport));
+    }
+
+    @GetMapping("/lab-reports/{reportId}")
+    @Operation(summary = "Get lab report by ID", description = "Get lab report details by report ID")
+    public ResponseEntity<ApiResponse<LabReportDTO>> getLabReportById(@PathVariable Long reportId) {
+        log.info("Getting lab report with ID: {}", reportId);
+        LabReportDTO labReport = prescriptionService.getLabReportById(reportId);
+        return ResponseEntity.ok(ApiResponse.success("Lab report retrieved", labReport));
+    }
 }

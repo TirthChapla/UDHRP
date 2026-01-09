@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, FileText, Printer, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, FileText, Download, ZoomIn, ZoomOut } from 'lucide-react';
 import './PrescriptionModal.css';
 
 function PrescriptionModal({ prescription, onClose, onDownload }) {
@@ -42,11 +42,8 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
   };
 
   const handleDownload = () => {
+    console.log('[PrescriptionModal] Download button clicked');
     onDownload(prescription);
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   const handleZoomIn = () => {
@@ -117,12 +114,8 @@ function PrescriptionModal({ prescription, onClose, onDownload }) {
               <ZoomIn size={18} />
             </button>
           </div>
-          <button className="action-btn print-btn" onClick={handlePrint}>
-            <Printer size={18} />
-            Print
-          </button>
           <button className="action-btn download-btn" onClick={handleDownload}>
-            <FileText size={18} />
+            <Download size={18} />
             Download PDF
           </button>
           <button className="action-btn close-btn" onClick={onClose}>

@@ -3,7 +3,7 @@ import { Search, User, FileText, Plus, Trash2, Calendar, Pill, Activity, AlertCi
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import Card from '../../components/Card/Card';
-import { getPatientById, getPatientPrescriptions, getPatientLabReports, createPrescription } from '../../services/doctorService';
+import { getPatientById, getPatientPrescriptions, getPatientLabReports, createPrescription, createLabReport } from '../../services/doctorService';
 import './DoctorPrescription.css';
 
 function DoctorPrescription() {
@@ -124,6 +124,39 @@ function DoctorPrescription() {
     setSubmitLoading(true);
 
     try {
+      // First, create any new lab reports and collect their IDs
+      const labReportIds = [];
+      const validLabReports = labReports.filter(r => r.name.trim() !== '');
+      
+      console.log('[DoctorPrescription] Creating lab reports:', validLabReports);
+      
+      for (const labReport of validLabReports) {
+        try {
+          const labReportPayload = {
+            patientId: selectedPatient.patientId,
+            testName: labReport.name,
+            testDate: new Date().toISOString().split('T')[0],
+            laboratoryName: 'Central Laboratory',
+            results: '',
+            doctorNotes: `Lab report created from prescription`
+          };
+          
+          console.log('[DoctorPrescription] Creating lab report:', labReportPayload);
+          const createdLabReport = await createLabReport(labReportPayload);
+          
+          if (createdLabReport && createdLabReport.data) {
+            labReportIds.push(createdLabReport.data.id);
+            console.log('[DoctorPrescription] Lab report created with ID:', createdLabReport.data.id);
+          }
+        } catch (labError) {
+          console.error('[DoctorPrescription] Error creating lab report:', labError);
+          const errorMessage = labError.message || labError.response?.data?.message || 'Failed to create lab report';
+          alert(`${errorMessage}\n\nTest Type: ${labReport.name}`);
+          setSubmitLoading(false);
+          return;
+        }
+      }
+
       const prescriptionPayload = {
         patientId: selectedPatient.patientId,
         diagnosis: prescriptionData.diagnosis,
@@ -136,18 +169,19 @@ function DoctorPrescription() {
         instructions: prescriptionData.instructions,
         dietToFollow: prescriptionData.dietToFollow,
         allergies: prescriptionData.allergies,
-        labReports: labReports.filter(r => r.name.trim() !== '').map(r => r.name.trim()),
+        labReports: labReportIds.map(id => id.toString()),
         followUp: prescriptionData.followUp,
         followUpDate: prescriptionData.followUpDate
       };
 
-      console.log('[DoctorPrescription] Submitting prescription:', {
+      console.log('[DoctorPrescription] Submitting prescription with linked lab reports:', {
         patientId: prescriptionPayload.patientId,
         diagnosis: prescriptionPayload.diagnosis,
         symptoms: prescriptionPayload.symptoms,
         dietToFollow: prescriptionPayload.dietToFollow,
         instructions: prescriptionPayload.instructions,
-        labReports: prescriptionPayload.labReports,
+        labReportIds: prescriptionPayload.labReports,
+        labReportCount: prescriptionPayload.labReports.length,
         followUpDate: prescriptionPayload.followUpDate,
         medicationsCount: prescriptionPayload.medications.length
       });
@@ -526,16 +560,46 @@ function DoctorPrescription() {
           <div className="lab-reports-list">
             {labReports.map((report, idx) => (
               <div key={report.id} className="lab-report-row">
-                <input
-                  type="text"
+                <select
                   value={report.name}
-                  onChange={(e) => setLabReports(labReports.map(r => r.id === report.id ? { ...r, name: e.target.value } : r))}
-                  placeholder={`Report ${idx + 1}`}
-                />
+                  onChange={(e) => {
+                    const selectedType = e.target.value;
+                    setLabReports(labReports.map(r => r.id === report.id ? { ...r, name: selectedType } : r));
+                    console.log(`[Lab Report] Selected test type: ${selectedType}`);
+                  }}
+                  className="lab-report-select"
+                >
+                  <option value="">-- Select Lab Test Type --</option>
+                  <option value="kidney-function-tests">Kidney Function Tests</option>
+                  <option value="lipid-profile-test">Lipid Profile Test</option>
+                  <option value="complete-blood-count">Complete Blood Count</option>
+                  <option value="liver-function-tests">Liver Function Tests</option>
+                  <option value="dengue-test">Dengue Test</option>
+                  <option value="stool-routine">Stool Routine</option>
+                  <option value="bleeding-time-clotting-time">Bleeding Time & Clotting Time</option>
+                  <option value="pus-culture">Pus Culture</option>
+                  <option value="bilirubin">Bilirubin (Total, Direct)</option>
+                  <option value="serum-creatinine">Serum Creatinine</option>
+                  <option value="erythrocyte-sedimentation-rate">ESR (Westergren)</option>
+                  <option value="urine-routine">Urine Routine</option>
+                  <option value="semen-analysis">Semen Analysis</option>
+                  <option value="semen-culture">Semen Culture</option>
+                  <option value="serum-proteins">Serum Proteins</option>
+                  <option value="c-reactive-protein">C-Reactive Protein (CRP) Quantitative</option>
+                  <option value="malaria-antigen">Malaria Antigen</option>
+                  <option value="malaria-parasite">Malaria Parasite (MP Card)</option>
+                  <option value="pt-inr">PT/INR (Prothrombin Time)</option>
+                  <option value="prostate-specific-antigen">Prostate Specific Antigen (PSA)</option>
+                  <option value="pap-smear">Pap Smear</option>
+                  <option value="peripheral-blood-smear">Peripheral Blood Smear</option>
+                </select>
                 <div className="lab-report-actions">
                   <button
                     className="delete-btn"
-                    onClick={() => handleRemoveLabReport(report.id)}
+                    onClick={() => {
+                      handleRemoveLabReport(report.id);
+                      console.log(`[Lab Report] Removed report: ${report.id}`);
+                    }}
                     disabled={labReports.length === 1}
                     aria-label="Delete lab report"
                   >

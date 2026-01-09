@@ -120,145 +120,120 @@ function LabReportModal({ report, onClose, onDownload }) {
 
         {/* Lab Report Document */}
         <div className="prescription-scroll-container">
-          <div 
+          <div
             ref={documentRef}
-            className="prescription-document"
+            className="lab-report-document"
             style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
           >
             {/* Header */}
-            <div className="prescription-header">
-              <div className="header-left">
-                <h1 className="doctor-title">Laboratory's</h1>
-                <p className="medical-subtitle">Medical Test Report</p>
+            <div className="lab-header">
+              <div className="lab-header-left">
+                <div className="lab-brand">{report.labName || 'Flabs Diagnostics'}</div>
+                <div className="lab-tagline">Comprehensive Pathology & Diagnostics</div>
+                <div className="lab-meta">
+                  {report.labAddress || '123 Medical Street, City, State, ZIP'}<br />
+                  Phone: {report.labPhone || '+91 1234567890'} | Reg. No.: {report.regNo || 'LAB-5110050156'}
+                </div>
               </div>
-              <div className="header-right">
-                <div className="rx-symbol">
-                  <FlaskRound size={60} />
+              <div className="lab-header-right">
+                <div className="lab-report-title">Patient Report</div>
+                <div className="lab-report-date">
+                  {new Date(report.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </div>
+                <div className="lab-badge">
+                  <FlaskRound size={40} />
                 </div>
               </div>
             </div>
 
-            {/* Lab/Doctor Information */}
-            <div className="doctor-info-box">
-              <div className="info-inline-row">
-                <span className="info-label-inline">Laboratory Name:</span>
-                <span className="info-value-inline">{report.labName || 'Medical Laboratory'}</span>
+            {/* Info Grid */}
+            <div className="lab-info-grid">
+              <div className="lab-card">
+                <div className="lab-card-title">Patient Details</div>
+                <div className="lab-info-row"><span>Patient Name</span><span>{report.patientName || 'John Doe'}</span></div>
+                <div className="lab-info-row"><span>Patient ID</span><span>{report.patientId || 'N/A'}</span></div>
+                <div className="lab-info-row"><span>Age / Gender</span><span>{report.age || 'N/A'} / {report.gender || 'Male'}</span></div>
+                <div className="lab-info-row"><span>Ref. By</span><span>{report.referredBy || 'SELF'}</span></div>
               </div>
-              <div className="info-inline-row">
-                <span className="info-label-inline">Reg. No:</span>
-                <span className="info-value-inline">{report.regNo || 'LAB-5110050156'}</span>
+
+              <div className="lab-card">
+                <div className="lab-card-title">Test Details</div>
+                <div className="lab-info-row"><span>Test Name</span><span>{report.testName || 'Laboratory Test'}</span></div>
+                <div className="lab-info-row"><span>Sample Type</span><span>{report.sampleType || 'Blood Sample'}</span></div>
+                <div className="lab-info-row"><span>Sample Collected</span><span>{report.sampleCollectedAt || report.date ? new Date(report.date).toLocaleDateString('en-GB') : 'N/A'}</span></div>
+                <div className="lab-info-row"><span>Reported On</span><span>{report.reportedAt ? new Date(report.reportedAt).toLocaleDateString('en-GB') : new Date(report.date).toLocaleDateString('en-GB')}</span></div>
               </div>
-              <div className="info-inline-row">
-                <span className="info-label-inline">Doctor Name:</span>
-                <span className="info-value-inline">Dr. {report.doctorName}</span>
-              </div>
-              <div className="info-inline-row">
-                <span className="info-label-inline">Specialization:</span>
-                <span className="info-value-inline">{report.doctorSpecialization}</span>
-              </div>
-              <div className="info-inline-row">
-                <span className="info-label-inline">Date:</span>
-                <span className="info-value-inline">
-                  {new Date(report.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                </span>
+
+              <div className="lab-card">
+                <div className="lab-card-title">Laboratory</div>
+                <div className="lab-info-row"><span>Lab Name</span><span>{report.labName || 'Flabs Diagnostics'}</span></div>
+                <div className="lab-info-row"><span>Reg. No</span><span>{report.regNo || 'LAB-5110050156'}</span></div>
+                <div className="lab-info-row"><span>Doctor</span><span>Dr. {report.doctorName || 'Pathologist'}</span></div>
+                <div className="lab-info-row"><span>Specialization</span><span>{report.doctorSpecialization || 'MD Pathology'}</span></div>
               </div>
             </div>
 
-            <div className="section-divider"></div>
-
-            {/* Patient Information */}
-            <div className="patient-info-section">
-              <h2 className="section-title">PATIENT INFORMATION</h2>
-              
-              <table className="info-table">
-                <tbody>
-                  <tr>
-                    <td className="label-cell">Patient Name / Patient Id No / M.R No:</td>
-                    <td className="value-cell">{report.patientName || 'John Doe'}</td>
-                    <td className="label-cell">Date:</td>
-                    <td className="value-cell">
-                      {new Date(report.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">Date of Birth:</td>
-                    <td className="value-cell">01/01/1990</td>
-                    <td className="label-cell">Age:</td>
-                    <td className="value-cell">{report.age || 'N/A'}</td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">Gender:</td>
-                    <td className="value-cell">{report.gender || 'Male'}</td>
-                    <td className="label-cell">Ref. By:</td>
-                    <td className="value-cell">{report.referredBy || 'SELF'}</td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">Sample Type:</td>
-                    <td className="value-cell" colSpan="3">{report.sampleType || 'Blood Sample'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="section-divider"></div>
-
-            {/* Test Results */}
-            <div className="patient-info-section">
-              <h2 className="section-title">{report.testName}</h2>
-              
-              <table className="info-table">
+            {/* Results Table */}
+            <div className="lab-section">
+              <div className="lab-section-title">Results</div>
+              <table className="lab-results-table">
                 <thead>
                   <tr>
-                    <td className="label-cell">Test Name</td>
-                    <td className="label-cell">Results</td>
-                    <td className="label-cell">Units</td>
-                    <td className="label-cell">Bio. Ref. Interval</td>
+                    <th>Test Name</th>
+                    <th>Result</th>
+                    <th>Units</th>
+                    <th>Reference Range</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {report.results && report.results.map((result, index) => (
-                    <tr key={index}>
-                      <td className="value-cell">
-                        {result.parameter}
-                        {getStatusMarker(result.status) && (
-                          <span style={{ 
-                            marginLeft: '8px', 
-                            fontWeight: 'bold', 
-                            color: result.status === 'high' ? '#dc2626' : result.status === 'low' ? '#ea580c' : '#000'
-                          }}>
-                            {getStatusMarker(result.status)}
-                          </span>
-                        )}
-                      </td>
-                      <td className="value-cell" style={{ fontWeight: '600' }}>{result.value}</td>
-                      <td className="value-cell">{result.unit}</td>
-                      <td className="value-cell">{result.range}</td>
+                  {report.results && report.results.length > 0 ? (
+                    report.results.map((result, index) => (
+                      <tr key={index}>
+                        <td>
+                          {result.parameter}
+                          {getStatusMarker(result.status) && (
+                            <span className={`lab-status lab-status-${result.status}`}>
+                              {getStatusMarker(result.status)}
+                            </span>
+                          )}
+                        </td>
+                        <td className="lab-strong">{result.value}</td>
+                        <td>{result.unit}</td>
+                        <td>{result.range}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" style={{ textAlign: 'center', padding: '12px' }}>No results available</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
 
-            {/* Doctor's Notes */}
+            {/* Interpretation */}
             {report.notes && (
-              <>
-                <div className="section-divider"></div>
-                <div className="prescription-rx-section">
-                  <div className="prescription-title">Clinical Notes:</div>
-                  <div className="prescription-text">{report.notes}</div>
-                </div>
-              </>
+              <div className="lab-section">
+                <div className="lab-section-title">Interpretation / Clinical Notes</div>
+                <div className="lab-note-box">{report.notes}</div>
+              </div>
             )}
 
-            <div className="section-divider"></div>
-
-            {/* Signatures */}
-            <div className="signature-section">
-              <div className="signature-box">
-                <div className="signature-line">Lab Technician Signature</div>
+            {/* Footer */}
+            <div className="lab-footer">
+              <div className="lab-footer-left">
+                <div className="lab-footer-title">Remarks & Disclaimers</div>
+                <ul>
+                  <li>This is a computer generated report.</li>
+                  <li>Results are for clinician use; correlate clinically.</li>
+                  <li>In case of emergency, contact the laboratory immediately.</li>
+                </ul>
               </div>
-              <div className="signature-box">
-                <div className="signature-line">Doctor's Signature</div>
+              <div className="lab-signature-block">
+                <div className="lab-sign-line"></div>
+                <div className="lab-sign-name">Dr. {report.doctorName || 'Pathologist'}</div>
+                <div className="lab-sign-role">{report.doctorSpecialization || 'MD Pathology'}</div>
+                <div className="lab-sign-role">Reg. No: {report.regNo || 'LAB-5110050156'}</div>
               </div>
             </div>
           </div>

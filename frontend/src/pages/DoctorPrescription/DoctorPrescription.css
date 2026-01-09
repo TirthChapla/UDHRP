@@ -709,6 +709,41 @@
   border-color: #10b981;
 }
 
+.lab-report-row select,
+.lab-report-select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  color: #374151;
+}
+
+.lab-report-row select:hover,
+.lab-report-select:hover {
+  border-color: #9ca3af;
+}
+
+.lab-report-row select:focus,
+.lab-report-select:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.lab-report-row select option,
+.lab-report-select option {
+  padding: 8px 12px;
+  color: #374151;
+  background-color: white;
+}
+
 .lab-report-actions {
   display: flex;
   gap: 8px;
