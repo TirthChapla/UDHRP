@@ -1562,6 +1562,99 @@
   letter-spacing: 0.5px;
 }
 
+/* Reports List */
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.report-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.report-list-item:last-child {
+  border-bottom: none;
+}
+
+.report-list-item:hover {
+  background: #f8fafc;
+}
+
+.report-list-item:active {
+  background: #f1f5f9;
+}
+
+.report-list-item svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.report-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.report-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-date {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.125rem;
+}
+
+.report-status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.report-status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.report-status-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.report-status-reviewed {
+  background: #dbeafe;
+  color: #0369a1;
+}
+
+.report-status-unknown {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.reports-loading {
+  padding: 1.5rem 0.875rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
 /* No Reports Badge */
 .no-reports-badge {
   display: flex;

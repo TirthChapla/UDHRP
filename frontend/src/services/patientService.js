@@ -901,19 +901,37 @@ const mockLabReports = [
 ];
 
 const normalizeLabReport = (report) => {
-  if (!report) return null;
+  if (!report) {
+    console.warn('[normalizeLabReport] Report is null or undefined');
+    return null;
+  }
+
+  console.log('[normalizeLabReport] Processing report:', report);
 
   const parsedDate = report.date ? new Date(report.date) : null;
   const normalizedStatus = report.status ? report.status.toLowerCase() : 'pending';
 
-  // If backend returns results as a string, wrap it into a basic table-friendly row
-  const normalizedResults = Array.isArray(report.results)
-    ? report.results
-    : report.results
-      ? [{ parameter: report.testName || 'Result', value: report.results, unit: '', range: '', status: 'normal' }]
-      : [];
+  // Parse results - handle JSON string, array, or plain string
+  let normalizedResults = [];
+  if (Array.isArray(report.results)) {
+    normalizedResults = report.results;
+    console.log('[normalizeLabReport] Results is array:', normalizedResults.length, 'items');
+  } else if (typeof report.results === 'string' && report.results.trim().startsWith('[')) {
+    // Try to parse JSON string
+    try {
+      normalizedResults = JSON.parse(report.results);
+      console.log('[normalizeLabReport] Parsed JSON results:', normalizedResults.length, 'items');
+    } catch (error) {
+      console.warn('[normalizeLabReport] Failed to parse results JSON:', error);
+      normalizedResults = [{ parameter: report.testName || 'Result', value: report.results, unit: '', range: '', status: 'normal' }];
+    }
+  } else if (report.results) {
+    // Plain string result
+    console.log('[normalizeLabReport] Results is plain string');
+    normalizedResults = [{ parameter: report.testName || 'Result', value: report.results, unit: '', range: '', status: 'normal' }];
+  }
 
-  return {
+  const normalized = {
     id: report.id,
     reportId: report.reportId,
     testName: report.testName,
@@ -930,6 +948,9 @@ const normalizeLabReport = (report) => {
     patientId: report.patientId,
     reportFilePath: report.reportFilePath,
   };
+
+  console.log('[normalizeLabReport] Normalized report:', normalized);
+  return normalized;
 };
 
 /**

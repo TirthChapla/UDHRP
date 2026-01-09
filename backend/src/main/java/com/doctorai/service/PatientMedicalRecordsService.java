@@ -47,6 +47,13 @@ public class PatientMedicalRecordsService {
         log.info("Found {} prescriptions for patient ID: {}", prescriptions.size(), patient.getId());
 
         return prescriptions.stream()
+                .sorted((p1, p2) -> {
+                    // Sort by prescription date descending (most recent first)
+                    if (p1.getPrescriptionDate() == null && p2.getPrescriptionDate() == null) return 0;
+                    if (p1.getPrescriptionDate() == null) return 1;
+                    if (p2.getPrescriptionDate() == null) return -1;
+                    return p2.getPrescriptionDate().compareTo(p1.getPrescriptionDate());
+                })
                 .map(this::mapPrescriptionToDTO)
                 .collect(Collectors.toList());
     }

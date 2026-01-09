@@ -7,6 +7,8 @@ import com.doctorai.model.Prescription;
 import com.doctorai.repository.LabReportRepository;
 import com.doctorai.repository.PatientRepository;
 import com.doctorai.repository.PrescriptionRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,8 @@ public class PatientLabReportService {
 
     @Autowired
     private PrescriptionRepository prescriptionRepository;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Get lab reports for a specific prescription
@@ -61,7 +65,7 @@ public class PatientLabReportService {
             }
 
             Prescription prescription = prescriptionOptional.get();
-            if (!prescription.getPatient().getPatientId().equals(patient.getPatientId())) {
+            if (!prescription.getPatient().getId().equals(patient.getId())) {
                 log.warn("Prescription ID: {} does not belong to patient: {}", prescriptionId, email);
                 return new ArrayList<>();
             }
@@ -154,7 +158,23 @@ public class PatientLabReportService {
                 labReport.getDoctor().getUser().getFirstName() + " " + labReport.getDoctor().getUser().getLastName() :
                 "Unknown";
 
+        String doctorSpecialization = labReport.getDoctor() != null && labReport.getDoctor().getSpecialization() != null ?
+                labReport.getDoctor().getSpecialization() :
+                "Pathology";
+
         String status = labReport.getStatus() != null ? labReport.getStatus().toString().toLowerCase() : "unknown";
+
+        // Parse results string as JSON if it's a valid JSON array, otherwise keep as string
+        String resultsJson = labReport.getResults();
+        if (resultsJson != null && resultsJson.trim().startsWith("[")) {
+            try {
+                // Validate it's valid JSON by parsing it
+                objectMapper.readTree(resultsJson);
+                // If valid, use as-is (frontend will parse it)
+            } catch (JsonProcessingException e) {
+                log.debug("Results is not valid JSON array for lab report ID: {}, keeping as string", labReport.getId());
+            }
+        }
 
         return LabReportDTO.builder()
                 .id(labReport.getId())
@@ -163,7 +183,7 @@ public class PatientLabReportService {
                 .testName(labReport.getTestName())
                 .status(status)
                 .details(labReport.getDoctorNotes())
-                .results(labReport.getResults())
+                .results(resultsJson)
                 .laboratoryName(labReport.getLaboratoryName())
                 .doctorNotes(labReport.getDoctorNotes())
                 .patientId(labReport.getPatient() != null ? labReport.getPatient().getPatientId() : null)
@@ -171,6 +191,7 @@ public class PatientLabReportService {
                         labReport.getPatient().getUser().getFirstName() : null)
                 .doctorId(labReport.getDoctor() != null ? labReport.getDoctor().getId().toString() : null)
                 .doctorName(doctorName)
+                .doctorSpecialization(doctorSpecialization)
                 .reportFilePath(labReport.getReportFilePath())
                 .build();
     }

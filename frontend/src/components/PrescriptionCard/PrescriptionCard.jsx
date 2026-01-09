@@ -3,7 +3,7 @@ import { Calendar, Clock, Pill, ClipboardList, FileText, Stethoscope, Award, Fla
 import Card from '../Card/Card';
 import Button from '../Button/Button';
 
-function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPrescription }) {
+function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPrescription, relatedLabReports = [], onViewLabReport }) {
   const [showReportsDropdown, setShowReportsDropdown] = useState(false);
 
   const hasLabReports = (prescription.labReportIds && prescription.labReportIds.length > 0) ||
@@ -15,6 +15,22 @@ function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPres
       return;
     }
     onViewDetails(prescription);
+  };
+
+  const handleOpenLabReports = (e) => {
+    e.stopPropagation();
+    if (!showReportsDropdown) {
+      onViewLabReportsForPrescription(prescription);
+    }
+    setShowReportsDropdown(!showReportsDropdown);
+  };
+
+  const handleLabReportClick = (report, e) => {
+    e.stopPropagation();
+    if (onViewLabReport) {
+      onViewLabReport(report);
+    }
+    setShowReportsDropdown(false);
   };
 
   return (
@@ -87,13 +103,7 @@ function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPres
           <div className="reports-dropdown-container">
             <button
               className="reports-dropdown-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!showReportsDropdown) {
-                  onViewLabReportsForPrescription(prescription);
-                }
-                setShowReportsDropdown(!showReportsDropdown);
-              }}
+              onClick={handleOpenLabReports}
               title="View lab reports linked to this prescription"
             >
               <FlaskRound size={16} />
@@ -111,8 +121,38 @@ function PrescriptionCard({ prescription, onViewDetails, onViewLabReportsForPres
               <div className="reports-dropdown-menu">
                 <div className="reports-menu-label">
                   <FlaskRound size={14} />
-                  Related Reports
+                  Related Reports ({relatedLabReports.length})
                 </div>
+                {relatedLabReports && relatedLabReports.length > 0 ? (
+                  <div className="reports-list">
+                    {relatedLabReports.map((report) => (
+                      <div
+                        key={report.id}
+                        className="report-list-item"
+                        onClick={(e) => handleLabReportClick(report, e)}
+                      >
+                        <FlaskRound size={14} />
+                        <div className="report-item-info">
+                          <div className="report-name">{report.testName}</div>
+                          <div className="report-date">
+                            {new Date(report.date).toLocaleDateString('en-IN', { 
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                        <div className={`report-status report-status-${report.status}`}>
+                          {report.status}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="reports-loading">
+                    <span>Loading lab reports...</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -16,6 +16,13 @@ function LabReportModal({ report, onClose, onDownload }) {
 
   if (!report) return null;
 
+  // Ensure results is always an array
+  const resultsArray = Array.isArray(report.results) ? report.results : [];
+  
+  // Add debug logging
+  console.log('[LabReportModal] Report data:', report);
+  console.log('[LabReportModal] Results array:', resultsArray);
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -88,8 +95,9 @@ function LabReportModal({ report, onClose, onDownload }) {
     }
   }, [touchDistance]);
 
-  return (
-    <div className="prescription-modal-overlay" onClick={handleOverlayClick}>
+  try {
+    return (
+      <div className="prescription-modal-overlay" onClick={handleOverlayClick}>
       <div className="prescription-paper" onClick={(e) => e.stopPropagation()}>
         {/* Action Buttons */}
         <div className="prescription-actions no-print">
@@ -186,20 +194,20 @@ function LabReportModal({ report, onClose, onDownload }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {report.results && report.results.length > 0 ? (
-                    report.results.map((result, index) => (
+                  {resultsArray && resultsArray.length > 0 ? (
+                    resultsArray.map((result, index) => (
                       <tr key={index}>
                         <td>
-                          {result.parameter}
-                          {getStatusMarker(result.status) && (
+                          {result.parameter || result.testName || 'Test'}
+                          {result.status && (
                             <span className={`lab-status lab-status-${result.status}`}>
                               {getStatusMarker(result.status)}
                             </span>
                           )}
                         </td>
-                        <td className="lab-strong">{result.value}</td>
-                        <td>{result.unit}</td>
-                        <td>{result.range}</td>
+                        <td className="lab-strong">{result.value || 'N/A'}</td>
+                        <td>{result.unit || ''}</td>
+                        <td>{result.range || 'N/A'}</td>
                       </tr>
                     ))
                   ) : (
@@ -240,7 +248,19 @@ function LabReportModal({ report, onClose, onDownload }) {
         </div>
       </div>
     </div>
-  );
+    );
+  } catch (error) {
+    console.error('[LabReportModal] Rendering error:', error);
+    return (
+      <div className="prescription-modal-overlay" onClick={handleOverlayClick}>
+        <div className="prescription-paper" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', padding: '40px' }}>
+          <h2>Error Loading Lab Report</h2>
+          <p>{error.message}</p>
+          <button className="action-btn close-btn" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    );
+  }
 }
 
 export default LabReportModal;

@@ -23,5 +23,6 @@ public class LabReportDTO {
     private String patientName;
     private String doctorId;
     private String doctorName;
+    private String doctorSpecialization;
     private String reportFilePath;
 }

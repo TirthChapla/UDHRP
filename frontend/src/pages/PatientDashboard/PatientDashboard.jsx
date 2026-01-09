@@ -224,6 +224,7 @@ function PatientDashboard({ searchQuery, initialTab }) {
     setLabReportsLoading(true);
     try {
       const data = await getLabReports();
+      console.log('[PatientDashboard] Loaded lab reports:', data);
       setAllLabReports(data);
       setFilteredLabReports(data);
       
@@ -233,7 +234,7 @@ function PatientDashboard({ searchQuery, initialTab }) {
       setLabReportDoctors(doctors);
       setLabReportYears(years);
     } catch (error) {
-      console.error('Failed to load lab reports:', error);
+      console.error('[PatientDashboard] Failed to load lab reports:', error);
       // TODO: Show error notification
     } finally {
       setLabReportsLoading(false);
@@ -361,6 +362,7 @@ function PatientDashboard({ searchQuery, initialTab }) {
 
   // Lab report handlers
   const handleViewLabReport = (report) => {
+    console.log('[PatientDashboard] Viewing lab report:', report);
     setSelectedLabReport(report);
     setShowLabReportModal(true);
   };
@@ -554,6 +556,8 @@ function PatientDashboard({ searchQuery, initialTab }) {
                     prescription={prescription}
                     onViewDetails={handleViewPrescription}
                     onViewLabReportsForPrescription={handleViewLabReportsFromPrescription}
+                    relatedLabReports={relatedLabReports}
+                    onViewLabReport={handleViewLabReport}
                   />
                 ))}
               </div>
