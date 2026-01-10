@@ -1713,56 +1713,6 @@
   transform: translateY(-1px);
 }
 
-/* Lab Reports Modal */
-.lab-reports-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(10px);
-  z-index: 1100;
-  animation: fadeIn var(--transition-fast);
-}
-
-.lab-reports-modal {
-  background: white;
-  border-radius: 16px;
-  width: 90vw;
-  max-width: 700px;
-  max-height: 80vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-
-.lab-reports-modal .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-}
-
-.lab-reports-modal .modal-header h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 0;
-  font-size: 1.25rem;
-  color: #1a1a1a;
-}
-
-.lab-reports-modal .modal-body {
-  padding: 1.5rem 2rem;
-  overflow-y: auto;
-  flex: 1;
-}
-
 .lab-reports-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

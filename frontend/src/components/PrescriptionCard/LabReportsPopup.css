@@ -1,0 +1,247 @@
+/* Lab Reports Popup - Fully Self-Contained */
+
+.lab-reports-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+  padding: 1rem;
+  animation: labReportsPopupFadeIn 0.2s ease-out;
+}
+
+@keyframes labReportsPopupFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lab-reports-popup-container {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: labReportsPopupSlideUp 0.3s ease-out;
+}
+
+@keyframes labReportsPopupSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lab-reports-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.lab-reports-popup-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lab-reports-popup-title h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.lab-reports-popup-title svg {
+  color: #0369a1;
+  flex-shrink: 0;
+}
+
+.lab-reports-popup-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.lab-reports-popup-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1a1a1a;
+}
+
+.lab-reports-popup-content {
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.lab-reports-popup-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.lab-reports-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.lab-report-popup-card {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.lab-report-popup-card:hover {
+  border-color: #0369a1;
+  box-shadow: 0 4px 12px rgba(3, 105, 161, 0.1);
+  transform: translateY(-2px);
+}
+
+.lab-report-popup-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #e0f2fe;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  color: #0369a1;
+}
+
+.lab-report-popup-card h4 {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.lab-report-popup-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.lab-report-popup-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.lab-report-popup-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.lab-report-popup-status.status-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.lab-report-popup-status.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.lab-report-popup-status.status-processing {
+  background: #dbeafe;
+  color: #0c4a6e;
+}
+
+.lab-report-popup-lab {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.lab-reports-popup-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.lab-reports-popup-empty svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.lab-reports-popup-empty p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .lab-reports-popup-overlay {
+    padding: 0.5rem;
+  }
+
+  .lab-reports-popup-container {
+    max-height: 90vh;
+  }
+
+  .lab-reports-popup-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .lab-reports-popup-title h2 {
+    font-size: 1.1rem;
+  }
+
+  .lab-reports-popup-content {
+    padding: 1rem 1.5rem;
+  }
+
+  .lab-reports-popup-grid {
+    grid-template-columns: 1fr;
+  }
+}
