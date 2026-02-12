@@ -3,17 +3,36 @@ import { Search, User, FileText, Plus, Trash2, Calendar, Pill, Activity, AlertCi
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import Card from '../../components/Card/Card';
-import { getPatientById, getPatientPrescriptions, getPatientLabReports, createPrescription, createLabReport } from '../../services/doctorService';
+import OrthopaedicAssessmentForm, { defaultOrthopaedicAssessment } from '../../components/AssessmentForms/OrthopaedicAssessmentForm';
+import NeurologicalAssessmentForm, { defaultNeurologicalAssessment } from '../../components/AssessmentForms/NeurologicalAssessmentForm';
+import CardiopulmonaryAssessmentForm, { defaultCardiopulmonaryAssessment } from '../../components/AssessmentForms/CardiopulmonaryAssessmentForm';
+import PaediatricAssessmentForm, { defaultPaediatricAssessment } from '../../components/AssessmentForms/PaediatricAssessmentForm';
+import { getPatientById, getPatientPrescriptions, getPatientLabReports, createPrescription, createLabReport, createAssessment } from '../../services/doctorService';
 import './DoctorPrescription.css';
 
 function DoctorPrescription() {
+  const assessmentTypeMap = {
+    'Orthopaedic Physiotherapy Assessment Format': 'ORTHOPAEDIC',
+    'Neurological Physiotherapy Assessment Format': 'NEUROLOGICAL',
+    'Cardiopulmonary Physiotherapy Assessment Format': 'CARDIOPULMONARY',
+    'Paediatric Physiotherapy Assessment Format': 'PAEDIATRIC'
+  };
   const [patientId, setPatientId] = useState('');
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [prescriptionFormat, setPrescriptionFormat] = useState('');
   const [openTabs, setOpenTabs] = useState([{ id: 'create', title: 'Create Prescription', type: 'create' }]);
   const [activeTab, setActiveTab] = useState('create');
   const [prescriptionsExpanded, setPrescriptionsExpanded] = useState(false);
   const [labReportsExpanded, setLabReportsExpanded] = useState(false);
+  const buildDefaultAssessments = () => ({
+    ORTHOPAEDIC: { ...defaultOrthopaedicAssessment },
+    NEUROLOGICAL: { ...defaultNeurologicalAssessment },
+    CARDIOPULMONARY: { ...defaultCardiopulmonaryAssessment },
+    PAEDIATRIC: { ...defaultPaediatricAssessment }
+  });
+
+  const [assessmentDataByType, setAssessmentDataByType] = useState(() => buildDefaultAssessments());
   const [medications, setMedications] = useState([
     { id: 1, drug: '', unit: '', dosage: '' }
   ]);
@@ -38,6 +57,26 @@ function DoctorPrescription() {
   const [patientPrescriptions, setPatientPrescriptions] = useState([]);
   const [patientLabReports, setPatientLabReports] = useState([]);
 
+  const buildAssessmentPrefill = (patient) => {
+    const nameFromParts = [patient.firstName, patient.lastName].filter(Boolean).join(' ');
+    return {
+      patientName: patient.name || nameFromParts || '',
+      patientAge: patient.age !== undefined && patient.age !== null ? String(patient.age) : '',
+      patientGender: patient.gender || '',
+      patientAddress: patient.address || ''
+    };
+  };
+
+  const mergePrefill = (existing, prefill) => {
+    const next = { ...existing };
+    Object.keys(prefill).forEach((key) => {
+      if (!next[key]) {
+        next[key] = prefill[key];
+      }
+    });
+    return next;
+  };
+
   // Fetch patient history when patient is selected
   useEffect(() => {
     if (selectedPatient?.patientId) {
@@ -47,6 +86,25 @@ function DoctorPrescription() {
         setPrescriptionData(prev => ({ ...prev, allergies: selectedPatient.allergies }));
       }
     }
+  }, [selectedPatient]);
+
+  useEffect(() => {
+    const storedFormat = localStorage.getItem('doctorPrescriptionFormat') || 'General Prescription Format';
+    setPrescriptionFormat(storedFormat);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedPatient) return;
+
+    const prefill = buildAssessmentPrefill(selectedPatient);
+    setAssessmentDataByType(prev => {
+      const next = { ...prev };
+      Object.values(assessmentTypeMap).forEach((type) => {
+        const existing = next[type] || {};
+        next[type] = mergePrefill(existing, prefill);
+      });
+      return next;
+    });
   }, [selectedPatient]);
 
   const fetchPatientHistory = async (patientId) => {
@@ -74,6 +132,8 @@ function DoctorPrescription() {
     try {
       const patient = await getPatientById(patientId.trim());
       setSelectedPatient(patient);
+      const storedFormat = localStorage.getItem('doctorPrescriptionFormat') || 'General Prescription Format';
+      setPrescriptionFormat(storedFormat);
       setSearchError('');
     } catch (error) {
       console.error('Error searching patient:', error);
@@ -111,6 +171,15 @@ function DoctorPrescription() {
 
   const handlePrescriptionChange = (field, value) => {
     setPrescriptionData({ ...prescriptionData, [field]: value });
+  };
+
+  const getAssessmentType = () => assessmentTypeMap[prescriptionFormat] || null;
+
+  const updateAssessmentData = (type, data) => {
+    setAssessmentDataByType(prev => ({
+      ...prev,
+      [type]: data
+    }));
   };
 
   const handleSubmitPrescription = async () => {
@@ -188,11 +257,28 @@ function DoctorPrescription() {
 
       const result = await createPrescription(prescriptionPayload);
       console.log('[DoctorPrescription] Prescription created successfully:', result);
+
+      const assessmentType = getAssessmentType();
+      const assessmentData = assessmentType ? assessmentDataByType[assessmentType] : null;
+      if (assessmentType && assessmentData && selectedPatient?.patientId && result?.id) {
+        try {
+          await createAssessment(assessmentType, {
+            patientId: selectedPatient.patientId,
+            prescriptionId: result.id,
+            data: assessmentData
+          });
+        } catch (assessmentError) {
+          console.error('[DoctorPrescription] Error creating assessment:', assessmentError);
+          alert('Prescription saved, but assessment failed to save. Please retry.');
+        }
+      }
+
       alert(`Prescription created successfully! ID: ${result.prescriptionId}`);
       
       // Reset form
       setMedications([{ id: 1, drug: '', unit: '', dosage: '' }]);
       setLabReports([{ id: 1, name: '' }]);
+      setAssessmentDataByType(buildDefaultAssessments());
       setPrescriptionData({
         diagnosis: '',
         symptoms: '',
@@ -223,6 +309,7 @@ function DoctorPrescription() {
     setActiveTab('create');
     setMedications([{ id: 1, drug: '', unit: '', dosage: '' }]);
     setLabReports([{ id: 1, name: '' }]);
+    setAssessmentDataByType(buildDefaultAssessments());
     setPrescriptionData({
       diagnosis: '',
       symptoms: '',
@@ -449,6 +536,41 @@ function DoctorPrescription() {
           <Pill size={20} />
           <h2>Prescription</h2>
         </div>
+
+        {prescriptionFormat === 'General Prescription Format' && (
+          <div className="form-group">
+            <label>General Format Selected</label>
+            <input type="text" value="General Prescription Format" readOnly />
+          </div>
+        )}
+
+        {prescriptionFormat === 'Orthopaedic Physiotherapy Assessment Format' && (
+          <OrthopaedicAssessmentForm
+            value={assessmentDataByType.ORTHOPAEDIC}
+            onChange={(data) => updateAssessmentData('ORTHOPAEDIC', data)}
+          />
+        )}
+
+        {prescriptionFormat === 'Neurological Physiotherapy Assessment Format' && (
+          <NeurologicalAssessmentForm
+            value={assessmentDataByType.NEUROLOGICAL}
+            onChange={(data) => updateAssessmentData('NEUROLOGICAL', data)}
+          />
+        )}
+
+        {prescriptionFormat === 'Cardiopulmonary Physiotherapy Assessment Format' && (
+          <CardiopulmonaryAssessmentForm
+            value={assessmentDataByType.CARDIOPULMONARY}
+            onChange={(data) => updateAssessmentData('CARDIOPULMONARY', data)}
+          />
+        )}
+
+        {prescriptionFormat === 'Paediatric Physiotherapy Assessment Format' && (
+          <PaediatricAssessmentForm
+            value={assessmentDataByType.PAEDIATRIC}
+            onChange={(data) => updateAssessmentData('PAEDIATRIC', data)}
+          />
+        )}
 
         {/* Diagnosis */}
         <div className="form-group">
@@ -738,6 +860,10 @@ function DoctorPrescription() {
         
         <div className="header-left">
           <h1>Create Prescription - {selectedPatient.name}</h1>
+          <div className="prescription-format-pill">
+            <span className="format-label">Format</span>
+            <span className="format-value">{prescriptionFormat || 'Not selected'}</span>
+          </div>
         </div>
       </div>
 

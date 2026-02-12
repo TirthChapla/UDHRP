@@ -1,6 +1,8 @@
 package com.doctorai.controller;
 
 import com.doctorai.dto.*;
+import com.doctorai.model.AssessmentType;
+import com.doctorai.service.AssessmentService;
 import com.doctorai.service.DoctorPrescriptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -19,10 +21,14 @@ import java.util.List;
 @Tag(name = "Doctor Prescription", description = "Doctor Prescription Management APIs")
 @SecurityRequirement(name = "Bearer Authentication")
 @Slf4j
-public class DoctorPrescriptionController {
+public class DoctorPrescriptionController
+{
 
     @Autowired
     private DoctorPrescriptionService prescriptionService;
+
+    @Autowired
+    private AssessmentService assessmentService;
 
     // ==================== PATIENT SEARCH ====================
 
@@ -149,5 +155,60 @@ public class DoctorPrescriptionController {
         log.info("Getting lab report with ID: {}", reportId);
         LabReportDTO labReport = prescriptionService.getLabReportById(reportId);
         return ResponseEntity.ok(ApiResponse.success("Lab report retrieved", labReport));
+    }
+
+    // ==================== ASSESSMENTS ====================
+
+    @PostMapping("/assessments")
+    @Operation(summary = "Create assessment", description = "Create a new assessment for a prescription")
+    public ResponseEntity<ApiResponse<AssessmentDTO>> createAssessment(
+            @RequestParam AssessmentType type,
+            @Valid @RequestBody CreateAssessmentRequest request,
+            Authentication authentication) {
+        log.info("Creating {} assessment for patient: {} by doctor: {}", type, request.getPatientId(), authentication.getName());
+        AssessmentDTO assessment = assessmentService.createAssessment(authentication.getName(), type, request);
+        return ResponseEntity.ok(ApiResponse.success("Assessment created successfully", assessment));
+    }
+
+    @GetMapping("/assessments/{id}")
+    @Operation(summary = "Get assessment by ID", description = "Get assessment details by ID")
+    public ResponseEntity<ApiResponse<AssessmentDTO>> getAssessmentById(
+            @PathVariable Long id,
+            Authentication authentication) {
+        log.info("Getting assessment with ID: {}", id);
+        AssessmentDTO assessment = assessmentService.getAssessmentById(id, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Assessment retrieved", assessment));
+    }
+
+    @GetMapping("/assessments")
+    @Operation(summary = "Get assessments", description = "Get assessments filtered by patient, prescription, or type")
+    public ResponseEntity<ApiResponse<List<AssessmentDTO>>> getAssessments(
+            @RequestParam(required = false) String patientId,
+            @RequestParam(required = false) Long prescriptionId,
+            @RequestParam(required = false) AssessmentType type,
+            Authentication authentication) {
+        List<AssessmentDTO> assessments = assessmentService.getAssessments(authentication.getName(), patientId, prescriptionId, type);
+        return ResponseEntity.ok(ApiResponse.success("Assessments retrieved", assessments));
+    }
+
+    @PutMapping("/assessments/{id}")
+    @Operation(summary = "Update assessment", description = "Update an existing assessment")
+    public ResponseEntity<ApiResponse<AssessmentDTO>> updateAssessment(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateAssessmentRequest request,
+            Authentication authentication) {
+        log.info("Updating assessment ID: {} by doctor: {}", id, authentication.getName());
+        AssessmentDTO assessment = assessmentService.updateAssessment(id, authentication.getName(), request);
+        return ResponseEntity.ok(ApiResponse.success("Assessment updated successfully", assessment));
+    }
+
+    @DeleteMapping("/assessments/{id}")
+    @Operation(summary = "Delete assessment", description = "Delete an assessment")
+    public ResponseEntity<ApiResponse<Void>> deleteAssessment(
+            @PathVariable Long id,
+            Authentication authentication) {
+        log.info("Deleting assessment ID: {} by doctor: {}", id, authentication.getName());
+        assessmentService.deleteAssessment(id, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Assessment deleted successfully", null));
     }
 }

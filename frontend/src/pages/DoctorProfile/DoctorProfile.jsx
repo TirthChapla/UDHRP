@@ -28,6 +28,8 @@ function DoctorProfile() {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [prescriptionFormat, setPrescriptionFormat] = useState('');
+  const [originalPrescriptionFormat, setOriginalPrescriptionFormat] = useState('');
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -59,6 +61,9 @@ function DoctorProfile() {
   // Fetch doctor profile on component mount
   useEffect(() => {
     fetchDoctorProfile();
+    const storedFormat = localStorage.getItem('doctorPrescriptionFormat') || 'General Prescription Format';
+    setPrescriptionFormat(storedFormat);
+    setOriginalPrescriptionFormat(storedFormat);
   }, []);
 
   const fetchDoctorProfile = async () => {
@@ -114,11 +119,13 @@ function DoctorProfile() {
 
   const handleEdit = () => {
     setOriginalData({ ...formData });
+    setOriginalPrescriptionFormat(prescriptionFormat);
     setIsEditMode(true);
   };
 
   const handleCancel = () => {
     setFormData({ ...originalData });
+    setPrescriptionFormat(originalPrescriptionFormat);
     setIsEditMode(false);
   };
 
@@ -159,6 +166,8 @@ function DoctorProfile() {
       
       setFormData(mappedData);
       setOriginalData(mappedData);
+      localStorage.setItem('doctorPrescriptionFormat', prescriptionFormat);
+      setOriginalPrescriptionFormat(prescriptionFormat);
       setIsEditMode(false);
       alert('Profile updated successfully!');
     } catch (err) {
@@ -585,6 +594,30 @@ function DoctorProfile() {
                   className="input-field"
                 />
               </div>
+
+              <div className="input-wrapper full-width">
+                <label className="input-label">Prescription Format</label>
+                <select
+                  value={prescriptionFormat}
+                  onChange={(e) => setPrescriptionFormat(e.target.value)}
+                  className="select-field"
+                >
+                  <option value="General Prescription Format">General Prescription Format</option>
+                  <option value="">Select format</option>
+                  <option value="Orthopaedic Physiotherapy Assessment Format">
+                    Orthopaedic Physiotherapy Assessment Format
+                  </option>
+                  <option value="Neurological Physiotherapy Assessment Format">
+                    Neurological Physiotherapy Assessment Format
+                  </option>
+                  <option value="Cardiopulmonary Physiotherapy Assessment Format">
+                    Cardiopulmonary Physiotherapy Assessment Format
+                  </option>
+                  <option value="Paediatric Physiotherapy Assessment Format">
+                    Paediatric Physiotherapy Assessment Format
+                  </option>
+                </select>
+              </div>
             </div>
           ) : (
             <div className="profile-view-grid">
@@ -611,6 +644,13 @@ function DoctorProfile() {
                   </div>
                 </div>
               )}
+
+              <div className="profile-view-item full-width">
+                <label className="view-label">Prescription Format</label>
+                <div className="view-value">
+                  <span>{prescriptionFormat || 'Not selected'}</span>
+                </div>
+              </div>
             </div>
           )}
         </Card>

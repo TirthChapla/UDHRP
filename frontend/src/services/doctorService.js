@@ -174,6 +174,81 @@ export const createPrescription = async (prescriptionData) => {
   }
 };
 
+// ==================== ASSESSMENT APIs ====================
+
+/**
+ * Create a new assessment
+ * @param {string} type
+ * @param {Object} assessmentData
+ * @returns {Promise<Object>}
+ */
+export const createAssessment = async (type, assessmentData) => {
+  try {
+    const response = await apiRequest(`/doctor/prescriptions/assessments?type=${type}`, {
+      method: 'POST',
+      body: JSON.stringify(assessmentData),
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating assessment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get assessments with optional filters
+ * @param {Object} params
+ * @returns {Promise<Array>}
+ */
+export const getAssessments = async (params = {}) => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const response = await apiRequest(`/doctor/prescriptions/assessments${query ? `?${query}` : ''}`, {
+      method: 'GET',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching assessments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an assessment
+ * @param {number} id
+ * @param {Object} assessmentData
+ * @returns {Promise<Object>}
+ */
+export const updateAssessment = async (id, assessmentData) => {
+  try {
+    const response = await apiRequest(`/doctor/prescriptions/assessments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(assessmentData),
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating assessment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an assessment
+ * @param {number} id
+ * @returns {Promise<void>}
+ */
+export const deleteAssessment = async (id) => {
+  try {
+    const response = await apiRequest(`/doctor/prescriptions/assessments/${id}`, {
+      method: 'DELETE',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting assessment:', error);
+    throw error;
+  }
+};
+
 /**
  * Get prescription by ID
  * @param {number} id 
