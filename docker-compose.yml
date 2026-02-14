@@ -23,6 +23,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/appdb
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: rootpassword
+      ALLOWED_ORIGINS: http://13.238.184.40,http://13.238.184.40:80
     networks:
       - app-network
 
