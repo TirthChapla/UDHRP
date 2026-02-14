@@ -280,8 +280,6 @@ Add in GitHub: Settings -> Secrets -> Actions
 
 ### Step C: CI/CD Workflow
 
-If your repo folder name is not `doctor-ai`, update the `cd doctor-ai` line in the workflow.
-
 [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
 
 ```yaml
