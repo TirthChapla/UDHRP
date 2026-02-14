@@ -1,309 +1,389 @@
+# Full Stack Deployment (React + Spring Boot + MySQL on AWS EC2)
 
-# Unified Digital Health Record Platform (UDHRP)
+Production-style deployment using:
 
-## Product Vision
-In India, there is currently no single unified system to record and manage all medical information of a person across their lifetime. This product aims to solve that problem by creating a secure, centralized, and lifelong digital medical record system for every individual, starting from birth and continuing throughout their life.
-
----
-
-## Core Concept
-- Maintain **all medical information of a person** in one system.
-- Begin tracking **from the moment a child is born**.
-- Provide **role-based access** to patients, doctors, laboratories, and insurance companies.
-- Enable **AI-driven insights, reminders, and preventive healthcare guidance**.
+- React (Frontend)
+- Spring Boot (Backend API)
+- MySQL (same EC2 instance)
+- Nginx (Reverse Proxy)
+- Docker and Docker Compose
+- GitHub Actions CI/CD
+- AWS EC2 (t3.small recommended)
 
 ---
 
-## Lifecycle Coverage: From Birth to Adulthood
+## Architecture
 
-### Child Birth Module
-- Unique Health ID generation
-- Linking with:
-  - Birth Certificate
-  - Aadhaar Card (when issued)
-- Medical data entry:
-  - Birth details
-  - Treatments provided
-  - Initial health conditions
-- Parent information storage:
-  - Mother and father medical history
-  - Genetic disease indicators (e.g., diabetes)
+Users
+  |
+  v
+Nginx (port 80)
+  |
+  +--> React Frontend (container)
+  |
+  +--> Spring Boot Backend (container)
+           |
+           v
+        MySQL (container)
 
----
-
-### Automatic Health Reminders
-- Child vaccination reminders
-- COVID vaccination reminders
-- Half-yearly / yearly laboratory test reminders
-- Push notifications via app, SMS, and email
+Everything runs on a single EC2 instance to keep costs low.
 
 ---
 
-## AI Integration (Preventive & Predictive Healthcare)
-- AI trained on:
-  - Doctor research papers
-  - MBBS and medical reference books
-  - Government health guidelines
-- AI-driven features:
-  - Personalized health precautions based on age and history
-  - Risk prediction for genetic and lifestyle diseases
-  - Preventive care suggestions
-- Goal: Help individuals live a healthier and longer life
+## Project Structure
+
+project-root/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+├── frontend/
+│   └── Dockerfile
+├── backend/
+│   └── Dockerfile
+├── nginx/
+│   └── default.conf
+├── docker-compose.yml
+└── README.md
 
 ---
 
-## Patient Module
+## 1. EC2 Setup (run once)
 
-### Patient Profile (My Profile)
-Complete patient information management with the following fields:
+Launch EC2:
 
-#### Personal Information
-- **Name**: Patient's full name
-- **Date of Birth**: Patient's date of birth
-- **Patient ID**: 
-  - Auto-generated unique identifier
-  - Cannot be edited
-  - Assigned once and never changes
-- **Status Toggle**: Patient alive or deceased
-  - If deceased: Input field for "Death due to..." (cause of death)
+- Ubuntu 22.04
+- t3.small instance
+- Open ports: 22 (SSH), 80 (HTTP)
 
-#### Family Information
-- **Parents Information**:
-  - Mother's Unique Health ID
-  - Father's Unique Health ID
-  - Parents' allergies information
-  - Toggle option: "No parent information available" (if patient has no parent info)
-- **Siblings Information** (Optional):
-  - Default: 2 sibling ID input fields
-  - "Add Sibling" button to add more sibling IDs
-  - Not compulsory to fill
+SSH into EC2:
 
-#### Medical Information
-- **Blood Group**: Patient's blood group
-- **Birth Information**:
-  - Birth place (city/location)
-  - Hospital name where born
-- **Specific Instructions**: Any special medical instructions to follow
+```bash
+ssh -i your-key.pem ubuntu@YOUR_EC2_IP
+```
 
----
+Update system:
 
-### Doctor Search & Appointment
-- Search doctors by:
-  - City
-  - Disease specialization
-  - Doctor name
-- Doctor profile view:
-  - Experience
-  - Practice address
-  - Ratings
-  - Availability (e.g., 10 AM – 5 PM)
-- Appointment booking
-- Notification after doctor approval or rescheduling
+```bash
+sudo apt update && sudo apt upgrade -y
+```
 
-### Laboratory Search
-- Search laboratories by:
-  - City
-  - Laboratory name
+Install Docker and Compose plugin:
 
-### Patient Health Records
+```bash
+sudo apt install docker.io docker-compose-plugin -y
+sudo systemctl enable docker
+sudo systemctl start docker
+```
 
-#### Prescription Management
-- **View All Prescriptions**: 
-  - Card-based display showing all prescriptions from consulted doctors
-  - Each card displays:
-    - Doctor name and specialization
-    - Date and time of consultation
-    - Diagnosis summary
-    - Number of medications prescribed
-    - Follow-up information
-- **Search Prescriptions**:
-  - Search by doctor name
-  - Search by diagnosis keywords
-  - Real-time filtering
-- **Filter Prescriptions**:
-  - Filter by specific doctor (only shows doctors who have treated the patient)
-  - Filter by month
-  - Filter by year
-  - Clear all filters option
-- **Full Prescription View**:
-  - Click any prescription card to view complete details
-  - Detailed information includes:
-    - Complete doctor information with specialization
-    - Full diagnosis
-    - All prescribed medications with:
-      - Medication name
-      - Dosage
-      - Frequency (e.g., twice daily, once at night)
-      - Duration (e.g., 7 days, 30 days)
-    - Detailed medical instructions
-    - Recommended laboratory tests
-    - Follow-up schedule
-  - Download prescription as PDF
-- **Responsive Design**: 
-  - Mobile-friendly interface
-  - Adapts to all screen sizes
+Allow docker without sudo:
 
-#### Lifestyle Information Management
-- Update lifestyle information:
-  - Alcohol consumption
-  - Smoking habits
-  - Exercise routine
-  - Dietary habits
+```bash
+sudo usermod -aG docker ubuntu
+newgrp docker
+```
 
-#### Laboratory Reports
-- View all lab reports uploaded by laboratories
-- Download lab reports in PDF format
-- Filter reports by date and test type
+Install Git:
+
+```bash
+sudo apt install git -y
+```
 
 ---
 
-## Doctor Module
+## 2. Frontend Dockerfile
 
-### Doctor Registration
-- Government-issued license verification
-- Profile creation:
-  - Experience
-  - Education (college/university)
-  - Current practice address
-  - Ratings from patients
+[frontend/Dockerfile](frontend/Dockerfile)
 
----
+```Dockerfile
+FROM node:18
 
-## Doctor Appointment Dashboard
-- View appointment requests
-- Approve or reschedule appointments
-- Manage daily schedule
+WORKDIR /app
+COPY . .
 
----
+RUN npm install
+RUN npm run build
+RUN npm install -g serve
 
-## Doctor Checkup Dashboard
-
-When a patient visits the doctor:
-
-- Patient provides Unique Health ID
-- Doctor accesses patient profile
-
-### Dashboard Features
-- Patient profile overview
-- Allergies and risk factors
-- Previous prescriptions and checkup history
-- Create new prescription:
-  - Auto-filled patient details (name, age, gender, date)
-  - Standardized prescription format
-- Medicine integration grid:
-  - Medicine Name
-  - Company (optional)
-  - Morning / Afternoon / Night
-  - Before or After meals
-  - Dosage (tablets or ml)
-- Test recommendations:
-  - Laboratory tests
-  - X-ray
-  - MRI
-- Doctor footer and digital signature
-
-### Medical History Storage
-- Doctor records
-- Pharmacy prescriptions
-- Laboratory reports
+CMD ["serve", "-s", "build", "-l", "3000"]
+```
 
 ---
 
-## Laboratory Dashboard
-- Laboratory registration via government license
-- Patient ID-based sample collection
-- Upload reports to patient profile
-- Automatic patient notifications
+## 3. Backend Dockerfile
 
-### Diagnostic Services Covered
-- Blood tests
-- X-ray
-- MRI
-- Other diagnostic imaging and pathology services
+[backend/Dockerfile](backend/Dockerfile)
 
----
+```Dockerfile
+FROM eclipse-temurin:17-jdk
 
-## Business Analytics Module
-- Aggregated, anonymized health data analytics
-- Disease trend analysis
-- Regional health insights (without violating privacy laws)
+WORKDIR /app
+COPY target/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
 
 ---
 
-## Insurance Company Dashboard
+## 4. Nginx Reverse Proxy
 
-### Registration
-- Company onboarding with proper documentation
-- Secure login credentials provided
+[nginx/default.conf](nginx/default.conf)
 
-### Insurance Assessment Flow
-- User provides their Unique Health ID
-- Insurance company gets:
-  - Read-only access to health profile
-- AI-powered health scoring:
-  - Health percentage score generation
-  - Based on:
-    - Medical history
-    - Prescriptions
-    - Lifestyle data
-    - Laboratory reports
+```nginx
+server {
+    listen 80;
 
----
+    location / {
+        proxy_pass http://frontend:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
 
-## Security & Compliance Requirements
-- Role-based access control (RBAC)
-- End-to-end encryption
-- Compliance with:
-  - Indian IT Act
-  - Digital Health Mission (NDHM)
-- Audit logs for all data access
-- Consent-based data sharing
+    location /api/ {
+        proxy_pass http://backend:8080/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
 
 ---
 
-## 📚 Documentation & Feature Guides
+## 5. Docker Compose
 
-### Complete API & Implementation Docs
-1. **[Patient Lab Reports API](./PATIENT_LAB_REPORTS_API.md)** - Complete patient lab report REST API with 11 endpoints
-2. **[Prescription Lab Reports Feature](./PRESCRIPTION_LAB_REPORTS_FEATURE.md)** - End-to-end implementation for lab reports linked to prescriptions
-3. **[Backend API Endpoints](./backend/API_ENDPOINTS.md)** - All backend REST endpoints including medical records APIs
-4. **[Backend Security](./backend/SECURITY.md)** - JWT authentication and authorization details
+[docker-compose.yml](docker-compose.yml)
 
-### Reference Guides
-- **[Lab Report ID Quick Reference](./LAB_REPORT_ID_QUICK_REFERENCE.md)** - Lab report ID implementation reference
-- **[Lab Report ID Prescription Integration](./LAB_REPORT_ID_PRESCRIPTION_INTEGRATION.md)** - Prescription-lab report mapping details
-- **[Medical Records Implementation Summary](./MEDICAL_RECORDS_IMPLEMENTATION_SUMMARY.md)** - Patient prescriptions overview
+```yaml
+version: "3.8"
 
-### Setup & Feature Guides
-- **[Backend Setup Guide](./BACKEND_SETUP_GUIDE.md)** - Environment setup and configuration
-- **[OTP & Forgot Password Flow](./OTP_FORGOT_PASSWORD_FLOW.md)** - Authentication flow
-- **[Receptionist Endpoints](./RECEPTIONIST_ENDPOINTS_IMPLEMENTATION.md)** - Receptionist APIs
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: appdb
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    container_name: spring_backend
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/appdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: rootpassword
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend
+    container_name: react_frontend
+    restart: always
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  mysql_data:
+```
 
 ---
 
-## Non-Functional Requirements
-- High availability and scalability
-- Mobile and web applications
-- Offline data sync for rural areas
-- Cloud-native architecture
-- Disaster recovery and backups
-- **Enterprise-Ready Architecture**:
-  - Separation of concerns (Services, Components, Pages)
-  - Reusable component library
-  - Centralized API layer
-  - State management
-  - Loading and error states
-  - Responsive design system
+## 6. First Manual Deployment
+
+Clone repo on EC2:
+
+```bash
+git clone YOUR_REPO_URL
+default_dir=$(basename "YOUR_REPO_URL" .git)
+cd "$default_dir"
+```
+
+Build Spring Boot JAR:
+
+```bash
+cd backend
+./mvnw clean package -DskipTests
+cd ..
+```
+
+Start services:
+
+```bash
+docker compose up -d --build
+```
+
+Check containers:
+
+```bash
+docker ps
+```
+
+Open browser:
+
+```
+http://YOUR_EC2_PUBLIC_IP
+```
 
 ---
 
-## Future Enhancements
-- Integration with government health systems
-- Wearable device integration
-- Telemedicine support
-- Multilingual support for Indian languages
+## 7. CI/CD with GitHub Actions
+
+### Step A: Create SSH key (local machine)
+
+```bash
+ssh-keygen -t rsa -b 4096 -C "github-actions"
+```
+
+Copy public key:
+
+```bash
+cat id_rsa.pub
+```
+
+Paste into EC2:
+
+```bash
+nano ~/.ssh/authorized_keys
+```
+
+### Step B: GitHub Secrets
+
+Add in GitHub: Settings -> Secrets -> Actions
+
+- EC2_HOST: EC2 public IP
+- EC2_USER: ubuntu
+- EC2_SSH_KEY: content of id_rsa
+
+### Step C: CI/CD Workflow
+
+If your repo folder name is not `doctor-ai`, update the `cd doctor-ai` line in the workflow.
+
+[.github/workflows/deploy.yml](.github/workflows/deploy.yml)
+
+```yaml
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd doctor-ai
+            git pull origin main
+
+            cd backend
+            ./mvnw clean package -DskipTests
+            cd ..
+
+            docker compose down
+            docker compose up -d --build
+            docker image prune -f
+```
 
 ---
 
-## Conclusion
-This platform aims to become India’s unified digital health backbone, ensuring lifelong, secure, and intelligent medical record management while empowering patients, doctors, laboratories, and insurance providers through technology and AI.
+## Deployment Flow (what happens on each push)
+
+1. You push code to GitHub.
+2. GitHub Actions triggers automatically.
+3. Workflow connects to EC2 via SSH.
+4. Latest code is pulled.
+5. Spring Boot JAR is rebuilt.
+6. Docker containers restart with the new build.
+7. New version goes live.
+
+---
+
+## 8. MySQL Backup
+
+Create backup:
+
+```bash
+docker exec mysql_db mysqldump -u root -prootpassword appdb > backup.sql
+```
+
+Copy backup to local:
+
+```bash
+scp -i your-key.pem ubuntu@YOUR_EC2_IP:~/backup.sql .
+```
+
+---
+
+## 9. Future ML Integration (ready)
+
+Later add:
+
+```
+ml-service/
+```
+
+And in docker-compose:
+
+```yaml
+ml-service:
+  build: ./ml-service
+```
+
+Backend can call the ML API internally.
+
+---
+
+## Estimated Monthly Cost
+
+- EC2 t3.small: ~15 USD
+- Storage: ~1 to 2 USD
+- Total: ~16 to 18 USD
+
+---
+
+## Simple Explanation
+
+You now have a setup where:
+
+- Code lives in GitHub
+- Every push automatically deploys to EC2
+- Nginx routes traffic correctly
+- Docker keeps environments consistent
+- MySQL data stays persistent on the server
+- Future ML model can be added as another container without changing architecture

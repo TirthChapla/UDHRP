@@ -7,7 +7,7 @@ import OrthopaedicAssessmentForm, { defaultOrthopaedicAssessment } from '../../c
 import NeurologicalAssessmentForm, { defaultNeurologicalAssessment } from '../../components/AssessmentForms/NeurologicalAssessmentForm';
 import CardiopulmonaryAssessmentForm, { defaultCardiopulmonaryAssessment } from '../../components/AssessmentForms/CardiopulmonaryAssessmentForm';
 import PaediatricAssessmentForm, { defaultPaediatricAssessment } from '../../components/AssessmentForms/PaediatricAssessmentForm';
-import { getPatientById, getPatientPrescriptions, getPatientLabReports, createPrescription, createLabReport, createAssessment } from '../../services/doctorService';
+import { getPatientById, getPatientPrescriptions, getPatientLabReports, createPrescription, createLabReport, createAssessment, getAssessments } from '../../services/doctorService';
 import './DoctorPrescription.css';
 
 function DoctorPrescription() {
@@ -33,6 +33,7 @@ function DoctorPrescription() {
   });
 
   const [assessmentDataByType, setAssessmentDataByType] = useState(() => buildDefaultAssessments());
+  const [assessmentsByPrescriptionId, setAssessmentsByPrescriptionId] = useState({});
   const [medications, setMedications] = useState([
     { id: 1, drug: '', unit: '', dosage: '' }
   ]);
@@ -134,6 +135,14 @@ function DoctorPrescription() {
       setSelectedPatient(patient);
       const storedFormat = localStorage.getItem('doctorPrescriptionFormat') || 'General Prescription Format';
       setPrescriptionFormat(storedFormat);
+      const prefill = buildAssessmentPrefill(patient);
+      setAssessmentDataByType(() => {
+        const next = buildDefaultAssessments();
+        Object.values(assessmentTypeMap).forEach((type) => {
+          next[type] = mergePrefill(next[type], prefill);
+        });
+        return next;
+      });
       setSearchError('');
     } catch (error) {
       console.error('Error searching patient:', error);
@@ -182,13 +191,613 @@ function DoctorPrescription() {
     }));
   };
 
-  const handleSubmitPrescription = async () => {
-    // Validate medications
-    const validMedications = medications.filter(med => med.drug.trim() !== '');
-    if (validMedications.length === 0) {
-      alert('Please add at least one medication');
-      return;
+  const assessmentViewConfig = {
+    ORTHOPAEDIC: [
+      {
+        title: 'Patient Identification Details',
+        fields: [
+          { label: 'Name', key: 'patientName' },
+          { label: 'Age', key: 'patientAge' },
+          { label: 'Gender', key: 'patientGender' },
+          { label: 'Address', key: 'patientAddress' },
+          { label: 'Occupation', key: 'patientOccupation' },
+          { label: 'Height', key: 'patientHeight' },
+          { label: 'Weight', key: 'patientWeight' },
+          { label: 'BMI', key: 'patientBmi' },
+          { label: 'OPD / IPD No.', key: 'patientOpdIpdNo' },
+          { label: 'Date of Assessment', key: 'assessmentDate' },
+          { label: 'Date of Admission', key: 'admissionDate' },
+          { label: 'Referring Doctor', key: 'referringDoctor' },
+          { label: 'Diagnosis', key: 'diagnosis' }
+        ]
+      },
+      { title: 'Chief Complaints', fields: [{ label: "Patient's Words", key: 'chiefComplaints' }] },
+      {
+        title: 'History of Present Illness',
+        fields: [
+          { label: 'Onset', key: 'historyOnset' },
+          { label: 'Mode of onset', key: 'historyMode' },
+          { label: 'Progression of symptoms', key: 'historyProgression' },
+          { label: 'Aggravating factors', key: 'historyAggravating' },
+          { label: 'Relieving factors', key: 'historyRelieving' },
+          { label: 'Diurnal variation', key: 'historyDiurnal' }
+        ]
+      },
+      {
+        title: 'Past History',
+        fields: [
+          { label: 'Medical history', key: 'pastMedical' },
+          { label: 'Surgical history', key: 'pastSurgical' },
+          { label: 'Previous physiotherapy treatment', key: 'pastPhysio' },
+          { label: 'Medications', key: 'pastMedications' },
+          { label: 'Family history', key: 'pastFamily' }
+        ]
+      },
+      {
+        title: 'Personal / Social History',
+        fields: [
+          { label: 'Diet', key: 'socialDiet' },
+          { label: 'Sleep', key: 'socialSleep' },
+          { label: 'Bowel & bladder', key: 'socialBowelBladder' },
+          { label: 'Addiction', key: 'socialAddiction' },
+          { label: 'Functional independence', key: 'socialFunctionalIndependence' }
+        ]
+      },
+      {
+        title: 'Observation',
+        fields: [
+          { label: 'Posture', key: 'observationPosture' },
+          { label: 'Deformity', key: 'observationDeformity' },
+          { label: 'Muscle wasting / hypertrophy', key: 'observationMuscleWasting' },
+          { label: 'Gait / functional posture', key: 'observationGait' },
+          { label: 'Assistive devices', key: 'observationAssistiveDevices' }
+        ]
+      },
+      {
+        title: 'Pain Assessment',
+        fields: [
+          { label: 'Site', key: 'painSite' },
+          { label: 'Type', key: 'painType' },
+          { label: 'Intensity', key: 'painIntensity' },
+          { label: 'Radiation', key: 'painRadiation' }
+        ]
+      },
+      {
+        title: 'Palpation',
+        fields: [
+          { label: 'Tenderness', key: 'palpationTenderness' },
+          { label: 'Tone', key: 'palpationTone' },
+          { label: 'Temperature', key: 'palpationTemperature' },
+          { label: 'Swelling / spasm', key: 'palpationSwelling' }
+        ]
+      },
+      {
+        title: 'Range of Motion (ROM)',
+        fields: [
+          { label: 'Active ROM', key: 'romActive' },
+          { label: 'Passive ROM', key: 'romPassive' },
+          { label: 'End feel', key: 'romEndFeel' }
+        ]
+      },
+      {
+        title: 'Muscle Strength',
+        fields: [
+          { label: 'MMT Grade', key: 'strengthMmt' },
+          { label: 'Functional strength', key: 'strengthFunctional' }
+        ]
+      },
+      { title: 'Special Tests', fields: [{ label: 'Orthopaedic tests', key: 'specialOrthopaedicTests' }] },
+      {
+        title: 'Functional Assessment',
+        fields: [
+          { label: 'Bed mobility', key: 'functionalBedMobility' },
+          { label: 'Transfers', key: 'functionalTransfers' },
+          { label: 'ADLs', key: 'functionalAdls' },
+          { label: 'Gait', key: 'functionalGait' }
+        ]
+      },
+      {
+        title: 'Problem List',
+        fields: [
+          { label: 'Impairments', key: 'problemImpairments' },
+          { label: 'Activity limitations', key: 'problemActivityLimitations' },
+          { label: 'Participation restrictions', key: 'problemParticipationRestrictions' }
+        ]
+      },
+      { title: 'Physiotherapy Diagnosis', fields: [{ label: 'Diagnosis', key: 'physiotherapyDiagnosis' }] },
+      {
+        title: 'Goals',
+        fields: [
+          { label: 'Short Term Goals', key: 'goalsShortTerm' },
+          { label: 'Long Term Goals', key: 'goalsLongTerm' }
+        ]
+      },
+      {
+        title: 'Treatment Plan',
+        fields: [
+          { label: 'Electrotherapy', key: 'treatmentElectrotherapy' },
+          { label: 'Exercise therapy', key: 'treatmentExerciseTherapy' },
+          { label: 'Manual therapy', key: 'treatmentManualTherapy' },
+          { label: 'Home exercise program', key: 'treatmentHomeExercise' }
+        ]
+      },
+      { title: 'Outcome Measures', fields: [{ label: 'VAS / NDI / ODI', key: 'outcomeMeasures' }] },
+      {
+        title: 'Reassessment & Progress Notes',
+        fields: [
+          { label: 'Physiotherapist Signature', key: 'physiotherapistSignature' },
+          { label: 'Date', key: 'reassessmentDate' },
+          { label: 'Notes', key: 'reassessmentNotes' }
+        ]
+      }
+    ],
+    NEUROLOGICAL: [
+      {
+        title: 'Patient Identification Details',
+        fields: [
+          { label: 'Name', key: 'patientName' },
+          { label: 'Age', key: 'patientAge' },
+          { label: 'Gender', key: 'patientGender' },
+          { label: 'Address', key: 'patientAddress' },
+          { label: 'Occupation', key: 'patientOccupation' },
+          { label: 'Height', key: 'patientHeight' },
+          { label: 'Weight', key: 'patientWeight' },
+          { label: 'BMI', key: 'patientBmi' },
+          { label: 'OPD / IPD No.', key: 'patientOpdIpdNo' },
+          { label: 'Date of Assessment', key: 'assessmentDate' },
+          { label: 'Date of Admission', key: 'admissionDate' },
+          { label: 'Referring Doctor', key: 'referringDoctor' },
+          { label: 'Diagnosis', key: 'diagnosis' }
+        ]
+      },
+      { title: 'Chief Complaints', fields: [{ label: "Patient's Words", key: 'chiefComplaints' }] },
+      {
+        title: 'History of Present Illness',
+        fields: [
+          { label: 'Onset', key: 'historyOnset' },
+          { label: 'Mode of onset', key: 'historyMode' },
+          { label: 'Progression of symptoms', key: 'historyProgression' },
+          { label: 'Aggravating factors', key: 'historyAggravating' },
+          { label: 'Relieving factors', key: 'historyRelieving' },
+          { label: 'Diurnal variation', key: 'historyDiurnal' }
+        ]
+      },
+      {
+        title: 'Past History',
+        fields: [
+          { label: 'Medical history', key: 'pastMedical' },
+          { label: 'Surgical history', key: 'pastSurgical' },
+          { label: 'Previous physiotherapy treatment', key: 'pastPhysio' },
+          { label: 'Medications', key: 'pastMedications' },
+          { label: 'Family history', key: 'pastFamily' }
+        ]
+      },
+      {
+        title: 'Personal / Social History',
+        fields: [
+          { label: 'Diet', key: 'socialDiet' },
+          { label: 'Sleep', key: 'socialSleep' },
+          { label: 'Bowel & bladder', key: 'socialBowelBladder' },
+          { label: 'Addiction', key: 'socialAddiction' },
+          { label: 'Functional independence', key: 'socialFunctionalIndependence' }
+        ]
+      },
+      {
+        title: 'Observation',
+        fields: [
+          { label: 'Posture', key: 'observationPosture' },
+          { label: 'Muscle wasting / hypertrophy', key: 'observationMuscleWasting' },
+          { label: 'Gait / functional posture', key: 'observationGait' },
+          { label: 'Assistive devices', key: 'observationAssistiveDevices' }
+        ]
+      },
+      {
+        title: 'Vital Parameters',
+        fields: [
+          { label: 'Pulse', key: 'vitalPulse' },
+          { label: 'Blood Pressure', key: 'vitalBloodPressure' },
+          { label: 'Respiratory Rate', key: 'vitalRespiratoryRate' },
+          { label: 'SpO2', key: 'vitalSpo2' },
+          { label: 'Temperature', key: 'vitalTemperature' }
+        ]
+      },
+      {
+        title: 'Pain Assessment',
+        fields: [
+          { label: 'Site', key: 'painSite' },
+          { label: 'Type', key: 'painType' },
+          { label: 'Intensity', key: 'painIntensity' },
+          { label: 'Radiation', key: 'painRadiation' }
+        ]
+      },
+      {
+        title: 'Range of Motion (ROM)',
+        fields: [
+          { label: 'Active ROM', key: 'romActive' },
+          { label: 'Passive ROM', key: 'romPassive' },
+          { label: 'End feel', key: 'romEndFeel' }
+        ]
+      },
+      {
+        title: 'Muscle Strength',
+        fields: [
+          { label: 'MMT Grade', key: 'strengthMmt' },
+          { label: 'Functional strength', key: 'strengthFunctional' }
+        ]
+      },
+      {
+        title: 'Neurological Examination',
+        fields: [
+          { label: 'Mental status', key: 'neuroMentalStatus' },
+          { label: 'Cranial nerves', key: 'neuroCranialNerves' },
+          { label: 'Muscle tone (MAS)', key: 'neuroMuscleTone' },
+          { label: 'Reflexes', key: 'neuroReflexes' },
+          { label: 'Sensory examination', key: 'neuroSensory' },
+          { label: 'Coordination', key: 'neuroCoordination' },
+          { label: 'Balance', key: 'neuroBalance' }
+        ]
+      },
+      { title: 'Special Tests', fields: [{ label: 'Neurological tests', key: 'specialNeurologicalTests' }] },
+      {
+        title: 'Functional Assessment',
+        fields: [
+          { label: 'Bed mobility', key: 'functionalBedMobility' },
+          { label: 'Transfers', key: 'functionalTransfers' },
+          { label: 'ADLs', key: 'functionalAdls' },
+          { label: 'Gait', key: 'functionalGait' }
+        ]
+      },
+      {
+        title: 'Problem List',
+        fields: [
+          { label: 'Impairments', key: 'problemImpairments' },
+          { label: 'Activity limitations', key: 'problemActivityLimitations' },
+          { label: 'Participation restrictions', key: 'problemParticipationRestrictions' }
+        ]
+      },
+      { title: 'Physiotherapy Diagnosis', fields: [{ label: 'Diagnosis', key: 'physiotherapyDiagnosis' }] },
+      {
+        title: 'Goals',
+        fields: [
+          { label: 'Short Term Goals', key: 'goalsShortTerm' },
+          { label: 'Long Term Goals', key: 'goalsLongTerm' }
+        ]
+      },
+      {
+        title: 'Treatment Plan',
+        fields: [
+          { label: 'Exercise therapy', key: 'treatmentExerciseTherapy' },
+          { label: 'Manual therapy', key: 'treatmentManualTherapy' },
+          { label: 'Neuro facilitation', key: 'treatmentNeuroFacilitation' },
+          { label: 'Home exercise program', key: 'treatmentHomeExercise' }
+        ]
+      },
+      { title: 'Outcome Measures', fields: [{ label: 'FIM / Barthel Index', key: 'outcomeMeasures' }] },
+      {
+        title: 'Reassessment & Progress Notes',
+        fields: [
+          { label: 'Physiotherapist Signature', key: 'physiotherapistSignature' },
+          { label: 'Date', key: 'reassessmentDate' },
+          { label: 'Notes', key: 'reassessmentNotes' }
+        ]
+      }
+    ],
+    CARDIOPULMONARY: [
+      {
+        title: 'Patient Identification Details',
+        fields: [
+          { label: 'Name', key: 'patientName' },
+          { label: 'Age', key: 'patientAge' },
+          { label: 'Gender', key: 'patientGender' },
+          { label: 'Address', key: 'patientAddress' },
+          { label: 'Occupation', key: 'patientOccupation' },
+          { label: 'Height', key: 'patientHeight' },
+          { label: 'Weight', key: 'patientWeight' },
+          { label: 'BMI', key: 'patientBmi' },
+          { label: 'OPD / IPD No.', key: 'patientOpdIpdNo' },
+          { label: 'Date of Assessment', key: 'assessmentDate' },
+          { label: 'Date of Admission', key: 'admissionDate' },
+          { label: 'Referring Doctor', key: 'referringDoctor' },
+          { label: 'Diagnosis', key: 'diagnosis' }
+        ]
+      },
+      { title: 'Chief Complaints', fields: [{ label: "Patient's Words", key: 'chiefComplaints' }] },
+      {
+        title: 'History of Present Illness',
+        fields: [
+          { label: 'Onset', key: 'historyOnset' },
+          { label: 'Mode of onset', key: 'historyMode' },
+          { label: 'Progression of symptoms', key: 'historyProgression' },
+          { label: 'Aggravating factors', key: 'historyAggravating' },
+          { label: 'Relieving factors', key: 'historyRelieving' },
+          { label: 'Diurnal variation', key: 'historyDiurnal' }
+        ]
+      },
+      {
+        title: 'Past History',
+        fields: [
+          { label: 'Medical history', key: 'pastMedical' },
+          { label: 'Surgical history', key: 'pastSurgical' },
+          { label: 'Previous physiotherapy treatment', key: 'pastPhysio' },
+          { label: 'Medications', key: 'pastMedications' },
+          { label: 'Family history', key: 'pastFamily' }
+        ]
+      },
+      {
+        title: 'Personal / Social History',
+        fields: [
+          { label: 'Diet', key: 'socialDiet' },
+          { label: 'Sleep', key: 'socialSleep' },
+          { label: 'Bowel & bladder', key: 'socialBowelBladder' },
+          { label: 'Addiction', key: 'socialAddiction' },
+          { label: 'Functional independence', key: 'socialFunctionalIndependence' }
+        ]
+      },
+      {
+        title: 'Observation',
+        fields: [
+          { label: 'Posture', key: 'observationPosture' },
+          { label: 'Gait / functional posture', key: 'observationGait' },
+          { label: 'Assistive devices', key: 'observationAssistiveDevices' }
+        ]
+      },
+      {
+        title: 'Vital Parameters',
+        fields: [
+          { label: 'Pulse', key: 'vitalPulse' },
+          { label: 'Blood Pressure', key: 'vitalBloodPressure' },
+          { label: 'Respiratory Rate', key: 'vitalRespiratoryRate' },
+          { label: 'SpO2', key: 'vitalSpo2' },
+          { label: 'Temperature', key: 'vitalTemperature' }
+        ]
+      },
+      {
+        title: 'Cardiopulmonary Assessment',
+        fields: [
+          { label: 'Chest expansion', key: 'cardioChestExpansion' },
+          { label: 'Breath sounds', key: 'cardioBreathSounds' },
+          { label: 'Dyspnoea grade', key: 'cardioDyspnoeaGrade' },
+          { label: 'Cough & sputum', key: 'cardioCoughSputum' },
+          { label: 'Exercise tolerance', key: 'cardioExerciseTolerance' },
+          { label: 'Functional capacity (6MWT / METs)', key: 'cardioFunctionalCapacity' }
+        ]
+      },
+      {
+        title: 'Functional Assessment',
+        fields: [
+          { label: 'Bed mobility', key: 'functionalBedMobility' },
+          { label: 'Transfers', key: 'functionalTransfers' },
+          { label: 'ADLs', key: 'functionalAdls' }
+        ]
+      },
+      {
+        title: 'Problem List',
+        fields: [
+          { label: 'Impairments', key: 'problemImpairments' },
+          { label: 'Activity limitations', key: 'problemActivityLimitations' },
+          { label: 'Participation restrictions', key: 'problemParticipationRestrictions' }
+        ]
+      },
+      { title: 'Physiotherapy Diagnosis', fields: [{ label: 'Diagnosis', key: 'physiotherapyDiagnosis' }] },
+      {
+        title: 'Goals',
+        fields: [
+          { label: 'Short Term Goals', key: 'goalsShortTerm' },
+          { label: 'Long Term Goals', key: 'goalsLongTerm' }
+        ]
+      },
+      {
+        title: 'Treatment Plan',
+        fields: [
+          { label: 'Electrotherapy', key: 'treatmentElectrotherapy' },
+          { label: 'Exercise therapy', key: 'treatmentExerciseTherapy' },
+          { label: 'Cardiopulmonary rehabilitation', key: 'treatmentCardiopulmonaryRehab' },
+          { label: 'Home exercise program', key: 'treatmentHomeExercise' }
+        ]
+      },
+      { title: 'Outcome Measures', fields: [{ label: '6MWT / METs', key: 'outcomeMeasures' }] },
+      {
+        title: 'Reassessment & Progress Notes',
+        fields: [
+          { label: 'Physiotherapist Signature', key: 'physiotherapistSignature' },
+          { label: 'Date', key: 'reassessmentDate' },
+          { label: 'Notes', key: 'reassessmentNotes' }
+        ]
+      }
+    ],
+    PAEDIATRIC: [
+      {
+        title: 'Patient Identification Details',
+        fields: [
+          { label: 'Name', key: 'patientName' },
+          { label: 'Age', key: 'patientAge' },
+          { label: 'Gender', key: 'patientGender' },
+          { label: 'Address', key: 'patientAddress' },
+          { label: 'Height', key: 'patientHeight' },
+          { label: 'Weight', key: 'patientWeight' },
+          { label: 'BMI', key: 'patientBmi' },
+          { label: 'OPD / IPD No.', key: 'patientOpdIpdNo' },
+          { label: 'Date of Assessment', key: 'assessmentDate' },
+          { label: 'Referring Doctor', key: 'referringDoctor' },
+          { label: 'Diagnosis', key: 'diagnosis' }
+        ]
+      },
+      { title: 'Chief Complaints', fields: [{ label: "Parent's Words", key: 'chiefComplaints' }] },
+      {
+        title: 'History of Present Illness',
+        fields: [
+          { label: 'Onset', key: 'historyOnset' },
+          { label: 'Mode of onset', key: 'historyMode' },
+          { label: 'Progression of symptoms', key: 'historyProgression' },
+          { label: 'Aggravating factors', key: 'historyAggravating' },
+          { label: 'Relieving factors', key: 'historyRelieving' },
+          { label: 'Diurnal variation', key: 'historyDiurnal' }
+        ]
+      },
+      {
+        title: 'Past History',
+        fields: [
+          { label: 'Medical history', key: 'pastMedical' },
+          { label: 'Surgical history', key: 'pastSurgical' },
+          { label: 'Previous physiotherapy treatment', key: 'pastPhysio' },
+          { label: 'Medications', key: 'pastMedications' },
+          { label: 'Family history', key: 'pastFamily' }
+        ]
+      },
+      {
+        title: 'Personal / Social History',
+        fields: [
+          { label: 'Diet', key: 'socialDiet' },
+          { label: 'Sleep', key: 'socialSleep' },
+          { label: 'Bowel & bladder', key: 'socialBowelBladder' },
+          { label: 'Addiction', key: 'socialAddiction' },
+          { label: 'Functional independence', key: 'socialFunctionalIndependence' }
+        ]
+      },
+      {
+        title: 'Birth & Developmental History',
+        fields: [
+          { label: 'Antenatal / Natal / Postnatal', key: 'birthAntenatalNatalPostnatal' },
+          { label: 'Birth weight & delivery', key: 'birthWeightDelivery' },
+          { label: 'NICU stay', key: 'birthNicuStay' },
+          { label: 'Developmental milestones', key: 'birthMilestones' },
+          { label: 'Immunization history', key: 'birthImmunization' }
+        ]
+      },
+      {
+        title: 'Observation',
+        fields: [
+          { label: 'Posture', key: 'observationPosture' },
+          { label: 'Deformity', key: 'observationDeformity' },
+          { label: 'Muscle wasting / hypertrophy', key: 'observationMuscleWasting' },
+          { label: 'Gait / functional posture', key: 'observationGait' },
+          { label: 'Assistive devices', key: 'observationAssistiveDevices' },
+          { label: 'Behaviour & cooperation', key: 'observationBehaviour' }
+        ]
+      },
+      {
+        title: 'Vital Parameters',
+        fields: [
+          { label: 'Pulse', key: 'vitalPulse' },
+          { label: 'Blood Pressure', key: 'vitalBloodPressure' },
+          { label: 'Respiratory Rate', key: 'vitalRespiratoryRate' },
+          { label: 'SpO2', key: 'vitalSpo2' },
+          { label: 'Temperature', key: 'vitalTemperature' }
+        ]
+      },
+      {
+        title: 'Range of Motion (ROM)',
+        fields: [
+          { label: 'Active ROM', key: 'romActive' },
+          { label: 'Passive ROM', key: 'romPassive' },
+          { label: 'End feel', key: 'romEndFeel' }
+        ]
+      },
+      {
+        title: 'Muscle Strength',
+        fields: [
+          { label: 'MMT Grade', key: 'strengthMmt' },
+          { label: 'Functional strength', key: 'strengthFunctional' }
+        ]
+      },
+      { title: 'Special Tests', fields: [{ label: 'Developmental tests', key: 'specialDevelopmentalTests' }] },
+      {
+        title: 'Functional Assessment',
+        fields: [
+          { label: 'Bed mobility', key: 'functionalBedMobility' },
+          { label: 'Transfers', key: 'functionalTransfers' },
+          { label: 'ADLs', key: 'functionalAdls' },
+          { label: 'Play activities', key: 'functionalPlayActivities' }
+        ]
+      },
+      {
+        title: 'Problem List',
+        fields: [
+          { label: 'Impairments', key: 'problemImpairments' },
+          { label: 'Activity limitations', key: 'problemActivityLimitations' },
+          { label: 'Participation restrictions', key: 'problemParticipationRestrictions' }
+        ]
+      },
+      { title: 'Physiotherapy Diagnosis', fields: [{ label: 'Diagnosis', key: 'physiotherapyDiagnosis' }] },
+      {
+        title: 'Goals',
+        fields: [
+          { label: 'Short Term Goals', key: 'goalsShortTerm' },
+          { label: 'Long Term Goals', key: 'goalsLongTerm' }
+        ]
+      },
+      {
+        title: 'Treatment Plan',
+        fields: [
+          { label: 'Exercise therapy', key: 'treatmentExerciseTherapy' },
+          { label: 'Manual therapy', key: 'treatmentManualTherapy' },
+          { label: 'Play therapy', key: 'treatmentPlayTherapy' },
+          { label: 'Home exercise program', key: 'treatmentHomeExercise' }
+        ]
+      },
+      { title: 'Outcome Measures', fields: [{ label: 'GMFM', key: 'outcomeMeasures' }] },
+      {
+        title: 'Reassessment & Progress Notes',
+        fields: [
+          { label: 'Physiotherapist Signature', key: 'physiotherapistSignature' },
+          { label: 'Date', key: 'reassessmentDate' },
+          { label: 'Notes', key: 'reassessmentNotes' }
+        ]
+      }
+    ]
+  };
+
+  const renderAssessmentView = (assessment) => {
+    if (!assessment || !assessment.type) return null;
+    const config = assessmentViewConfig[assessment.type];
+    if (!config) return null;
+
+    const title = `${assessment.type.replace('_', ' ')} Assessment`;
+
+    return (
+      <div className="assessment-view">
+        <h3 className="assessment-view-title">{title}</h3>
+        {config.map((section) => (
+          <div key={section.title} className="assessment-section">
+            <h4 className="assessment-section-title">{section.title}</h4>
+            <div className="assessment-grid-view">
+              {section.fields.map((field) => {
+                const rawValue = assessment.data ? assessment.data[field.key] : '';
+                const value = rawValue !== undefined && rawValue !== null && String(rawValue).trim() !== ''
+                  ? String(rawValue)
+                  : 'N/A';
+                return (
+                  <div key={field.key} className="assessment-item">
+                    <span className="assessment-item-label">{field.label}</span>
+                    <span className="assessment-item-value">{value}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const fetchAssessmentForPrescription = async (prescriptionId) => {
+    try {
+      const assessments = await getAssessments({ prescriptionId });
+      if (!Array.isArray(assessments) || assessments.length === 0) {
+        return;
+      }
+      const sorted = [...assessments].sort((a, b) => (b.id || 0) - (a.id || 0));
+      setAssessmentsByPrescriptionId(prev => ({
+        ...prev,
+        [prescriptionId]: sorted[0]
+      }));
+    } catch (error) {
+      console.error('Error fetching assessments:', error);
     }
+  };
+
+  const handleSubmitPrescription = async () => {
+    const validMedications = medications.filter(med => med.drug.trim() !== '');
 
     setSubmitLoading(true);
 
@@ -339,6 +948,9 @@ function DoctorPrescription() {
     // Check if tab already exists
     const existingTab = openTabs.find(tab => tab.id === tabId);
     if (existingTab) {
+      if (type === 'prescription' && data?.id && !assessmentsByPrescriptionId[data.id]) {
+        fetchAssessmentForPrescription(data.id);
+      }
       setActiveTab(tabId);
       return;
     }
@@ -346,6 +958,10 @@ function DoctorPrescription() {
     // Add new tab
     setOpenTabs([...openTabs, { id: tabId, title: tabTitle, type, data }]);
     setActiveTab(tabId);
+
+    if (type === 'prescription' && data?.id && !assessmentsByPrescriptionId[data.id]) {
+      fetchAssessmentForPrescription(data.id);
+    }
   };
 
   const closeTab = (tabId) => {
@@ -483,6 +1099,8 @@ function DoctorPrescription() {
             <span>{data.followUpDate || 'N/A'}</span>
           </div>
         </div>
+
+        {renderAssessmentView(assessmentsByPrescriptionId[data.id])}
       </div>
     </Card>
   );
