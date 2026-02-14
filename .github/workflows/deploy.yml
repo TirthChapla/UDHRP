@@ -25,7 +25,8 @@ jobs:
             git pull origin main
 
             cd backend
-            ./mvnw clean package -DskipTests
+            mvn clean package -DskipTests
+
             cd ..
 
             docker compose down
